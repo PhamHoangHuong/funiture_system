@@ -1,0 +1,24 @@
+name: Optimize and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run optimization script
+      run: |
+        # Add your optimization commands here
+        echo "Optimizing code..."
+
+    - name: Deploy to website
+      run: |
+        # Add your deployment commands here
+        echo "Deploying code..."
