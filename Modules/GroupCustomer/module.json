@@ -1,0 +1,11 @@
+{
+    "name": "GroupCustomer",
+    "alias": "groupcustomer",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\GroupCustomer\\Providers\\GroupCustomerServiceProvider"
+    ],
+    "files": []
+}

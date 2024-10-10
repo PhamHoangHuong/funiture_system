@@ -1,0 +1,11 @@
+{
+    "name": "AdvancedPrice",
+    "alias": "advancedprice",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AdvancedPrice\\Providers\\AdvancedPriceServiceProvider"
+    ],
+    "files": []
+}

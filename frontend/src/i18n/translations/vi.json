@@ -1,0 +1,15 @@
+{
+  "login": "Đăng Nhập",
+  "admin": "Quản trị viên",
+  "email": "Email",
+  "password": "Mật khẩu",
+  "rememberMe": "Ghi nhớ đăng nhập",
+  "invalidCredentials": "Thông tin đăng nhập không hợp lệ. Vui lòng thử lại.",
+  "loginSuccess": "Đăng nhập thành công!",
+  "loginFailed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.",
+  "unknownError": "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
+  "authCheckError": "Lỗi kiểm tra xác thực:",
+  "loginError": "Lỗi đăng nhập:",
+  "logoutError": "Lỗi đăng xuất:",
+  "refreshTokenError": "Lỗi làm mới token:"
+}
