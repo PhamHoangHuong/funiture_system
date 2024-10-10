@@ -1,15 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import { resolve } from 'node:path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'react-router-dom': 'react-router-dom',
-    }
+      '@': resolve(__dirname, './src'),
+    },
   },
-  optimizeDeps: {
-    include: ['jquery', 'isotope-layout']
-  }
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })
