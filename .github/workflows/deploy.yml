@@ -31,4 +31,4 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa <username>@hoanghuong.id.vn "cd /path/to/destination && git pull"
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa hoanghuo@hoanghuong.id.vn "cd /path/to/destination && git pull"
