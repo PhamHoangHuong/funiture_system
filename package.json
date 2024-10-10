@@ -2,11 +2,23 @@
     "private": true,
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "start": "cd frontend && npm run start"
     },
     "devDependencies": {
         "axios": "^1.1.2",
         "laravel-vite-plugin": "^0.7.2",
         "vite": "^4.0.0"
+    },
+    "dependencies": {
+        "@fancyapps/fancybox": "^3.5.7",
+        "isotope-layout": "^3.0.6",
+        "jquery": "^3.7.1",
+        "jquery-nice-select": "^1.1.0",
+        "jquery-ui-dist": "^1.13.3",
+        "jquery-zoom": "^1.7.21",
+        "jquery.counterup": "^2.1.0",
+        "slick-carousel": "^1.8.1",
+        "wowjs": "^1.1.3"
     }
 }
