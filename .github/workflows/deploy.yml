@@ -26,12 +26,12 @@ jobs:
 
     - name: Deploy to server
       env:
-        SSH_KEY: ${{ secrets.SSH_KEY }}
+        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         HOST: hoanghuong.id.vn
         USER: hoanghuo
         DEPLOY_DIR: /home/hoanghuo/funiture_system
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ env.USER }}@${{ env.HOST }} "cd ${{ env.DEPLOY_DIR }} && git pull && npm install && npm run build"
