@@ -56,4 +56,4 @@ jobs:
         SSH_USER: ${{ secrets.SSH_USER }}
         SSH_HOST: ${{ secrets.SSH_HOST }}
       run: |
-        ssh $SSH_USER@$SSH_HOST "cd /home/hoanghuo/public_html && git pull && php artisan migrate && npm install && npm run build"
+        ssh $SSH_USER@$SSH_HOST "cd /home/hoanghuo/public_html/funiture_system && git pull && php artisan migrate && npm install && npm run build"
