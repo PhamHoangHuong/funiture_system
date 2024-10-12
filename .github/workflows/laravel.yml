@@ -46,14 +46,15 @@ jobs:
     needs: [laravel-tests, build-frontend]
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: Install SSH keys
       run: |
         install -m 600 -D /dev/null ~/.ssh/id_rsa
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-    - name: Deploy to server via SSH
+    - name: Connect and deploy
       env:
         SSH_USER: ${{ secrets.SSH_USER }}
         SSH_HOST: ${{ secrets.SSH_HOST }}
       run: |
-        ssh $SSH_USER@$SSH_HOST "cd /home/hoanghuo/funiture_system && git pull && php artisan migrate && npm install && npm run build"
+        ssh -v $SSH_USER@$SSH_HOST "cd /home/hoanghuo/funiture_system && git pull && composer install && php artisan migrate && npm install && npm run build"
