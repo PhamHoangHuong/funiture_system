@@ -47,14 +47,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install SSH keys
-      run: |
-        install -m 600 -D /dev/null ~/.ssh/id_rsa
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-    - name: Connect and deploy
+    - name: Deploy to cPanel
       env:
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
+        HOST: 103.169.35.190
+        USER: hoanghuo
+        TARGET: ~/funiture_system
       run: |
-        ssh -v $SSH_USER@$SSH_HOST "cd /home/hoanghuo/funiture_system && git pull && composer install && php artisan migrate && npm install && npm run build"
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+        scp -r ./* $USER@$HOST:$TARGET
+        ssh $USER@$HOST "cd $TARGET && composer install && php artisan migrate && npm install && npm run build"
