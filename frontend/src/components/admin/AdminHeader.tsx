@@ -2,12 +2,12 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
-import LanguageSwitcher from '../../i18n/LanguageSwitcher';
-import { useTranslation } from '../../hooks/translation';
+// import LanguageSwitcher from '../../i18n/LanguageSwitcher';
+// import { useTranslation } from '../../hooks/translation';
 
 const AdminHeader: React.FC = () => {
     const { user, handleLogout } = useAuth();
-    const { t } = useTranslation();
+    // const { t } = useTranslation();
 
     return (
         <header className="topbar">
@@ -163,7 +163,7 @@ const AdminHeader: React.FC = () => {
                                 <a className="dropdown-item" href="apps-chat.html">
                                     <i className="bx bx-message-dots text-muted fs-18 align-middle me-1" /><span className="align-middle">Messages</span>
                                 </a>
-                                <LanguageSwitcher />
+                                {/* <LanguageSwitcher /> */}
                                 <a className="dropdown-item" href="pages-pricing.html">
                                     <i className="bx bx-wallet text-muted fs-18 align-middle me-1" /><span className="align-middle">Pricing</span>
                                 </a>

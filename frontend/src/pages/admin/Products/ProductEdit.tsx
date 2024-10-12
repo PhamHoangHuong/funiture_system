@@ -1,23 +1,23 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 // import DataTable from 'datatables.net-react';
 // import DT from 'datatables.net-dt';
 
 // DataTable.use(DT);
 
-const headers = [
-    {
-        name: 'Name',
-        value: 'name'
-    },
-    {
-        name: 'Location',
-        value: 'location'
-    }
-]
+// const headers = [
+//     {
+//         name: 'Name',
+//         value: 'name'
+//     },
+//     {
+//         name: 'Location',
+//         value: 'location'
+//     }
+// ]
 
 const ProductEdit: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    // const { id } = useParams<{ id: string }>();
 
     return (
 
