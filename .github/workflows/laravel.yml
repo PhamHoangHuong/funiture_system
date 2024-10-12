@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install lftp
+      run: sudo apt-get install -y lftp
     - name: Deploy to cPanel via FTP
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
