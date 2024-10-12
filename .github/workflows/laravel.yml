@@ -49,22 +49,15 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install SSH Client and rsync
       run: sudo apt-get update && sudo apt-get install openssh-client rsync -y
-    - name: Deploy to cPanel
-      env:
-        HOST: 103.169.35.190
-        USER: hoanghuo
-        TARGET: ~/funiture_system
+    - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -vvv $USER@$HOST "echo 'SSH connection test'"
-        rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" --delete ./ $USER@$HOST:$TARGET
-        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "cd $TARGET && composer install && php artisan migrate && npm install && npm run build"
-    - name: Debug SSH
-      if: failure()
-      env:
-        HOST: 103.169.35.190
-        USER: hoanghuo
-      run: ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "echo 'Debug SSH connection'"
+        ssh-keyscan -H 103.169.35.190 >> ~/.ssh/known_hosts
+    - name: Test SSH connection
+      run: ssh -vvv hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
+    - name: Deploy to cPanel
+      run: |
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./ hoanghuo@103.169.35.190:~/funiture_system/
+        ssh hoanghuo@103.169.35.190 "cd ~/funiture_system && composer install && php artisan migrate && npm install && npm run build"
