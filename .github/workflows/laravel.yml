@@ -47,8 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install SSH Client
-      run: sudo apt-get install openssh-client -y
+    - name: Install SSH Client and rsync
+      run: sudo apt-get update && sudo apt-get install openssh-client rsync -y
     - name: Deploy to cPanel
       env:
         HOST: 103.169.35.190
@@ -59,8 +59,12 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-        rsync -avz --delete ./ $USER@$HOST:$TARGET
-        ssh -o ServerAliveInterval=60 $USER@$HOST "cd $TARGET && composer install && php artisan migrate && npm install && npm run build"
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -vvv $USER@$HOST "echo 'SSH connection test'"
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" --delete ./ $USER@$HOST:$TARGET
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "cd $TARGET && composer install && php artisan migrate && npm install && npm run build"
     - name: Debug SSH
-      run: |
-        ssh -vvv $USER@$HOST "echo 'SSH connection successful'"
+      if: failure()
+      env:
+        HOST: 103.169.35.190
+        USER: hoanghuo
+      run: ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "echo 'Debug SSH connection'"
