@@ -46,13 +46,14 @@ jobs:
     needs: [laravel-tests, build-frontend]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Install lftp
-      run: sudo apt-get install -y lftp
-    - name: Deploy to cPanel via FTP
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        FTP_SERVER: ${{ secrets.FTP_SERVER }}
+    - name: Install SSH keys
       run: |
-        lftp -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} -e "mirror -R ./ public_html/; bye" ${{ secrets.FTP_SERVER }}
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+    - name: Deploy to server via SSH
+      env:
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+      run: |
+        ssh $SSH_USER@$SSH_HOST "cd /home/hoanghuo/public_html && git pull && php artisan migrate && npm install && npm run build"
