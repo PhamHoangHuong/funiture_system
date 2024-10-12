@@ -47,19 +47,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Deploy to Server
-      uses: appleboy/ssh-action@master
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
       with:
-        host: 103.169.35.190
-        username: hoanghuo
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd ~/funiture_system
-          git pull origin main
-          composer install --no-interaction --prefer-dist --optimize-autoloader
-          php artisan migrate --force
-          npm ci
-          npm run build
-          php artisan config:cache
-          php artisan route:cache
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+    - name: Deploy to Server
+      run: |
+        ssh -o StrictHostKeyChecking=no hoanghuo@103.169.35.190 '
+          cd ~/funiture_system &&
+          git pull origin main &&
+          composer install --no-interaction --prefer-dist --optimize-autoloader &&
+          php artisan migrate --force &&
+          npm ci &&
+          npm run build &&
+          php artisan config:cache &&
+          php artisan route:cache &&
           php artisan view:cache
+        '
