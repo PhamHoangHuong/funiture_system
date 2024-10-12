@@ -47,8 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install SSH Client and rsync
-      run: sudo apt-get update && sudo apt-get install openssh-client rsync -y
+    - name: Install SSH Client
+      run: sudo apt-get install openssh-client -y
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
@@ -56,8 +56,9 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 103.169.35.190 >> ~/.ssh/known_hosts
     - name: Test SSH connection
-      run: ssh -vvv hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
+      run: ssh -v hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
     - name: Deploy to cPanel
+      if: success()
       run: |
-        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./ hoanghuo@103.169.35.190:~/funiture_system/
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude '.git*' --exclude 'node_modules' ./ hoanghuo@103.169.35.190:~/funiture_system/
         ssh hoanghuo@103.169.35.190 "cd ~/funiture_system && composer install && php artisan migrate && npm install && npm run build"
