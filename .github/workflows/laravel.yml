@@ -43,18 +43,18 @@ jobs:
       run: cd frontend && npm run build
 
   deploy:
-  needs: [laravel-tests, build-frontend]
-  runs-on: ubuntu-latest
-  steps:
-  - uses: actions/checkout@v3
-  - name: Deploy to cPanel
-    env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
-      CPANEL_SERVER: ${{ secrets.CPANEL_SERVER }}
-    run: |
-      mkdir -p ~/.ssh
-      echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-keyscan ${{ secrets.CPANEL_SERVER }} >> ~/.ssh/known_hosts
-      ssh -i ~/.ssh/id_rsa ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_SERVER }} "echo 'SSH connection successful'"
+    needs: [laravel-tests, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Deploy to cPanel
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
+        CPANEL_SERVER: ${{ secrets.CPANEL_SERVER }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan ${{ secrets.CPANEL_SERVER }} >> ~/.ssh/known_hosts
+        ssh -i ~/.ssh/id_rsa ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_SERVER }} "echo 'SSH connection successful'"
