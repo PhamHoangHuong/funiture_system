@@ -5,7 +5,7 @@ application:
   version: "1.0"
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/hoanghuo/public_html/funiture_system
+    - export DEPLOYPATH=/home/hoanghuo/repositories/funiture_system
     - /bin/cp -R * $DEPLOYPATH
     - /bin/cp .env.example $DEPLOYPATH/.env
     - /bin/cp .htaccess $DEPLOYPATH/.htaccess
