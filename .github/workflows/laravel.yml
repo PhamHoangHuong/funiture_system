@@ -47,32 +47,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install SSH Client
-      run: sudo apt-get install openssh-client -y
-    - name: Setup SSH key
-      uses: webfactory/ssh-agent@v0.5.0
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@master
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    - name: Add host key
-      run: ssh-keyscan -H 103.169.35.190 >> ~/.ssh/known_hosts
-    - name: Deploy to Hosting
-      run: |
-        rsync -avz --delete \
-          -e "ssh -o StrictHostKeyChecking=no" \
-          --exclude='.git' \
-          --exclude='.github' \
-          --exclude='node_modules' \
-          --exclude='.env' \
-          ./ hoanghuo@103.169.35.190:~/funiture_system/
-    - name: Run Post-Deploy Commands
-      run: |
-        ssh -o StrictHostKeyChecking=no hoanghuo@103.169.35.190 '
-          cd ~/funiture_system &&
-          composer install --no-interaction --prefer-dist --optimize-autoloader &&
-          php artisan migrate --force &&
-          npm ci &&
-          npm run build &&
-          php artisan config:cache &&
-          php artisan route:cache &&
+        host: 103.169.35.190
+        username: hoanghuo
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/funiture_system
+          git pull origin main
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          php artisan migrate --force
+          npm ci
+          npm run build
+          php artisan config:cache
+          php artisan route:cache
           php artisan view:cache
-        '
