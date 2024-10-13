@@ -9,14 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan 103.169.35.190 >> ~/.ssh/known_hosts
+        
+    - name: Test SSH connection
+      run: ssh -i ~/.ssh/id_rsa hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
+
     - name: Deploy to cPanel
-      uses: appleboy/ssh-action@master
-      with:
-        host: 103.169.35.190
-        username: hoanghuo
-        password: QV2!52pcpW@3lW
-        port: 22
-        script: |
+      run: |
+        ssh -i ~/.ssh/id_rsa hoanghuo@103.169.35.190 << 'EOF'
           cd /home/hoanghuo/public_html
           git pull origin LUX-Huong
           composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -24,3 +32,4 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+        EOF
