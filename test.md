@@ -1,3 +1,0 @@
-# Pham Hoang Huong
-
-test
