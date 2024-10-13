@@ -5,6 +5,8 @@ namespace Modules\Product\Transformers;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Attributes\Transformers\AttributeValueResource;
 use Modules\AdvancedPrice\Transformers\AdvancedPriceResource;
+use Modules\Category\Transformers\CategoryResource;
+use Modules\Product\Entities\ProductCategory;
 
 class ProductResource extends JsonResource
 {
@@ -29,7 +31,7 @@ class ProductResource extends JsonResource
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
-            'category_id' => $this->category_id,
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
 
             // Quan hệ với sản phẩm chính
             'parent' => new ProductResource($this->whenLoaded('parent')), //trả về sản phẩm chính nếu có

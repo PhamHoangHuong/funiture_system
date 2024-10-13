@@ -54,6 +54,9 @@ class ProductController extends Controller
             $this->handleVariants($request, $product);
             // Lưu sản phẩm vào các nguồn
             $this->saveProductToSources($request, $product);
+            // Lưu vào bảng product_categories
+            $this->handleProductCategories($request, $product);
+
             DB::commit();
             return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', Response::HTTP_CREATED);
         } catch (\Exception $e) {
@@ -69,7 +72,7 @@ class ProductController extends Controller
             if (!$product) {
                 return $this->toResponseBad('Không tìm thấy sản phẩm', Response::HTTP_NOT_FOUND);
             }
-            return $this->toResponseSuccess(new ProductResource($product->load('variants', 'parent')));
+            return $this->toResponseSuccess(new ProductResource($product->load('variants', 'parent','categories')));
         } catch (\Exception $e) {
             return $this->handleException($e);
         }
@@ -85,6 +88,7 @@ class ProductController extends Controller
             $productData['image'] = $this->updateImage($request, 'image', 'product', $product->image);
             $product = $this->productRepository->update($id, $productData);
             $this->handleAttributes($request, $product);
+            $this->handleProductCategories($request, $product);
             DB::commit();
             return $this->toResponseSuccess('Sản phẩm đã được cập nhật thành công');
         } catch (\Exception $e) {
@@ -188,6 +192,22 @@ class ProductController extends Controller
                     'stock' => $sourceData['stock'],
                 ];
                 $this->sourceProductRepository->create($sourceProductData);
+            }
+        }
+    }
+
+    // Phương thức xử lý để lưu vào bảng product_categories
+    protected function handleProductCategories(Request $request, $product)
+    {
+        $categoryIds = explode(',', $request['category_ids']);
+
+        if ($request->has('category_ids')) {
+            // Xóa các danh mục cũ của sản phẩm
+            $product->categories()->detach();
+
+            // Thêm các danh mục mới
+            foreach ($categoryIds as $categoryId) {
+                $product->categories()->attach($categoryId);
             }
         }
     }

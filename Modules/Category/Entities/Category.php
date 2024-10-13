@@ -5,14 +5,16 @@ namespace Modules\Category\Entities;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Product\Entities\Product;
 
 class Category extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded = [];
 
-    protected static function newFactory()
+    //Quan hệ với bảng products thông qua ProductCategory
+    public function products()
     {
-        // return \Modules\Category\Database\factories\CategoryFactory::new();
+        return $this->belongsToMany(Product::class, 'product_categories');
     }
 }

@@ -32,7 +32,6 @@ return new class extends Migration
             $table->string('seo_title')->nullable()->comment('Tiêu đề SEO');
             $table->text('seo_description')->nullable()->comment('Mô tả SEO');
             $table->string('video_link')->nullable()->comment('Đường dẫn video liên quan');
-            $table->unsignedBigInteger('category_id')->nullable()->comment('Liên kết danh mục sản phẩm');
             $table->timestamps();
             $table->softDeletes();
         });

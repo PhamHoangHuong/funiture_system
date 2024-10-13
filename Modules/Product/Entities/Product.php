@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\AdvancedPrice\Entities\AdvancedPrice;
 use Modules\Attributes\Entities\Attribute;
 use Modules\Attributes\Entities\AttributeValue;
+use Modules\Category\Entities\Category;
 use Modules\Source\Entities\Source;
 use Modules\Source\Entities\SourceProduct;
 
@@ -32,8 +33,7 @@ class Product extends Model
         'stock_quantity',
         'seo_title',
         'seo_description',
-        'video_link',
-        'category_id'
+        'video_link'
     ];
 
     // Quan hệ với sản phẩm chính
@@ -82,5 +82,11 @@ class Product extends Model
     public function productAttributes()
     {
         return $this->hasMany(ProductAttribute::class);
+    }
+
+    //Quan hệ với bảng categories thông qua ProductCategory
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'product_categories');
     }
 }
