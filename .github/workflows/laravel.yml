@@ -1,40 +1,25 @@
-name: Deploy to cPanel
+name: Simple Deploy to cPanel
 
 on:
   push:
-    branches:
-      - LUX-Huong  # Chỉ deploy khi có thay đổi trên nhánh LUX-Huong
+    branches: [ LUX-Huong ]
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Chạy trên môi trường Ubuntu
-
+    runs-on: ubuntu-latest
+    
     steps:
-    # Bước 1: Lấy mã nguồn từ repository GitHub
-    - name: Checkout code
-      uses: actions/checkout@v2  # Lấy mã nguồn từ nhánh chính của repository
-
-    # Bước 2: Kết nối và deploy lên cPanel thông qua SSH
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@master  # Sử dụng SSH action của appleboy
+    - name: Deploy to cPanel
+      uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.CPANEL_HOST }}  # Địa chỉ máy chủ cPanel
-        username: ${{ secrets.CPANEL_USERNAME }}  # Tên đăng nhập SSH trên cPanel
-        key: ${{ secrets.CPANEL_SSH_KEY }}  # SSH private key từ GitHub Secrets
+        host: ${{ secrets.CPANEL_HOST }}
+        username: ${{ secrets.CPANEL_USERNAME }}
+        key: ${{ secrets.CPANEL_SSH_KEY }}
         script: |
-          # Di chuyển vào thư mục public_html/ nơi mã nguồn của bạn được lưu trữ
-          cd /public_html/  
-          
-          # Pull mã nguồn mới nhất từ GitHub
-          git pull origin LUX-Huong  
-          
-          # Cài đặt các dependencies của Laravel
-          composer install --optimize-autoloader --no-dev  
-          
-          # Chạy migration của database
-          php artisan migrate --force  
-          
-          # Cache lại config, route và view của Laravel
-          php artisan config:cache  
-          php artisan route:cache  
+          cd /home/luxadeco/public_html
+          git pull origin LUX-Huong
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
           php artisan view:cache
