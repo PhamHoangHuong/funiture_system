@@ -23,13 +23,16 @@ jobs:
       run: ssh -i ~/.ssh/id_rsa hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
 
     - name: Deploy to cPanel
-      run: |
-        ssh -i ~/.ssh/id_rsa hoanghuo@103.169.35.190 << 'EOF'
-          cd /home/hoanghuo/public_html
-          git pull origin LUX-Huong
-          composer install --no-interaction --prefer-dist --optimize-autoloader
-          php artisan migrate --force
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-        EOF
+      uses: appleboy/ssh-action@master
+      with:
+        host: 103.169.35.190
+        username: hoanghuo
+        password: ${{ secrets.CPANEL_PASSWORD }}
+        port: 22
+        debug: true
+        timeout: 60s
+        command_timeout: 20m
+        script: |
+          whoami
+          pwd
+          # Các lệnh khác
