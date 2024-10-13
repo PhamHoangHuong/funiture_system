@@ -22,11 +22,11 @@ jobs:
         username: ${{ secrets.CPANEL_USERNAME }}  # Tên đăng nhập SSH trên cPanel
         key: ${{ secrets.CPANEL_SSH_KEY }}  # SSH private key từ GitHub Secrets
         script: |
-          # Di chuyển vào thư mục public_html/backend nơi mã nguồn của bạn được lưu trữ
-          cd /public_html/backend  
+          # Di chuyển vào thư mục public_html/ nơi mã nguồn của bạn được lưu trữ
+          cd /public_html/  
           
           # Pull mã nguồn mới nhất từ GitHub
-          git pull origin main  
+          git pull origin LUX-Huong  
           
           # Cài đặt các dependencies của Laravel
           composer install --optimize-autoloader --no-dev  
