@@ -19,8 +19,13 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan 103.169.35.190 >> ~/.ssh/known_hosts
         
-    - name: Test SSH connection
-      run: ssh -i ~/.ssh/id_rsa hoanghuo@103.169.35.190 "echo 'SSH connection successful'"
+    - name: SSH Remote Commands
+      uses: appleboy/ssh-action@master
+      with:
+        host: 103.169.35.190
+        username: hoanghuo
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: echo 'SSH connection successful'
 
     - name: Deploy to cPanel
       uses: appleboy/ssh-action@master
