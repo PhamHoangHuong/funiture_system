@@ -14,7 +14,7 @@ jobs:
       with:
         host: ${{ secrets.CPANEL_HOST }}
         username: ${{ secrets.CPANEL_USERNAME }}
-        key: ${{ secrets.CPANEL_SSH_KEY }}
+        password: ${{ secrets.CPANEL_PASSWORD }}
         script: |
           cd /home/luxadeco/public_html
           git pull origin LUX-Huong
