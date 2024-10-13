@@ -1,4 +1,4 @@
-name: Simple Deploy to cPanel
+name: Deploy to cPanel
 
 on:
   push:
@@ -12,11 +12,12 @@ jobs:
     - name: Deploy to cPanel
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.CPANEL_HOST }}
-        username: ${{ secrets.CPANEL_USERNAME }}
-        password: ${{ secrets.CPANEL_PASSWORD }}
+        host: 103.169.35.190
+        username: hoanghuo
+        password: QV2!52pcpW@3lW
+        port: 22
         script: |
-          cd /home/luxadeco/public_html
+          cd /home/hoanghuo/public_html
           git pull origin LUX-Huong
           composer install --no-interaction --prefer-dist --optimize-autoloader
           php artisan migrate --force
