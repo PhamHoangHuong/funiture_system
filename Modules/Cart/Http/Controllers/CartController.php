@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Session;
 use Modules\Cart\Entities\Cart;
 use Modules\Cart\Entities\CartItems;
 use Modules\Cart\Http\Requests\CartRequest;
+use Modules\Cart\Repositories\CartItemRepositoryInterFace;
 use Modules\Product\Entities\Product;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 
@@ -19,12 +20,15 @@ use Modules\Product\Repositories\ProductRepositoryInterface;
 class CartController extends Controller
 {
     protected $productRepository;
+    protected $cartItemRepository;
 
     public function __construct(
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        CartItemRepositoryInterFace $cartItemRepository,
     )
     {
         $this->productRepository = $productRepository;
+        $this->$cartItemRepository = $cartItemRepository;
     }
 
     /**
@@ -151,13 +155,7 @@ class CartController extends Controller
         // Nếu người dùng đã đăng nhập
 //        try {
 //            if (Auth::check()) {
-//                $cartItem = CartItems::where('product_id', $productId)
-//                    ->whereHas('cart', function ($query) {
-//                        $query->where('user_id', Auth::id());
-//                    })
-//                    ->firstOrFail();
-//
-//                $cartItem->update(['quantity' => $validated['quantity']]);
+//                $cartItem = $this->cartItemRepository->updateCartItem($productId, $validated['quantity']);
 //
 //                return response()->json($cartItem);
 //            }
@@ -170,7 +168,7 @@ class CartController extends Controller
 
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity'] = $validated['quantity'];
-            session()->put('cart', $cart);
+            $this->putCartSession($cart);
             return response()->json(['message' => 'Cart updated']);
         }
 
