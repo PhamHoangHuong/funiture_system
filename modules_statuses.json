@@ -7,5 +7,6 @@
     "AdvancedPrice": true,
     "Category": true,
     "GroupCustomer": true,
-    "Customer": true
+    "Customer": true,
+    "Cart": true
 }

@@ -7,6 +7,8 @@ use Modules\Attributes\Repositories\AttributeRepository;
 use Modules\Attributes\Repositories\AttributeRepositoryInterface;
 use Modules\Attributes\Repositories\AttributeValueRepositoryInterface;
 use Modules\Attributes\Repositories\AttributeValueRepository;
+use Modules\Cart\Repositories\CartRepository;
+use Modules\Cart\Repositories\CartRepositoryInterFace;
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;
@@ -71,6 +73,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             CustomerRepositoryInterface::class,
             CustomerRepository::class
+        );
+
+        //Customer
+        $this->app->singleton(
+            CartRepositoryInterFace::class,
+            CartRepository::class
         );
     }
 

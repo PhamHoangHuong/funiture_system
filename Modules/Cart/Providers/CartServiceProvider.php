@@ -1,21 +1,21 @@
 <?php
 
-namespace Modules\Customer\Providers;
+namespace Modules\Cart\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
 
-class CustomerServiceProvider extends ServiceProvider
+class CartServiceProvider extends ServiceProvider
 {
     /**
      * @var string $moduleName
      */
-    protected $moduleName = 'Customer';
+    protected $moduleName = 'Cart';
 
     /**
      * @var string $moduleNameLower
      */
-    protected $moduleNameLower = 'customer';
+    protected $moduleNameLower = 'cart';
 
     /**
      * Boot the application events.

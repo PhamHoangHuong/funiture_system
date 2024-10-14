@@ -6,7 +6,7 @@ interface RepositoryInterface
 {
     public function getAll();
 
-    public function find(int $id);
+    public function find(int $id, array $columns = ['*']);
 
     public function create(array $data);
 
