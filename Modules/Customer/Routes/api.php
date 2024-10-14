@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
-use Modules\Customer\Http\Controllers\CustomerController;
+use Modules\Auth\Http\Controllers\AuthController;
+use Modules\Customer\Http\Controllers\AuthCustomerController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -13,9 +15,12 @@ use Modules\Customer\Http\Controllers\CustomerController;
 |
 */
 
-//Route::middleware('auth:api')->get('/customer', function (Request $request) {
-//    return $request->user();
-//});
-
-
-Route::apiResource('customer', CustomerController::class);
+Route::group([
+    'middleware' => 'jwt',
+], function ($router) {
+    Route::get('profile', [AuthCustomerController::class,'profile']);
+    Route::post('logout', [AuthCustomerController::class,'logout']);
+});
+Route::post('login', [AuthCustomerController::class,'login']);
+Route::post('refresh', [AuthCustomerController::class,'refresh']);
+Route::post('register', [AuthCustomerController::class,'register']);
