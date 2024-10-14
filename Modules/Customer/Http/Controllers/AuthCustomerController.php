@@ -34,6 +34,6 @@ class AuthCustomerController extends BaseAuthController
             auth('customer')->login($customer);
             return response()->json(new UserResource(auth('customer')->user()));
         }
-
+        
     }
 }

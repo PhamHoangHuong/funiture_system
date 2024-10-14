@@ -12,6 +12,8 @@ use Modules\Cart\Entities\CartItems;
 use Modules\Cart\Http\Requests\CartRequest;
 use Modules\Product\Entities\Product;
 use Modules\Product\Repositories\ProductRepositoryInterface;
+use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  *
@@ -22,8 +24,7 @@ class CartController extends Controller
 
     public function __construct(
         ProductRepositoryInterface $productRepository
-    )
-    {
+    ) {
         $this->productRepository = $productRepository;
     }
 
@@ -33,20 +34,30 @@ class CartController extends Controller
      */
     public function index()
     {
-        // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
-//        try {
-//            if (Auth::check('customer')) {
-//                $cart = Cart::where('user_id', Auth::id())->with('items.product')->first();
-//                if (!$cart) {
-//                    return response()->json(['message' => 'Cart is empty'], 404);
-//                }
-//                return response()->json($cart);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        try {
+            $token = request()->cookie('access_token');
+            if ($token) {
+                $user = JWTAuth::setToken($token)->authenticate();
+                if ($user) {
+                    Auth::guard('customer')->login($user);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('JWT Authentication error: ' . $e->getMessage());
+        }
 
-        // Nếu chưa đăng nhập, lấy giỏ hàng từ session
+        Log::info('Auth check result after manual auth: ' . (Auth::guard('customer')->check() ? 'true' : 'false'));
+        Log::info('Session ID: ' . session()->getId());
+        Log::info('Access token cookie: ' . request()->cookie('access_token'));
+
+        if (Auth::guard('customer')->check()) {
+            $user = Auth::guard('customer')->user();
+
+            $message = "User is logged in. User ID: " . $user->id;
+        } else {
+            $message = "User is not logged in";
+        }
+        dd($message);
         $cart = Session::get('cart', []);
         foreach ($cart as $key => $item) {
             $id_product = (int)$item['product_id'];
@@ -62,19 +73,20 @@ class CartController extends Controller
         return response()->json($results, 200);
     }
 
-    public function miniCart(){
+    public function miniCart()
+    {
         // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
-//        try {
-//            if (Auth::check('customer')) {
-//                $cart = Cart::where('user_id', Auth::id())->with('items.product')->first();
-//                if (!$cart) {
-//                    return response()->json(['message' => 'Cart is empty'], 404);
-//                }
-//                return response()->json($cart);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        //        try {
+        //            if (Auth::check('customer')) {
+        //                $cart = Cart::where('user_id', Auth::id())->with('items.product')->first();
+        //                if (!$cart) {
+        //                    return response()->json(['message' => 'Cart is empty'], 404);
+        //                }
+        //                return response()->json($cart);
+        //            }
+        //        } catch (\Exception $e) {
+        //            return response()->json(['error' => $e->getMessage()], 500);
+        //        }
 
         // Nếu chưa đăng nhập, lấy giỏ hàng từ session
         $cart = Session::get('cart', []);
@@ -105,21 +117,21 @@ class CartController extends Controller
     {
         $product_id = (int)$request->product_id;
         $quantity = (int)$request->quantity;
-//        try {
-//            if (Auth::check()) {
-//                $cart = Cart::firstOrCreate([
-//                    'user_id' => Auth::id(),
-//                ]);
-//
-//                $cartItem = $cart->items()->updateOrCreate(
-//                    ['product_id' => $product_id],
-//                    ['quantity' => $quantity]
-//                );
-//                return response()->json($cartItem, 201);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        //        try {
+        //            if (Auth::check()) {
+        //                $cart = Cart::firstOrCreate([
+        //                    'user_id' => Auth::id(),
+        //                ]);
+        //
+        //                $cartItem = $cart->items()->updateOrCreate(
+        //                    ['product_id' => $product_id],
+        //                    ['quantity' => $quantity]
+        //                );
+        //                return response()->json($cartItem, 201);
+        //            }
+        //        } catch (\Exception $e) {
+        //            return response()->json(['error' => $e->getMessage()], 500);
+        //        }
 
         // Nếu chưa đăng nhập, lưu trữ giỏ hàng trong session
         $cart = $this->getCartSession();
@@ -149,21 +161,21 @@ class CartController extends Controller
         ]);
 
         // Nếu người dùng đã đăng nhập
-//        try {
-//            if (Auth::check()) {
-//                $cartItem = CartItems::where('product_id', $productId)
-//                    ->whereHas('cart', function ($query) {
-//                        $query->where('user_id', Auth::id());
-//                    })
-//                    ->firstOrFail();
-//
-//                $cartItem->update(['quantity' => $validated['quantity']]);
-//
-//                return response()->json($cartItem);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        //        try {
+        //            if (Auth::check()) {
+        //                $cartItem = CartItems::where('product_id', $productId)
+        //                    ->whereHas('cart', function ($query) {
+        //                        $query->where('user_id', Auth::id());
+        //                    })
+        //                    ->firstOrFail();
+        //
+        //                $cartItem->update(['quantity' => $validated['quantity']]);
+        //
+        //                return response()->json($cartItem);
+        //            }
+        //        } catch (\Exception $e) {
+        //            return response()->json(['error' => $e->getMessage()], 500);
+        //        }
 
         // Nếu chưa đăng nhập, cập nhật giỏ hàng trong session
         $cart = $this->getCartSession();
@@ -185,21 +197,21 @@ class CartController extends Controller
     public function destroy($productId)
     {
         // Nếu người dùng đã đăng nhập
-//        try {
-//            if (Auth::check()) {
-//                $cartItem = CartItems::where('product_id', $productId)
-//                    ->whereHas('cart', function ($query) {
-//                        $query->where('user_id', Auth::id());
-//                    })
-//                    ->firstOrFail();
-//
-//                $cartItem->delete();
-//
-//                return response()->json(['message' => 'Item removed'], 200);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        //        try {
+        //            if (Auth::check()) {
+        //                $cartItem = CartItems::where('product_id', $productId)
+        //                    ->whereHas('cart', function ($query) {
+        //                        $query->where('user_id', Auth::id());
+        //                    })
+        //                    ->firstOrFail();
+        //
+        //                $cartItem->delete();
+        //
+        //                return response()->json(['message' => 'Item removed'], 200);
+        //            }
+        //        } catch (\Exception $e) {
+        //            return response()->json(['error' => $e->getMessage()], 500);
+        //        }
 
         // Nếu chưa đăng nhập, xóa sản phẩm trong session
         $cart = $this->getCartSession();
