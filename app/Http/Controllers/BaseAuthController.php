@@ -19,7 +19,7 @@ class BaseAuthController extends Controller
         $credentials = request(['email', 'password']);
 
         if (!$token = auth($this->guard)->attempt($credentials)) {
-            return response()->json(['error' => 'Sai tên đăng nhập hoặc mật khẩu'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Sai email hoặc mật khẩu'], Response::HTTP_UNAUTHORIZED);
         }
 
         $user = auth($this->guard)->user();

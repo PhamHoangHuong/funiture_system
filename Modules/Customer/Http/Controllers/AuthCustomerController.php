@@ -13,9 +13,11 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Modules\Auth\Transformers\UserResource;
 use Tymon\JWTAuth\Contracts\Providers\Auth;
 use App\Http\Controllers\BaseAuthController;
+use Illuminate\Support\Facades\Hash as FacadesHash;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\Customer\Http\Requests\CustomerRequest;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+
 
 class AuthCustomerController extends BaseAuthController
 {
@@ -26,7 +28,7 @@ class AuthCustomerController extends BaseAuthController
     public function register(CustomerRequest $request)
     { {
             $data = $request->validated();
-            $data['password'] = Hash::make($data['password']);
+            $data['password'] = FacadesHash::make($data['password']);
             $customer = Customer::create($data);
 
             auth('customer')->login($customer);
