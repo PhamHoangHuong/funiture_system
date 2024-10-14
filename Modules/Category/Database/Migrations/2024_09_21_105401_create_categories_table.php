@@ -15,13 +15,13 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name', 255)->unique();
+            $table->string('name', 255);
             $table->string('slug', 20);
             $table->bigInteger('parent_id')->nullable();
             $table->string('image', 200)->nullable();
             $table->string('description')->nullable();
             $table->tinyInteger('is_menu')->default(true);
-            $table->boolean('status')->default(true);
+            $table->tinyInteger('status')->default(true);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });

@@ -8,11 +8,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
     protected $guarded = [];
 
     protected static function newFactory()
     {
         // return \Modules\Category\Database\factories\CategoryFactory::new();
+    }
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    public function subCategories()
+    {
+        return $this->children()->with('subCategories');
     }
 }

@@ -14,7 +14,7 @@ class CategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name' => 'required|string|max:255|',
             'slug' => 'required|string|max:20',
             'parent_id' => 'nullable|integer|exists:categories,id',
             'image' => 'nullable|string|max:200',
@@ -24,6 +24,7 @@ class CategoryRequest extends FormRequest
             'deleted_at' => 'nullable|date',
         ];
     }
+
 
 
     /**
