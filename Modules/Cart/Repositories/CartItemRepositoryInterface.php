@@ -4,7 +4,8 @@ namespace Modules\Cart\Repositories;
 
 use App\Repositories\RepositoryInterface;
 
-interface CartItemRepositoryInterFace extends RepositoryInterface
+interface CartItemRepositoryInterface extends RepositoryInterface
 {
     public function updateCartItem($productId, $quantity);
+    public function deleteCartItem($productId);
 }

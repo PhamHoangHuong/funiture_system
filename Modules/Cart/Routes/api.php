@@ -15,7 +15,7 @@ use Modules\Cart\Http\Controllers\CartController;
 |
 */
 //
-Route::group(['prefix' => '/cart'], function () {
+Route::group(['prefix' => '/cart', 'middleware' => 'jwt'], function () {
     Route::get('', [CartController::class, 'index']);
     Route::get('/mini', [CartController::class, 'miniCart']);
     Route::post('', [CartController::class, 'store']);
