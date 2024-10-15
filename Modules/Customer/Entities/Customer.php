@@ -11,6 +11,7 @@ class Customer extends Authenticatable implements JWTSubject
     use HasFactory;
 
     protected $guarded = [];
+    protected $table = 'customers';
 
     protected static function newFactory()
     {
