@@ -5,9 +5,9 @@ import Dashboard from "../pages/admin/Dashboard"
 import ProductList from "../pages/admin/Products/ProductList"
 import ProductCreate from "../pages/admin/Products/ProductCreate"
 import ProductEdit from "../pages/admin/Products/ProductEdit"
-import Login from "../pages/admin/auth/Login"
+// import Login from "../pages/admin/auth/Login"
 import Logout from "../pages/admin/auth/Logout"
-import { useAuth } from "../contexts/AuthContext"
+// import { useAuth } from "../contexts/AuthContext"
 import Warehouse from "../pages/admin/Inventory/Warehouse"
 import ReceivedOrders from "../pages/admin/Inventory/ReceivedOrders"
 import CategoryList from "../pages/admin/Categories/CategoryList"
@@ -19,17 +19,17 @@ import OrdersCheckOut from "../pages/admin/Orders/OrdersCheckOut"
 import Settings from "../pages/admin/Settings"
 
 const AdminRoutes: React.FC = () => {
-    const { user, loading } = useAuth()
+    // const { user, loading } = useAuth()
 
-    if (loading) {
-        return <div>Loading...</div>
-    }
+    // if (loading) {
+    //     return <div>Loading...</div>
+    // }
 
     // if (!user) {
     //     return (
     //         <Routes>
     //             <Route path="login" element={<Login />} />
-    //             <Route path="*" element={<Navigate to="login" />} />
+    //             <Route path="*" element={<Navigate to="login" replace />} />
     //         </Routes>
     //     )
     // }
@@ -38,25 +38,28 @@ const AdminRoutes: React.FC = () => {
         <AdminLayout>
             <Routes>
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="products" element={<ProductList />} />
-                <Route path="products/create" element={<ProductCreate />} />
-                <Route path="products/edit/:id" element={<ProductEdit />} />
-
-                <Route path="categories" element={<CategoryList />} />
-                <Route path="categories/create" element={<CategoryCreate />} />
-
-                <Route path="warehouse" element={<Warehouse />} />
-                <Route path="received-orders" element={<ReceivedOrders />} />
-
-                <Route path="orders-list" element={<OrdersList />} />
-                <Route path="orders-details" element={<OrdersDetails />} />
-                <Route path="orders-cart" element={<OrdersCart />} />
-                <Route path="orders-checkout" element={<OrdersCheckOut />} />
-
+                <Route path="products">
+                    <Route index element={<ProductList />} />
+                    <Route path="create" element={<ProductCreate />} />
+                    <Route path="edit/:id" element={<ProductEdit />} />
+                </Route>
+                <Route path="categories">
+                    <Route index element={<CategoryList />} />
+                    <Route path="create" element={<CategoryCreate />} />
+                </Route>
+                <Route path="inventory">
+                    <Route path="warehouse" element={<Warehouse />} />
+                    <Route path="received-orders" element={<ReceivedOrders />} />
+                </Route>
+                <Route path="orders">
+                    <Route index element={<OrdersList />} />
+                    <Route path="details/:id" element={<OrdersDetails />} />
+                    <Route path="cart" element={<OrdersCart />} />
+                    <Route path="checkout" element={<OrdersCheckOut />} />
+                </Route>
                 <Route path="settings" element={<Settings />} />
-
                 <Route path="logout" element={<Logout />} />
-                <Route path="*" element={<Navigate to="dashboard" />} />
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
         </AdminLayout>
     )
