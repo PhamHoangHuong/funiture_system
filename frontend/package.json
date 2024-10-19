@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-page": "ts-node src/utils/scripts/generatePage.ts",
+    "generate-all-pages": "node --loader ts-node/esm src/utils/scripts/generateAllPages.ts",
+    "generate-menu": "node --loader ts-node/esm src/utils/scripts/generateMenu.ts"
   },
   "dependencies": {
     "@iconify/react": "^5.0.2",
@@ -41,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@types/node": "^22.7.7",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "eslint": "^9.11.1",
@@ -50,7 +54,9 @@
     "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.9.0",
     "prettier": "^3.3.3",
-    "typescript": "^5.5.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3",
     "typescript-eslint": "^8.7.0",
     "vite": "^5.4.8"
   }

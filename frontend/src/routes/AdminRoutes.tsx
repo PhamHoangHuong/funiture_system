@@ -1,13 +1,12 @@
 import React from "react"
+
 import { Route, Routes, Navigate } from "react-router-dom"
 import AdminLayout from "../layouts/admin/AdminLayout"
 import Dashboard from "../pages/admin/Dashboard"
 import ProductList from "../pages/admin/Products/ProductList"
 import ProductCreate from "../pages/admin/Products/ProductCreate"
 import ProductEdit from "../pages/admin/Products/ProductEdit"
-// import Login from "../pages/admin/auth/Login"
 import Logout from "../pages/admin/auth/Logout"
-// import { useAuth } from "../contexts/AuthContext"
 import Warehouse from "../pages/admin/Inventory/Warehouse"
 import ReceivedOrders from "../pages/admin/Inventory/ReceivedOrders"
 import CategoryList from "../pages/admin/Categories/CategoryList"
@@ -17,26 +16,18 @@ import OrdersDetails from "../pages/admin/Orders/OrdersDetails"
 import OrdersCart from "../pages/admin/Orders/OrdersCart"
 import OrdersCheckOut from "../pages/admin/Orders/OrdersCheckOut"
 import Settings from "../pages/admin/Settings"
+import QuanLyKhachHangThemKhachHang from "../pages/admin/QuanLyKhachHang/ThemKhachHang";
+import QuanLyKhachHangDanhSachKhachHang from "../pages/admin/QuanLyKhachHang/DanhSachKhachHang";
+import PageManager from "../pages/admin/PageManager"
+
+// New imports will be added here automatically
 
 const AdminRoutes: React.FC = () => {
-    // const { user, loading } = useAuth()
-
-    // if (loading) {
-    //     return <div>Loading...</div>
-    // }
-
-    // if (!user) {
-    //     return (
-    //         <Routes>
-    //             <Route path="login" element={<Login />} />
-    //             <Route path="*" element={<Navigate to="login" replace />} />
-    //         </Routes>
-    //     )
-    // }
-
     return (
         <AdminLayout>
             <Routes>
+
+                {/* New routes will be added here automatically */}
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="products">
                     <Route index element={<ProductList />} />
@@ -57,6 +48,11 @@ const AdminRoutes: React.FC = () => {
                     <Route path="cart" element={<OrdersCart />} />
                     <Route path="checkout" element={<OrdersCheckOut />} />
                 </Route>
+                <Route path="quan-ly-khach-hang/danh-sach" element={<QuanLyKhachHangDanhSachKhachHang />} />
+                <Route path="quan-ly-khach-hang/them-moi" element={<QuanLyKhachHangThemKhachHang />} />
+
+                <Route path="page-manager" element={<PageManager />} />
+
                 <Route path="settings" element={<Settings />} />
                 <Route path="logout" element={<Logout />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
