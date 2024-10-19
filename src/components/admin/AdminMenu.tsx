@@ -49,10 +49,11 @@ const AdminMenu: React.FC = () => {
                             </ul>
                         </div>
                     </li>
+                    {/* categories */}
                     <li className="nav-item">
                         <NavLink className="nav-link menu-arrow" to="#sidebarCategory" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarCategory">
                             <span className="nav-icon">
-                                <Icon icon="solar:category-bold-duotone" />
+                                <i className="fas fa-list"></i>
                             </span>
                             <span className="nav-text"> Categories </span>
                         </NavLink>
@@ -67,19 +68,74 @@ const AdminMenu: React.FC = () => {
                             </ul>
                         </div>
                     </li>
-                    {/* New Menu Item */}
+                    {/* orders */}
                     <li className="nav-item">
-                        <NavLink className="nav-link" to="/admin/new-page">
+                        <NavLink className="nav-link menu-arrow" to="#sidebarOrders" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarOrders">
                             <span className="nav-icon">
-                                <Icon icon="solar:plus-bold-duotone" />
+                                <i className="fas fa-shopping-cart"></i>
                             </span>
-                            <span className="nav-text"> New Page </span>
+                            <span className="nav-text"> Orders </span>
+                        </NavLink>
+                        <div className="collapse" id="sidebarOrders">
+                            <ul className="nav sub-navbar-nav">
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/orders">Order List</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/orders/cart">Cart</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/orders/checkout">Checkout</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/orders/details">Order Details</NavLink>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    {/* inventory */}
+                    <li className="nav-item">
+                        <NavLink className="nav-link menu-arrow" to="#sidebarInventory" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarInventory">
+                            <span className="nav-icon">
+                                <i className="fas fa-boxes"></i>
+                            </span>
+                            <span className="nav-text"> Inventory </span>
+                        </NavLink>
+                        <div className="collapse" id="sidebarInventory">
+                            <ul className="nav sub-navbar-nav">
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/inventory/warehouse">Warehouse</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/inventory/received-orders">Received Orders</NavLink>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    {/* settings */}
+                    <li className="nav-item">
+                        <NavLink className="nav-link" to="/admin/settings">
+                            <span className="nav-icon">
+                                <Icon icon="solar:settings-bold-duotone" />
+                            </span>
+                            <span className="nav-text"> Settings </span>
                         </NavLink>
                     </li>
-                    {/* Other existing menu items */}
+
+                    {/* logout */}
+                    <li className="nav-item">
+                        <NavLink className="nav-link" to="/admin/logout">
+                            <span className="nav-icon">
+                                <Icon icon="solar:logout-bold-duotone" />
+                            </span>
+                            <span className="nav-text"> Logout </span>
+                        </NavLink>
+                    </li>
                 </ul>
             </div>
-        </div>
+        </div >
     );
 };
 
