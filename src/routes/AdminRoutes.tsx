@@ -53,7 +53,7 @@ const AdminRoutes: React.FC = () => {
                 </Route>
                 <Route path="orders">
                     <Route index element={<OrdersList />} />
-                    <Route path="details/:id" element={<OrdersDetails />} />
+                    <Route path="details" element={<OrdersDetails />} />
                     <Route path="cart" element={<OrdersCart />} />
                     <Route path="checkout" element={<OrdersCheckOut />} />
                 </Route>
