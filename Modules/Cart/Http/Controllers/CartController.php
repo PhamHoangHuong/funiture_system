@@ -11,25 +11,44 @@ use Modules\Cart\Http\Requests\CartRequest;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
+use Modules\Source\Repositories\SourceRepositoryInterface;
 
 /**
  *
  */
 class CartController extends Controller
 {
+    /**
+     * @var ProductRepositoryInterface
+     */
     protected $productRepository;
+    /**
+     * @var CartItemRepositoryInterface
+     */
     protected $cartItemRepository;
+    /**
+     * @var CartRepositoryInterface
+     */
     protected $cartRepository;
 
+    protected $sourceRepository;
+
+    /**
+     * @param ProductRepositoryInterface $productRepository
+     * @param CartItemRepositoryInterface $cartItemRepository
+     * @param CartRepositoryInterface $cartRepository
+     */
     public function __construct(
-        ProductRepositoryInterface $productRepository,
+        ProductRepositoryInterface  $productRepository,
         CartItemRepositoryInterface $cartItemRepository,
-        CartRepositoryInterface $cartRepository
+        CartRepositoryInterface     $cartRepository,
+        SourceRepositoryInterface   $sourceRepository
     )
     {
         $this->productRepository = $productRepository;
         $this->cartItemRepository = $cartItemRepository;
         $this->cartRepository = $cartRepository;
+        $this->sourceRepository = $sourceRepository;
     }
 
     /**
@@ -55,7 +74,7 @@ class CartController extends Controller
         $cart = Session::get('cart', []);
         foreach ($cart as $key => $item) {
             $id_product = (int)$item['product_id'];
-            $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
+            $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image', 'weight']);
         }
 
         $info_cart = $this->getTotalCart();
@@ -67,7 +86,11 @@ class CartController extends Controller
         return response()->json($results, 200);
     }
 
-    public function miniCart(){
+    /**
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function miniCart()
+    {
         // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
 //        try {
 //            if (auth('customer')->check()) {
@@ -113,8 +136,8 @@ class CartController extends Controller
 
         try {
             if (auth('customer')->check()) {
-                $cartItem = $this->cartRepository->updateCart($product_id, $quantity);
-                return response()->json($cartItem, 201);
+                $cartItem = $this->cartRepository->addToCart($product_id, $quantity);
+                return response()->json(['message' => 'Product added to cart'], 201);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -150,7 +173,7 @@ class CartController extends Controller
         // Nếu người dùng đã đăng nhập
         try {
             if (Auth::check()) {
-                $cartItem = $this->cartItemRepository->updateCartItem($productId, $validated['quantity']);
+                $cartItem = $this->cartItemRepository->updateCartItem($productId, (int)$validated['quantity']);
 
                 return response()->json($cartItem);
             }
@@ -181,7 +204,7 @@ class CartController extends Controller
         try {
             if (auth('customer')->check()) {
                 $delete = $this->cartItemRepository->deleteCartItem($productId);
-                if($delete){
+                if ($delete) {
                     $message = 'Item removed';
                     $status = 200;
                 } else {
@@ -219,6 +242,11 @@ class CartController extends Controller
         return $quantity;
     }
 
+    /**
+     * @return array
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     public function getTotalCart()
     {
         $cart = $this->getCartSession();
@@ -264,8 +292,44 @@ class CartController extends Controller
         session()->put('cart', $cart);
     }
 
+    /**
+     * @param $product_id
+     * @param $columns
+     * @return mixed
+     */
     public function getProduct($product_id, $columns = ['*'])
     {
         return $this->productRepository->find($product_id, $columns);
+    }
+
+    public function getLatLong($address){
+        $address = str_replace(" ", "+", $address);
+        $json = file_get_contents("https://rsapi.goong.io/geocode?address=" . $address . "&api_key=" . env('GOONG_API_KEY'));
+        $json = json_decode($json);
+        if (isset($json->results[0])) {
+            $lat = $json->results[0]->geometry->location->lat;
+            $lng = $json->results[0]->geometry->location->lng;
+            return response()->json(['lat' => $lat, 'lng' => $lng]);
+        } else {
+            return response()->json(['error' => 'Location not found'], 404);
+        }
+    }
+
+    public function calculateDistance($origins, $destinations){
+        $destinationString = implode('%', array_map(function($destinations) {
+            return $destinations['lat'] . ',' . $destinations['lng'];
+        }, $destinations));
+
+        $originString = $origins['lat'] . ',' . $origins['lng'];
+
+        $api = "https://rsapi.goong.io/DistanceMatrix?origins='. $originString .'&destinations='. $destinationString .'&vehicle=car&api_key=" . env('GOONG_API_KEY');
+        $json = file_get_contents($api);
+        $json = json_decode($json);
+
+        return response()->json($json);
+    }
+
+    public function getSourceContainProduct($product_id){
+
     }
 }
