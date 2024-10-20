@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 
 const AdminMenu: React.FC = () => {
+    const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
+
+    const toggleMenu = (menuId: string) => {
+        setOpenMenus(prevState => ({
+            ...prevState,
+            [menuId]: !prevState[menuId]
+        }));
+    };
+
     return (
         <div className="main-nav">
             {/* Sidebar Logo */}
@@ -32,13 +41,17 @@ const AdminMenu: React.FC = () => {
                         </NavLink>
                     </li>
                     <li className="nav-item">
-                        <NavLink className="nav-link menu-arrow" to="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarProducts">
+                        <NavLink 
+                            className={`nav-link menu-arrow ${openMenus['sidebarProducts'] ? 'active' : ''}`}
+                            to="#sidebarProducts" 
+                            onClick={() => toggleMenu('sidebarProducts')}
+                        >
                             <span className="nav-icon">
                                 <Icon icon="solar:box-bold-duotone" />
                             </span>
                             <span className="nav-text"> Products </span>
                         </NavLink>
-                        <div className="collapse" id="sidebarProducts">
+                        <div className={`collapse ${openMenus['sidebarProducts'] ? 'show' : ''}`} id="sidebarProducts">
                             <ul className="nav sub-navbar-nav">
                                 <li className="sub-nav-item">
                                     <NavLink className="sub-nav-link" to="/admin/products">Product List</NavLink>
@@ -51,13 +64,17 @@ const AdminMenu: React.FC = () => {
                     </li>
                     {/* categories */}
                     <li className="nav-item">
-                        <NavLink className="nav-link menu-arrow" to="#sidebarCategory" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarCategory">
+                        <NavLink 
+                            className={`nav-link menu-arrow ${openMenus['sidebarCategory'] ? 'active' : ''}`}
+                            to="#sidebarCategory" 
+                            onClick={() => toggleMenu('sidebarCategory')}
+                        >
                             <span className="nav-icon">
                                 <i className="fas fa-list"></i>
                             </span>
                             <span className="nav-text"> Categories </span>
                         </NavLink>
-                        <div className="collapse" id="sidebarCategory">
+                        <div className={`collapse ${openMenus['sidebarCategory'] ? 'show' : ''}`} id="sidebarCategory">
                             <ul className="nav sub-navbar-nav">
                                 <li className="sub-nav-item">
                                     <NavLink className="sub-nav-link" to="/admin/categories">Category List</NavLink>
@@ -70,13 +87,17 @@ const AdminMenu: React.FC = () => {
                     </li>
                     {/* orders */}
                     <li className="nav-item">
-                        <NavLink className="nav-link menu-arrow" to="#sidebarOrders" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarOrders">
+                        <NavLink 
+                            className={`nav-link menu-arrow ${openMenus['sidebarOrders'] ? 'active' : ''}`}
+                            to="#sidebarOrders" 
+                            onClick={() => toggleMenu('sidebarOrders')}
+                        >
                             <span className="nav-icon">
                                 <i className="fas fa-shopping-cart"></i>
                             </span>
                             <span className="nav-text"> Orders </span>
                         </NavLink>
-                        <div className="collapse" id="sidebarOrders">
+                        <div className={`collapse ${openMenus['sidebarOrders'] ? 'show' : ''}`} id="sidebarOrders">
                             <ul className="nav sub-navbar-nav">
                                 <li className="sub-nav-item">
                                     <NavLink className="sub-nav-link" to="/admin/orders">Order List</NavLink>
@@ -96,13 +117,17 @@ const AdminMenu: React.FC = () => {
 
                     {/* inventory */}
                     <li className="nav-item">
-                        <NavLink className="nav-link menu-arrow" to="#sidebarInventory" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarInventory">
+                        <NavLink 
+                            className={`nav-link menu-arrow ${openMenus['sidebarInventory'] ? 'active' : ''}`}
+                            to="#sidebarInventory" 
+                            onClick={() => toggleMenu('sidebarInventory')}
+                        >
                             <span className="nav-icon">
                                 <i className="fas fa-boxes"></i>
                             </span>
                             <span className="nav-text"> Inventory </span>
                         </NavLink>
-                        <div className="collapse" id="sidebarInventory">
+                        <div className={`collapse ${openMenus['sidebarInventory'] ? 'show' : ''}`} id="sidebarInventory">
                             <ul className="nav sub-navbar-nav">
                                 <li className="sub-nav-item">
                                     <NavLink className="sub-nav-link" to="/admin/inventory/warehouse">Warehouse</NavLink>
