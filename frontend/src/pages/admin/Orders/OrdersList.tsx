@@ -72,7 +72,7 @@ const OrdersList: React.FC = () => {
     fetchOrders(page);
   };
 
-  const handlePerRowsChange = async (newPerPage: number, page: number) => {
+  const handlePerRowsChange = async (newPerPage: number) => {
     setPerPage(newPerPage);
   };
 
