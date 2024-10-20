@@ -59,7 +59,7 @@ const AdminHeader: React.FC = () => {
                                 </div>
                                 <div data-simplebar style={{ maxHeight: 280 }}>
                                     {/* Item */}
-                                    <a href="javascript:void(0);" className="dropdown-item py-3 border-bottom text-wrap">
+                                    <a href="#" className="dropdown-item py-3 border-bottom text-wrap">
                                         <div className="d-flex">
                                             <div className="flex-shrink-0">
                                                 <img src="/assets/admin/images/users/avatar-1.jpg" className="img-fluid me-2 avatar-sm rounded-circle" alt="avatar-1" />
@@ -70,7 +70,7 @@ const AdminHeader: React.FC = () => {
                                         </div>
                                     </a>
                                     {/* Item */}
-                                    <a href="javascript:void(0);" className="dropdown-item py-3 border-bottom">
+                                    <a href="#" className="dropdown-item py-3 border-bottom">
                                         <div className="d-flex">
                                             <div className="flex-shrink-0">
                                                 <div className="avatar-sm me-2">
@@ -88,7 +88,7 @@ const AdminHeader: React.FC = () => {
                                         </div>
                                     </a>
                                     {/* Item */}
-                                    <a href="javascript:void(0);" className="dropdown-item py-3 border-bottom">
+                                    <a href="#" className="dropdown-item py-3 border-bottom">
                                         <div className="d-flex">
                                             <div className="flex-shrink-0">
                                                 <img src="/assets/admin/images/users/avatar-3.jpg" className="img-fluid me-2 avatar-sm rounded-circle" alt="avatar-3" />
@@ -100,7 +100,7 @@ const AdminHeader: React.FC = () => {
                                         </div>
                                     </a>
                                     {/* Item */}
-                                    <a href="javascript:void(0);" className="dropdown-item py-3 border-bottom">
+                                    <a href="#" className="dropdown-item py-3 border-bottom">
                                         <div className="d-flex">
                                             <div className="flex-shrink-0">
                                                 <div className="avatar-sm me-2">
@@ -116,7 +116,7 @@ const AdminHeader: React.FC = () => {
                                         </div>
                                     </a>
                                     {/* Item */}
-                                    <a href="javascript:void(0);" className="dropdown-item py-3 border-bottom">
+                                    <a href="#" className="dropdown-item py-3 border-bottom">
                                         <div className="d-flex">
                                             <div className="flex-shrink-0">
                                                 <img src="/assets/admin/images/users/avatar-5.jpg" className="img-fluid me-2 avatar-sm rounded-circle" alt="avatar-5" />
@@ -131,7 +131,7 @@ const AdminHeader: React.FC = () => {
                                     </a>
                                 </div>
                                 <div className="text-center py-3">
-                                    <a href="javascript:void(0);" className="btn btn-primary btn-sm">View All Notification <i className="bx bx-right-arrow-alt ms-1" /></a>
+                                    <a href="#" className="btn btn-primary btn-sm">View All Notification <i className="bx bx-right-arrow-alt ms-1" /></a>
                                 </div>
                             </div>
                         </div>

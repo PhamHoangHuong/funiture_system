@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('source_id');
             $table->integer('quantity')->default(0)->comment('Số lượng sản phẩm tại nguồn');
-            $table->integer('stock')->default(0)->comment('Số lượng tồn kho từ nguồn');
+            $table->tinyInteger('status')->default(1)->comment('Trạng thái sản phẩm tại nguồn');
             $table->timestamps();
             $table->softDeletes();
 
