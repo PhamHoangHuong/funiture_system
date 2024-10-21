@@ -10,6 +10,7 @@ use Modules\Attributes\Entities\Attribute;
 use Modules\Attributes\Entities\AttributeValue;
 use Modules\Source\Entities\Source;
 use Modules\Source\Entities\SourceProduct;
+use Modules\Category\Entities\Category;
 
 class Product extends Model
 {
@@ -82,5 +83,10 @@ class Product extends Model
     public function productAttributes()
     {
         return $this->hasMany(ProductAttribute::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id');
     }
 }
