@@ -11,6 +11,8 @@ export interface Category {
   description: string | null;
   is_menu: boolean;
   status: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export const categoryService = {

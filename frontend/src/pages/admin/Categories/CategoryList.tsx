@@ -4,6 +4,8 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { Input, Button } from 'reactstrap';
 import { categoryService, Category } from '../../../services/categoryService';
+import { formatDateTime, formatDate, formatDateYMD } from '../../../hooks/format';
+
 
 const headers = [
   { key: 'id', label: 'ID', sortable: true },
@@ -13,6 +15,7 @@ const headers = [
   { key: 'parent_id', label: 'Danh mục cha', sortable: true },
   { key: 'description', label: 'Mô tả', sortable: true },
   { key: 'status', label: 'Trạng thái', sortable: true },
+  { key: 'created_at', label: 'Ngày tạo', sortable: true },
   { key: 'actions', label: 'Thao tác', sortable: false }
 ];
 
@@ -69,6 +72,9 @@ const CategoryList: React.FC = () => {
       if (header.key === 'parent_id') {
         return row.parent_id === null ? 'Không' : 'Có';
       }
+      if (header.key === 'created_at') {
+        return formatDate(row.created_at);
+      }
       if (header.key === 'status') {
         return row.status ? 'Hoạt động' : 'Tạm ngưng';
       }
@@ -106,19 +112,19 @@ const CategoryList: React.FC = () => {
         pagination
         paginationTotalRows={totalRows}
         subHeader
-        // subHeaderComponent={
-        //   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-        //     {headers.filter(h => h.sortable).map(header => (
-        //       <Input
-        //         key={header.key}
-        //         type="text"
-        //         placeholder={`Tìm ${header.label.toLowerCase()}...`}
-        //         onChange={(e) => handleSearch(header.key, e.target.value)}
-        //         style={{ width: '200px', marginRight: '10px' }}
-        //       />
-        //     ))}
-        //   </div>
-        // }
+      // subHeaderComponent={
+      //   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+      //     {headers.filter(h => h.sortable).map(header => (
+      //       <Input
+      //         key={header.key}
+      //         type="text"
+      //         placeholder={`Tìm ${header.label.toLowerCase()}...`}
+      //         onChange={(e) => handleSearch(header.key, e.target.value)}
+      //         style={{ width: '200px', marginRight: '10px' }}
+      //       />
+      //     ))}
+      //   </div>
+      // }
       />
     </div>
   );
