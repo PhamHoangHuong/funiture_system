@@ -6,6 +6,7 @@ use Hash;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cookie;
@@ -31,7 +32,7 @@ class AuthCustomerController extends BaseAuthController
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
         $customer = Customer::create($data);
-
+        // dd($customer);
         auth('customer')->login($customer);
         return response()->json(new UserResource(auth('customer')->user()));
     }

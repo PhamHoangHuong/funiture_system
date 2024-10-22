@@ -17,7 +17,7 @@ class CustomerRequest extends FormRequest
             'group_id' => 'required|integer',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable|digits_between:10,15|unique:customers,phone',
-            'email' => 'nullable|email|max:255',
+            'email' => 'nullable|email|max:255|unique:customers,email',
             'address' => 'nullable|string|max:255|',
             'status' => 'required|integer',
             'password' => 'required|min:6',
