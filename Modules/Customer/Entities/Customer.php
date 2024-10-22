@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-class Customer extends Authenticatable implements JWTSubject
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\CanResetPassword ;
+use Illuminate\Auth\Passwords\CanResetPassword as TraitResetPassword;
+class Customer extends Authenticatable implements JWTSubject,CanResetPassword
 {
-    use HasFactory;
+    use HasFactory,Notifiable,TraitResetPassword ;
 
     protected $guarded = [];
 
@@ -24,5 +27,9 @@ class Customer extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
     }
 }
