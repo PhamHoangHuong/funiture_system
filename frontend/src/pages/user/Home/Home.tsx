@@ -1,12 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import UseBanner from './UserBanner';
+import ProductCollection from './ProductCollection';
+import UserCategorySection from './UserCategorySection';
+import UserTicker from './UserTicker';
 
 export default function Home() {
     return (
         <div>
-            <h1>Home</h1>
-            <p>Welcome to the home page!</p>
-            <Link to="/dashboard">Go to Dashboard</Link>
+            <UseBanner />
+            <UserTicker />
+            <ProductCollection />
+            <UserCategorySection />
         </div>
     );
 }
