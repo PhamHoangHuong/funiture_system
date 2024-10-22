@@ -1,19 +1,22 @@
 import React from "react"
-import { Route, Routes, Navigate } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 import UserLayout from "../layouts/user/UserLayout"
 import Home from "../pages/user/Home/Home"
-import Dashboard from "../pages/user/Dashboard"
+// import ProductList from "../pages/user/product/ProductList"
+import UserProductLayout from "../pages/user/product/UserProductLayout"
 
-const UserRouter: React.FC = () => {
+const UserRoutes: React.FC = () => {
     return (
-        <UserLayout>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-        </UserLayout>
+        <Routes>
+            <Route element={<UserLayout />}>
+                <Route index element={<Home />} />
+                <Route path="products" element={<UserProductLayout />}>
+                    {/* <Route index element={<ProductList />} /> */}
+                    {/* Thêm các route con khác cho sản phẩm ở đây nếu cần */}
+                </Route>
+            </Route>
+        </Routes>
     )
 }
 
-export default UserRouter
+export default UserRoutes

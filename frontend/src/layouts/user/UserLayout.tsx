@@ -1,15 +1,16 @@
 import React from "react";
+import { Outlet } from "react-router-dom";
 import UserHeader from "../../components/user/UserHeader";
+import UserFooter from "../../components/user/UserFooter";
 
-
-interface Props {
-    children: React.ReactNode;
-}
-export default function UserLayout({ children }: Props) {
+export default function UserLayout() {
     return (
         <>
             <UserHeader />
-            <main>{children}</main>
+            <main>
+                <Outlet />
+            </main>
+            <UserFooter />
         </>
     );
 }
