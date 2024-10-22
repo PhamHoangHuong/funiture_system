@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
-use App\Mail\ResetPasswordUser;
-use Illuminate\Support\Facades\Password;
 use Modules\Customer\Http\Controllers\AuthCustomerController;
 /*
 |--------------------------------------------------------------------------

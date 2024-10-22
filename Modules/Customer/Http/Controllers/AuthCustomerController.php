@@ -3,23 +3,14 @@
 namespace Modules\Customer\Http\Controllers;
 
 use Hash;
-use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cookie;
 use Modules\Customer\Entities\Customer;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Modules\Auth\Transformers\UserResource;
-use Tymon\JWTAuth\Contracts\Providers\Auth;
 use App\Http\Controllers\BaseAuthController;
-use Symfony\Component\HttpFoundation\Response;
 use Modules\Customer\Http\Requests\CustomerRequest;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
 class AuthCustomerController extends BaseAuthController
 {
@@ -32,7 +23,6 @@ class AuthCustomerController extends BaseAuthController
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
         $customer = Customer::create($data);
-        // dd($customer);
         auth('customer')->login($customer);
         return response()->json(new UserResource(auth('customer')->user()));
     }
