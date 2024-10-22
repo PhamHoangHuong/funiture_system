@@ -4,6 +4,13 @@ import UserLayout from "../layouts/user/UserLayout"
 import Home from "../pages/user/Home/Home"
 // import ProductList from "../pages/user/product/ProductList"
 import UserProductLayout from "../pages/user/product/UserProductLayout"
+import UserCartLayout from "../pages/user/Cart/UserCartLayout"
+import CartContent from "../pages/user/Cart/CartContent"
+import Checkout from "../pages/user/Checkout/Checkout"
+import Payment from "../pages/user/Payment/Payment"
+import PaymentSuccess from "../pages/user/Payment/PaymentSuccess"
+import PaymentFailure from "../pages/user/Payment/PaymentFailure"
+import ErrorPage from "../pages/errors/ErrorPage"
 
 const UserRoutes: React.FC = () => {
     return (
@@ -11,9 +18,18 @@ const UserRoutes: React.FC = () => {
             <Route element={<UserLayout />}>
                 <Route index element={<Home />} />
                 <Route path="products" element={<UserProductLayout />}>
-                    {/* <Route index element={<ProductList />} /> */}
-                    {/* Thêm các route con khác cho sản phẩm ở đây nếu cần */}
                 </Route>
+                <Route path="cart" element={<UserCartLayout />}>
+                    <Route index element={<CartContent />} />
+                </Route>
+                <Route path="checkout" element={<Checkout />} />
+                <Route path="payment" element={<Payment />} />
+                <Route path="payment/success" element={<PaymentSuccess />} />
+                <Route path="payment/failure" element={<PaymentFailure />} />
+
+                {/* Error page */}
+                <Route path="error" element={<ErrorPage />} />
+                <Route path="*" element={<ErrorPage />} />
             </Route>
         </Routes>
     )
