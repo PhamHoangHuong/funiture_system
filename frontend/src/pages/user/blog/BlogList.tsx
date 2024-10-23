@@ -10,16 +10,16 @@ const BlogList: React.FC = () => {
             <div className="blog-list-items">
               <div className="blog-list-single-item">
                 <div className="feature-thumbnail overflow-hidden mb-40">
-                  <Link to="/blog-single"><img src="/assets/user/images/blog/bd-1.jpg" alt="thumbnail" className="img-fluid" /></Link>
+                  <Link to="/blog/1"><img src="/assets/user/images/blog/bd-1.jpg" alt="thumbnail" className="img-fluid" /></Link>
                 </div>
                 <div className="blog-meta d-flex align-items-center gap-3">
                   <span>15 Jan, 2023</span>
                   <span>By Hariss Jay</span>
                   <span>Furniture, Design, Inspiration</span>
                 </div>
-                <Link to="#"><h3 className="mt-30 fw-medium mb-40">Special edition race boots campaign</h3></Link>
+                <Link to="/blog/1"><h3 className="mt-30 fw-medium mb-40">Special edition race boots campaign</h3></Link>
                 <p className="mb-40">Potenti feugiat aenean class risus aptent tempus nunc, facilisi facilisis lacus non at nibh conubia, inceptos malesuada curae leo felis ante. Facilisis lobortis suscipit vel cras integer cursus tortor volutpat non, torquent cubilia sagittislacus molestie nec feugiat sociis purus, mollis rhoncus tristique eu velit ac pellentesque mauris</p>
-                <Link to="#" className="explore-btn">Read Details</Link>
+                <Link to="/blog/1" className="explore-btn">Read Details</Link>
               </div>
               {/* Add more blog-list-single-item divs here for other blog posts */}
               
