@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Customer\Http\Controllers\AuthCustomerController;
+use Modules\Customer\Http\Controllers\FacebookController;
 use Modules\Customer\Http\Controllers\GoogleController;
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +35,12 @@ Route::get('/reset-password/{token}', function (string $token) {
     return 111;
 })->middleware('guest')->name('password.reset');
 
+// LOGIN GG
 // View login FE render sau 
 Route::get('login/google', [GoogleController::class, 'redirectToGoogle'])->name('login.google');
 // Handle
 Route::get('login/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+// LOGIN FB 
+Route::get('login/facebook', [FacebookController::class, 'redirectToFacebook'])->name('login.facebook');
+Route::get('login/facebook/callback', [FacebookController::class, 'handleFacebookCallback']);

@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
+use Modules\Customer\Entities\Customer;
+use Laravel\Socialite\Facades\Socialite;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Modules\Auth\Transformers\UserResource;
 use Symfony\Component\HttpFoundation\Response;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class BaseAuthController extends Controller
 {
@@ -82,6 +87,41 @@ class BaseAuthController extends Controller
             return response()->json(['message' => 'Token không hợp lệ'], Response::HTTP_UNAUTHORIZED);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Token không tồn tại'], Response::HTTP_UNAUTHORIZED);
+        }
+    }
+
+    // BASE Social login
+
+    public function handleSocialCallback($social, $col)
+    {
+        try {
+            $user = Socialite::driver($social)->stateless()->user();
+            $finduser = Customer::where($col, $user->id)->first();
+
+            if ($finduser) {
+                Auth::guard('customer')->login($finduser);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Logged in successfully',
+                ]);
+            } else {
+                $newUser = Customer::create([
+                    // chuyen sang observer
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'status' => 1,
+                     $col => $user->id,
+                    'group_id' => 1,
+                    'password' => Hash::make(Str::random(12))
+                ]);
+                Auth::guard('customer')->login($newUser);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Account created and logged in successfully',
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
