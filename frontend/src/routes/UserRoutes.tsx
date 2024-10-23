@@ -11,6 +11,7 @@ import PaymentSuccess from "../pages/user/Payment/PaymentSuccess"
 import PaymentFailure from "../pages/user/Payment/PaymentFailure"
 import ErrorPage from "../pages/errors/ErrorPage"
 import ProductDetails from "../pages/user/product/ProductDetails"
+import BlogList from "../pages/user/blog/BlogList"
 
 const UserRoutes: React.FC = () => {
     return (
@@ -19,6 +20,7 @@ const UserRoutes: React.FC = () => {
                 <Route index element={<Home />} />
                 <Route path="products" element={<UserProductLayout />} />
                 <Route path="products/:id" element={<ProductDetails />} />
+                <Route path="blog" element={<BlogList />} />
             </Route>
             <Route path="cart" element={<UserCartLayout />}>
                 <Route index element={<CartContent />} />
