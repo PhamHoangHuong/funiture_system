@@ -5,7 +5,7 @@ namespace Modules\Product\Transformers;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Attributes\Transformers\AttributeValueResource;
 use Modules\AdvancedPrice\Transformers\AdvancedPriceResource;
-
+// use Modules\Source\Transformers\SourceProductResource;
 class ProductResource extends JsonResource
 {
     public function toArray($request)
@@ -39,6 +39,8 @@ class ProductResource extends JsonResource
             'attributes' => AttributeValueResource::collection($this->whenLoaded('attributeValues')),
             // Advanced Prices
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
+            // SourceProduct
+            // 'source_products' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
         ];
     }
 }
