@@ -13,6 +13,7 @@ import ErrorPage from "../pages/errors/ErrorPage"
 import ProductDetails from "../pages/user/product/ProductDetails"
 import BlogList from "../pages/user/blog/BlogList"
 import BlogDetails from "../pages/user/blog/BlogDetails"
+import Contact from "../pages/user/contact/contact"
 
 const UserRoutes: React.FC = () => {
     return (
@@ -25,6 +26,7 @@ const UserRoutes: React.FC = () => {
                     <Route index element={<BlogList />} />
                     <Route path=":id" element={<BlogDetails />} />
                 </Route>
+                <Route path="contact" element={<Contact />} />
             </Route>
             <Route path="cart" element={<UserCartLayout />}>
                 <Route index element={<CartContent />} />
@@ -37,7 +39,6 @@ const UserRoutes: React.FC = () => {
             {/* Error page */}
             <Route path="error" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
-
         </Routes >
     )
 }
