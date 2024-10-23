@@ -1,19 +1,9 @@
 import axios from 'axios';
+import { Category } from '../hooks/dataTypes';
 
 const API_URL = 'http://localhost:8000/api/category';
 
-export interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  parent_id: number | null;
-  image: string | null;
-  description: string | null;
-  is_menu: boolean;
-  status: boolean;
-  created_at: string;
-  updated_at: string;
-}
+
 
 export const categoryService = {
   getAll: async () => {
