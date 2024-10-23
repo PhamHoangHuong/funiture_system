@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { Input, Button } from 'reactstrap';
-import { categoryService, Category } from '../../../services/categoryService';
-import { formatDateTime, formatDate, formatDateYMD } from '../../../hooks/format';
+import { categoryService } from '../../../core/services/categoryService';
+import { Category, TableHeader } from '../../../core/hooks/dataTypes';
+import { formatDateTime, formatDate, formatDateYMD } from '../../../core/hooks/format';
 
 
-const headers = [
+const headers: TableHeader[] = [
   { key: 'id', label: 'ID', sortable: true },
   // { key: 'image', label: 'Hình ảnh', sortable: false },
   { key: 'name', label: 'Tên danh mục', sortable: true },

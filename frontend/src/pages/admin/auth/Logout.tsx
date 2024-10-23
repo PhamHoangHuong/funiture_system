@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { Box, Typography, Stack } from '@mui/material';
-import { LoadingSpinner } from '../../../contexts/loading'; // Giả sử đường dẫn này là chính xác
-
+import { useAuth } from '../../../core/contexts/AuthContext';
+import { Box, Stack, Typography } from '@mui/material';
 const Logout: React.FC = () => {
     const { handleLogout } = useAuth();
 
@@ -20,7 +18,6 @@ const Logout: React.FC = () => {
             <Stack direction="row" spacing={2} alignItems="center">
                 <Typography variant="h5">
                     Đang đăng xuất . . .
-                <LoadingSpinner />
                 </Typography>
             </Stack>
         </Box>
