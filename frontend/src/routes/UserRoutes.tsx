@@ -2,7 +2,6 @@ import React from "react"
 import { Route, Routes } from "react-router-dom"
 import UserLayout from "../layouts/user/UserLayout"
 import Home from "../pages/user/Home/Home"
-// import ProductList from "../pages/user/product/ProductList"
 import UserProductLayout from "../pages/user/product/UserProductLayout"
 import UserCartLayout from "../pages/user/Cart/UserCartLayout"
 import CartContent from "../pages/user/Cart/CartContent"
@@ -11,6 +10,7 @@ import Payment from "../pages/user/Payment/Payment"
 import PaymentSuccess from "../pages/user/Payment/PaymentSuccess"
 import PaymentFailure from "../pages/user/Payment/PaymentFailure"
 import ErrorPage from "../pages/errors/ErrorPage"
+import ProductDetails from "../pages/user/product/ProductDetails"
 
 const UserRoutes: React.FC = () => {
     return (
@@ -30,6 +30,8 @@ const UserRoutes: React.FC = () => {
                 {/* Error page */}
                 <Route path="error" element={<ErrorPage />} />
                 <Route path="*" element={<ErrorPage />} />
+                <Route path="products" element={<UserProductLayout />} />
+                <Route path="products/:id" element={<ProductDetails />} />
             </Route>
         </Routes>
     )
