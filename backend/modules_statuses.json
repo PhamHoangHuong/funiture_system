@@ -9,5 +9,6 @@
     "GroupCustomer": true,
     "Customer": true,
     "Cart": true,
-    "Topic": true
+    "Topic": true,
+    "Post": true
 }

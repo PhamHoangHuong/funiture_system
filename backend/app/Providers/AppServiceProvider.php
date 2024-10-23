@@ -21,6 +21,8 @@ use Modules\Customer\Repositories\CustomerRepository;
 use Modules\Customer\Repositories\CustomerRepositoryInterface;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepository;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepositoryInterface;
+use Modules\Post\Repositories\PostRepository;
+use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
 use Modules\Source\Repositories\SourceRepository;
@@ -109,6 +111,10 @@ class AppServiceProvider extends ServiceProvider
             TopicRepository::class
         );
         //Post
+        $this->app->singleton(
+            PostRepositoryInterface::class,
+            PostRepository::class
+        );
     }
 
     /**
