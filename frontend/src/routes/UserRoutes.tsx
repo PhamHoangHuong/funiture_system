@@ -31,7 +31,8 @@ const UserRoutes: React.FC = () => {
             {/* Error page */}
             <Route path="error" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
-        </Routes>
+
+        </Routes >
     )
 }
 
