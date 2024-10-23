@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Customer\Http\Controllers\AuthCustomerController;
+use Modules\Customer\Http\Controllers\GoogleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,4 +33,9 @@ Route::post('/reset-password', [AuthCustomerController::class, 'handleResetPass'
 Route::get('/reset-password/{token}', function (string $token) {
     return 111;
 })->middleware('guest')->name('password.reset');
+
+// View login FE render sau 
+Route::get('login/google', [GoogleController::class, 'redirectToGoogle'])->name('login.google');
+// Handle
+Route::get('login/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 

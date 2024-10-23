@@ -1,5 +1,7 @@
 <?php
 
+use Modules\Customer\Http\Controllers\GoogleController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -10,7 +12,3 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::prefix('customer')->group(function() {
-    Route::get('/', 'CustomerController@index');
-});

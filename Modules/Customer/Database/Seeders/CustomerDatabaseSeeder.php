@@ -17,8 +17,6 @@ class CustomerDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Model::unguard();
-
         DB::table('customers')->insert([
             'group_id' => 1,
             'name' => 'vanhung',
