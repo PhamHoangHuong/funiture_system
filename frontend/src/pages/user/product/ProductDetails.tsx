@@ -101,6 +101,46 @@ const ProductDetails: React.FC = () => {
                     </div>
                 </div>
             </section>
+            <section className="single-products-info pb-140">
+                <div className="container">
+                    <div className="single-product-tab">
+                        <ul className="nav nav-tabs border-bottom" role="tablist">
+                            <li><a href="#tab-1" data-bs-toggle="tab" className="active">Description</a></li>
+                            <li><a href="#tab-2" data-bs-toggle="tab">Addition information</a></li>
+                            <li><a href="#tab-3" data-bs-toggle="tab">Reviews(2)</a></li>
+                        </ul>
+                        <div className="tab-content mt-32">
+                            <div className="tab-pane fade active show" id="tab-1" role="tabpanel">
+                                {/* Description content */}
+                                <div className="d-flex align-items-center justify-content-between gap-4 flex-wrap flex-lg-nowrap">
+                                    <div className="product-description">
+                                        <p className="mb-0 fw-light">Sed porttitor lectus nibh. Donec sollicitudin molestie malesuada. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus.</p>
+                                        <ul className="single-product-features mt-40">
+                                            {/* ... feature list items ... */}
+                                        </ul>
+                                    </div>
+                                    <div className="video-content flex-shrink-0 position-relative">
+                                        <img src="/assets/user/images/banner/video-banner.jpg" alt="video banner" className="img-fluid" />
+                                        <a href="https://www.youtube.com/watch?v=6WZOxnYi4Cs" data-fancybox="" className="video-popup-btn"><i className="fas fa-play"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="tab-pane fade" id="tab-2" role="tabpanel">
+                                <ul className="product-meta d-flex gap-2 flex-column">
+                                    <li>SKU:{product.sku}</li>
+                                    <li>Categories: {product.category}</li>
+                                    <li>Tags: {product.tags.join(', ')}</li>
+                                </ul>
+                            </div>
+                            <div className="tab-pane fade" id="tab-3" role="tabpanel">
+                                <ul className="prduct-reviews">
+                                    {/* ... review list items ... */}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </>
     );
 };
