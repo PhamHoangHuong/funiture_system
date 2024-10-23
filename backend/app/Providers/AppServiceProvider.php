@@ -25,6 +25,8 @@ use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
 use Modules\Source\Repositories\SourceRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
+use Modules\Topic\Repositories\TopicRepository;
+use Modules\Topic\Repositories\TopicRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -101,6 +103,12 @@ class AppServiceProvider extends ServiceProvider
             CartPriceRuleConditionRepositoryInterface::class,
             CartPriceRuleConditionRepository::class
         );
+        //Topic
+        $this->app->singleton(
+            TopicRepositoryInterface::class,
+            TopicRepository::class
+        );
+        //Post
     }
 
     /**
