@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-bootstrap';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useTranslation } from '../../../hooks/translation';
+import { useTranslation } from '../../../core/hooks/translation';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');

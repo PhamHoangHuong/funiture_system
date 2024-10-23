@@ -2,22 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login, logout, refreshToken, getProfile } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../hooks/translation';
+import { AuthContextType, User } from '../hooks/dataTypes';
 
-// Định nghĩa kiểu dữ liệu cho người dùng
-interface User {
-    id: number;
-    email: string;
-    name: string;
-}
 
-// Định nghĩa kiểu dữ liệu cho context xác thực
-interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    handleLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    handleLogout: () => Promise<void>;
-    handleRefreshToken: () => Promise<boolean>;
-}
 
 // Tạo context xác thực
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
