@@ -27,7 +27,7 @@ return new class extends Migration
                 $table->softDeletes();
                 $table->timestamps();
 
-                $table->foreign('group_id')->references('id')->on('group_customer')->onDelete('cascade');
+                $table->foreign('group_id')->references('id')->on('group_customers')->onDelete('cascade');
             });
         } else {
             Schema::table('customers', function (Blueprint $table) {});
