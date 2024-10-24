@@ -10,7 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-//Route::prefix('groupcustomer')->group(function() {
-//    Route::get('/', 'GroupCustomerController@index');
+//
+//Route::prefix('topic')->group(function() {
+//    Route::get('/', 'TopicController@index');
 //});

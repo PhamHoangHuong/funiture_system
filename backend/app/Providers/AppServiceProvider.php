@@ -21,10 +21,14 @@ use Modules\Customer\Repositories\CustomerRepository;
 use Modules\Customer\Repositories\CustomerRepositoryInterface;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepository;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepositoryInterface;
+use Modules\Post\Repositories\PostRepository;
+use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
 use Modules\Source\Repositories\SourceRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
+use Modules\Topic\Repositories\TopicRepository;
+use Modules\Topic\Repositories\TopicRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -100,6 +104,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             CartPriceRuleConditionRepositoryInterface::class,
             CartPriceRuleConditionRepository::class
+        );
+        //Topic
+        $this->app->singleton(
+            TopicRepositoryInterface::class,
+            TopicRepository::class
+        );
+        //Post
+        $this->app->singleton(
+            PostRepositoryInterface::class,
+            PostRepository::class
         );
     }
 
