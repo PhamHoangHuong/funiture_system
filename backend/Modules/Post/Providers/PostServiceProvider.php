@@ -1,23 +1,23 @@
 <?php
 
-namespace Modules\Customer\Providers;
+namespace Modules\Post\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Modules\Customer\Repositories\CustomerRepository;
-use Modules\Customer\Repositories\CustomerRepositoryInterface;
+use Modules\Post\Repositories\PostRepository;
+use Modules\Post\Repositories\PostRepositoryInterface;
 
-class CustomerServiceProvider extends ServiceProvider
+class PostServiceProvider extends ServiceProvider
 {
     /**
      * @var string $moduleName
      */
-    protected $moduleName = 'Customer';
+    protected $moduleName = 'Post';
 
     /**
      * @var string $moduleNameLower
      */
-    protected $moduleNameLower = 'customer';
+    protected $moduleNameLower = 'post';
 
     /**
      * Boot the application events.
@@ -40,7 +40,7 @@ class CustomerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->app->bind(CustomerRepositoryInterface::class,CustomerRepository::class);
+        $this->app->bind(PostRepositoryInterface::class,PostRepository::class);
     }
 
     /**

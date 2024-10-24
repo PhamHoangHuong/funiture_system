@@ -1,23 +1,23 @@
 <?php
 
-namespace Modules\Customer\Providers;
+namespace Modules\Topic\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Modules\Customer\Repositories\CustomerRepository;
-use Modules\Customer\Repositories\CustomerRepositoryInterface;
+use Modules\Topic\Repositories\TopicRepository;
+use Modules\Topic\Repositories\TopicRepositoryInterface;
 
-class CustomerServiceProvider extends ServiceProvider
+class TopicServiceProvider extends ServiceProvider
 {
     /**
      * @var string $moduleName
      */
-    protected $moduleName = 'Customer';
+    protected $moduleName = 'Topic';
 
     /**
      * @var string $moduleNameLower
      */
-    protected $moduleNameLower = 'customer';
+    protected $moduleNameLower = 'topic';
 
     /**
      * Boot the application events.
@@ -40,7 +40,7 @@ class CustomerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->app->bind(CustomerRepositoryInterface::class,CustomerRepository::class);
+        $this->app->bind(TopicRepositoryInterface::class,TopicRepository::class);
     }
 
     /**
