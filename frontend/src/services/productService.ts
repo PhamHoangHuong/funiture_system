@@ -1,9 +1,11 @@
+import { Product } from "../types/product.type"
+import { SuccessResponse } from "../types/utils.type"
 import api from "./api"
 
 const URL = "products"
 const productApi = {
-    getProduct(params: ProductListConfig) {
-        return api.get(URL, { params })
+    getProduct() {
+        return api.get<SuccessResponse<Product[]>>(URL)
     },
 }
 
