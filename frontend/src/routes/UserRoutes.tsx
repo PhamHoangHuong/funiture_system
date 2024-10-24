@@ -13,7 +13,9 @@ import ErrorPage from "../pages/errors/ErrorPage"
 import ProductDetails from "../pages/user/product/ProductDetails"
 import BlogList from "../pages/user/blog/BlogList"
 import BlogDetails from "../pages/user/blog/BlogDetails"
-import Contact from "../pages/user/contact/contact"
+import Contact from "../pages/user/contact/Contact"
+import Signup from "../pages/user/login_logout/Signup"
+import Login from "../pages/user/login_logout/Login"
 
 const UserRoutes: React.FC = () => {
     return (
@@ -27,6 +29,8 @@ const UserRoutes: React.FC = () => {
                     <Route path=":id" element={<BlogDetails />} />
                 </Route>
                 <Route path="contact" element={<Contact />} />
+                <Route path="signup" element={<Signup />} />
+                <Route path="login" element={<Login />} />
             </Route>
             <Route path="cart" element={<UserCartLayout />}>
                 <Route index element={<CartContent />} />
