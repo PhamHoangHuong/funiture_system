@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { pages, PageConfig, SubMenuItem } from '../../utils/pages';
+import { pages, PageConfig, SubMenuItem } from '../../core/utils/pages';
 
 const PageManager: React.FC = () => {
     const [pageList, setPageList] = useState<PageConfig[]>([]);

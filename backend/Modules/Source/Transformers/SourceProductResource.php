@@ -19,7 +19,7 @@ class SourceProductResource extends JsonResource
             'product_id' => $this->product_id,
             'source_id' => $this->source_id,
             'quantity' => $this->quantity,
-            'stock' => $this->stock,
+            'status' => $this->status,
         ];
     }
 }

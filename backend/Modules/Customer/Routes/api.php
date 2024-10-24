@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Modules\Auth\Http\Controllers\AuthController;
 use Modules\Customer\Http\Controllers\AuthCustomerController;
+use Modules\Customer\Http\Controllers\CustomerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +15,7 @@ use Modules\Customer\Http\Controllers\AuthCustomerController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::apiResource('customers', CustomerController::class);
 Route::group([
     'middleware' => 'jwt',
 ], function ($router) {

@@ -8,5 +8,7 @@
     "Category": true,
     "GroupCustomer": true,
     "Customer": true,
-    "Cart": true
+    "Cart": true,
+    "Topic": true,
+    "Post": true
 }

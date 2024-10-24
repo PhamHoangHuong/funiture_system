@@ -11,16 +11,24 @@ use Modules\Cart\Repositories\CartItemRepository;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Cart\Repositories\CartRepositoryInterface;
+use Modules\CartPriceRule\Repositories\CartPriceRuleConditionRepository;
+use Modules\CartPriceRule\Repositories\CartPriceRuleConditionRepositoryInterface;
+use Modules\CartPriceRule\Repositories\CartPriceRuleRepository;
+use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;
 use Modules\Customer\Repositories\CustomerRepositoryInterface;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepository;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepositoryInterface;
+use Modules\Post\Repositories\PostRepository;
+use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
 use Modules\Source\Repositories\SourceRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
+use Modules\Topic\Repositories\TopicRepository;
+use Modules\Topic\Repositories\TopicRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -85,6 +93,27 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             CartItemRepositoryInterface::class,
             CartItemRepository::class
+        );
+
+        //CartPriceRule
+        $this->app->singleton(
+            CartPriceRuleRepositoryInterface::class,
+            CartPriceRuleRepository::class
+        );
+        //CartPriceRuleCondition
+        $this->app->singleton(
+            CartPriceRuleConditionRepositoryInterface::class,
+            CartPriceRuleConditionRepository::class
+        );
+        //Topic
+        $this->app->singleton(
+            TopicRepositoryInterface::class,
+            TopicRepository::class
+        );
+        //Post
+        $this->app->singleton(
+            PostRepositoryInterface::class,
+            PostRepository::class
         );
     }
 

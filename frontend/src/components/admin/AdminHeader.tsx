@@ -1,8 +1,8 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 // import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
-import LanguageSwitcher from '../../i18n/LanguageSwitcher';
+import LanguageSwitcher from '../../core/i18n/LanguageSwitcher';
+import { useAuth } from '../../core/contexts/AuthContext';
 // import { useTranslation } from '../../hooks/translation';
 
 const AdminHeader: React.FC = () => {
