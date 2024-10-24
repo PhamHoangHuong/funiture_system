@@ -14,28 +14,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admins = [
-            ['name' => 'admin1', 'username' => 'admin1', 'email' => 'admin1@gmail.com'],
-            ['name' => 'admin2', 'username' => 'admin2', 'email' => 'admin2@gmail.com'],
-            ['name' => 'admin3', 'username' => 'admin3', 'email' => 'admin3@gmail.com'],
-            ['name' => 'admin4', 'username' => 'admin4', 'email' => 'admin4@gmail.com'],
-            ['name' => 'admin5', 'username' => 'admin5', 'email' => 'admin5@gmail.com'],
-        ];
-
-        foreach ($admins as $adminData) {
-            $user = new User();
-            $user->name = $adminData['name'];
-            $user->username = $adminData['username'];
-            $user->email = $adminData['email'];
-            $user->password = Hash::make('12345678');
-            $user->save();
-        }
-
-
+//        $admins = [
+//            ['name' => 'admin1', 'username' => 'admin1', 'email' => 'admin1@gmail.com'],
+//            ['name' => 'admin2', 'username' => 'admin2', 'email' => 'admin2@gmail.com'],
+//            ['name' => 'admin3', 'username' => 'admin3', 'email' => 'admin3@gmail.com'],
+//            ['name' => 'admin4', 'username' => 'admin4', 'email' => 'admin4@gmail.com'],
+//            ['name' => 'admin5', 'username' => 'admin5', 'email' => 'admin5@gmail.com'],
+//        ];
+//
+//        foreach ($admins as $adminData) {
+//            $user = new User();
+//            $user->name = $adminData['name'];
+//            $user->username = $adminData['username'];
+//            $user->email = $adminData['email'];
+//            $user->password = Hash::make('12345678');
+//            $user->save();
+//        }
 
 
-        $this->call(SourceProductsTableSeeder::class);
-        $this->call(GroupCustomersTableSeeder::class);
+
+
+//        $this->call(SourceProductsTableSeeder::class);
+//        $this->call(GroupCustomersTableSeeder::class);
         $this->call(CustomerTableSeeder::class);
     }
 }
