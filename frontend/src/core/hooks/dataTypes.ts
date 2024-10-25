@@ -10,6 +10,7 @@ export interface TableHeader {
 export interface SuccessResponse<Data> {
     data: Data
 }
+
 export interface ErrorResponse<Data> {
     message: string
     data?: Data
@@ -71,4 +72,3 @@ export interface AuthContextType {
     handleLogout: () => Promise<void>;
     handleRefreshToken: () => Promise<boolean>;
 }
-

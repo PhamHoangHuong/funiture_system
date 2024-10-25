@@ -3,33 +3,34 @@ import { Link } from "react-router-dom"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "react-data-table-component"
 import { Input, Button } from "reactstrap"
-import { useQuery } from "@tanstack/react-query"
-import { ProductService } from "../../../core/services/productService"
+import { useProductContext } from "../../../core/contexts/ProductContext"
 import { Product } from "../../../core/hooks/dataTypes"
-const headers = [
-    { key: "id", label: "ID", sortable: true },
-    { key: "imageUrl", label: "Hình ảnh", sortable: false },
-    { key: "name", label: "Tên sản phẩm", sortable: true },
-    { key: "price", label: "Giá", sortable: true },
-    { key: "status", label: "Trạng thái", sortable: true },
-    { key: "stock", label: "Số lượng", sortable: true },
-    { key: "actions", label: "Thao tác", sortable: false },
-]
+import { useTranslation } from "react-i18next"
+import { formatCurrency } from "../../../core/hooks/format"
 
 const ProductList: React.FC = () => {
+    const { t } = useTranslation()
+    const { products: productList, loading, error, fetchProducts } = useProductContext()
     const [products, setProducts] = useState<Product[]>([])
     const [originalProducts, setOriginalProducts] = useState<Product[]>([])
     const [totalRows, setTotalRows] = useState(0)
     const [perPage, setPerPage] = useState(10)
     const [filters, setFilters] = useState<Record<string, string>>({})
-    const { data } = useQuery({
-        queryKey: ["products"],
-        queryFn: () => ProductService.getAll(),
-    })
-    const productList = data ?? []
 
-    const fetchProducts = useCallback(
+    const headers = [
+        { key: "id", label: t("product.id"), sortable: true },
+        { key: "imageUrl", label: t("product.image"), sortable: false },
+        { key: "name", label: t("product.name"), sortable: true },
+        { key: "price", label: t("product.price"), sortable: true },
+        { key: "status", label: t("product.status"), sortable: true },
+        { key: "stock", label: t("product.stock"), sortable: true },
+        { key: "actions", label: t("product.actions"), sortable: false },
+    ]
+
+    // Lọc sản phẩm dựa trên các bộ lọc và phân trang
+    const filterProducts = useCallback(
         (page: number) => {
+            // Lọc sản phẩm dựa trên các bộ lọc
             const filteredData = originalProducts.filter((product) =>
                 Object.entries(filters).every(([key, value]) => {
                     const field = product[key as keyof Product]
@@ -42,6 +43,7 @@ const ProductList: React.FC = () => {
                     return false
                 })
             )
+            // Tính toán phân trang
             const start = (page - 1) * perPage
             const end = start + perPage
             console.log(filteredData.slice(start, end))
@@ -51,29 +53,36 @@ const ProductList: React.FC = () => {
         [filters, perPage, originalProducts]
     )
 
+    // Gọi filterProducts khi filters thay đổi
     useEffect(() => {
-        fetchProducts(1)
-    }, [filters, fetchProducts])
+        filterProducts(1)
+    }, [filters, filterProducts])
 
+    // Cập nhật state khi danh sách sản phẩm thay đổi
     useEffect(() => {
-        if (data) {
-            setOriginalProducts(data)
-            setProducts(data)
-            setTotalRows(data.length)
+        if (productList.length > 0) {
+            setOriginalProducts(productList)
+            setProducts(productList)
+            setTotalRows(productList.length)
         }
-    }, [data])
+    }, [productList])
+
+    // Xử lý khi thay đổi trang
     const handlePageChange = (page: number) => {
-        fetchProducts(page)
+        filterProducts(page)
     }
 
+    // Xử lý khi thay đổi số lượng sản phẩm trên mỗi trang
     const handlePerRowsChange = async (newPerPage: number, page: number) => {
         setPerPage(newPerPage)
     }
 
+    // Xử lý khi thay đổi giá trị tìm kiếm
     const handleSearch = (key: string, value: string) => {
         setFilters((prev) => ({ ...prev, [key]: value }))
     }
 
+    // Định nghĩa cấu trúc cột cho DataTable
     const columns = headers.map((header) => ({
         name: header.label,
         selector: (row: Product) => {
@@ -82,10 +91,12 @@ const ProductList: React.FC = () => {
         },
         sortable: header.sortable,
         cell: (row: Product) => {
+            // Xử lý hiển thị cho từng loại cột
             if (header.key === "imageUrl") {
+                // Hiển thị hình ảnh sản phẩm
                 return (
                     <img
-                        src={row.image ?? "placeholder-image-url.jpg"} // Đảm bảo xử lý khi image là null
+                        src={row.image ?? "placeholder-image-url.jpg"}
                         alt={row.name ?? "No Name"}
                         width="50"
                         height="50"
@@ -94,18 +105,19 @@ const ProductList: React.FC = () => {
                 )
             }
             if (header.key === "price") {
-                return new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                }).format(row.price)
+                // Định dạng giá tiền
+                return formatCurrency(row.price)
             }
             if (header.key === "status") {
-                return row.status === 1 ? "Còn hàng" : "Hết hàng" // Hiển thị trạng thái
+                // Hiển thị trạng thái sản phẩm
+                return row.status === 1 ? t("product.inStock") : t("product.outOfStock")
             }
             if (header.key === "stock") {
+                // Hiển thị số lượng tồn kho
                 return row.stock_quantity
             }
             if (header.key === "actions") {
+                // Hiển thị các nút hành động
                 return (
                     <>
                         <Button color="primary" size="sm" className="me-1">
@@ -120,58 +132,65 @@ const ProductList: React.FC = () => {
                     </>
                 )
             }
+            // Trả về giá trị mặc định cho các cột khác
             return row[header.key as keyof Product] ?? null
         },
     }))
 
     return (
         <div className="container mt-4">
-            <h2 className="mb-4">Quản Lý Sản Phẩm</h2>
-            <p>Tổng số sản phẩm: {productList.length}</p>
+            <h2 className="mb-4">{t("product.management")}</h2>
+            {loading && <p>{t("common.loading")}</p>}
+            {error && <p>{t("common.error", { message: error })}</p>}
+            {!loading && !error && (
+                <>
+                    <p>{t("product.totalCount", { count: productList.length })}</p>
 
-            <div className="mb-3">
-                <Link to="/admin/products/create" className="btn btn-primary">
-                    <Icon icon="mdi:plus" className="me-1" /> Thêm Sản Phẩm
-                </Link>
-            </div>
-
-            <DataTable
-                columns={columns}
-                data={products}
-                fixedHeader
-                pagination
-                paginationServer
-                paginationTotalRows={totalRows}
-                onChangePage={handlePageChange}
-                onChangeRowsPerPage={handlePerRowsChange}
-                subHeader
-                subHeaderComponent={
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            width: "100%",
-                        }}
-                    >
-                        {headers
-                            .filter((h) => h.sortable)
-                            .map((header) => (
-                                <Input
-                                    key={header.key}
-                                    type="text"
-                                    placeholder={`Tìm ${header.label.toLowerCase()}...`}
-                                    onChange={(e) =>
-                                        handleSearch(header.key, e.target.value)
-                                    }
-                                    style={{
-                                        width: "200px",
-                                        marginRight: "10px",
-                                    }}
-                                />
-                            ))}
+                    <div className="mb-3">
+                        <Link to="/admin/products/create" className="btn btn-primary">
+                            <Icon icon="mdi:plus" className="me-1" /> {t("product.add")}
+                        </Link>
                     </div>
-                }
-            />
+
+                    <DataTable
+                        columns={columns}
+                        data={products}
+                        fixedHeader
+                        pagination
+                        paginationServer
+                        paginationTotalRows={totalRows}
+                        onChangePage={handlePageChange}
+                        onChangeRowsPerPage={handlePerRowsChange}
+                        subHeader
+                        subHeaderComponent={
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    width: "100%",
+                                }}
+                            >
+                                {headers
+                                    .filter((h) => h.sortable)
+                                    .map((header) => (
+                                        <Input
+                                            key={header.key}
+                                            type="text"
+                                            placeholder={t("product.searchPlaceholder", { field: header.label.toLowerCase() })}
+                                            onChange={(e) =>
+                                                handleSearch(header.key, e.target.value)
+                                            }
+                                            style={{
+                                                width: "200px",
+                                                marginRight: "10px",
+                                            }}
+                                        />
+                                    ))}
+                            </div>
+                        }
+                    />
+                </>
+            )}
         </div>
     )
 }
