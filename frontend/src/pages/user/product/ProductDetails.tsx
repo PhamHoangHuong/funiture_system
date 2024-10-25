@@ -1,31 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from 'react-router-dom';
-
-// Mock product data returned directly
-const product = {
-    id: "1",
-    name: "Stonal Dinning Table Set 6X6 Full Packaged",
-    category: "Light Bulb, Table",
-    description: "Ac montes elementum proin viverra placerat purus sagittis dui curae, aptent tristi que eget enim rhoncus nostra torquent luctus risus, tincidunt platea semper odio metus himenaeos orciIac uliseu donec lacinia feugiat proin",
-    price: 1530.30,
-    oldPrice: 2100,
-    sku: "17",
-    tags: ["Iluminate", "Textured"],
-    images: [
-        "/assets/user/images/products/pd-thumb-1.png",
-        // "/assets/user/images/products/pd-thumb-2.png",
-        // "/assets/user/images/products/pd-thumb-3.png"
-    ],
-    thumbnails: [
-        "/assets/user/images/products/vr-thumb-control-1.png",
-        "/assets/user/images/products/vr-thumb-control-2.png",
-        "/assets/user/images/products/vr-thumb-control-3.png",
-        "/assets/user/images/products/vr-thumb-control-2.png"
-    ]
-};
+import { useProductContext } from '../../../core/contexts/ProductContext';
+import { Product } from '../../../core/hooks/dataTypes';
+import { formatCurrency } from '../../../core/hooks/format';
 
 const ProductDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const { fetchProductById } = useProductContext();
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadProduct = async () => {
+            if (id) {
+                try {
+                    const fetchedProduct = await fetchProductById(parseInt(id));
+                    if (fetchedProduct) {
+                        setProduct(fetchedProduct);
+                    }
+                } catch (error) {
+                    console.error("Error fetching product:", error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadProduct();
+    }, [id, fetchProductById]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     if (!product) {
         return <div>Product not found</div>;
@@ -41,22 +47,14 @@ const ProductDetails: React.FC = () => {
                                 <div className="vr-product-thumb position-relative">
                                     <span className="badge sale-badge">Sale</span>
                                     <div className="vr-poroduct-single-slider">
-                                        {product.images.map((image, index) => (
-                                            <div key={index} className="single-item text-center">
-                                                <span className="zoom-on-hover d-inline-block">
-                                                    <img src={image} alt={`product-${index}`} className="img-fluid mood-multiply d-inline-block" />
-                                                </span>
-                                            </div>
-                                        ))}
+                                        <div className="single-item text-center">
+                                            <span className="zoom-on-hover d-inline-block">
+                                                <img src={product.image} alt={product.name} className="img-fluid mood-multiply d-inline-block" />
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="vr-product-thumb-control mt-4">
-                                    {product.thumbnails.map((thumbnail, index) => (
-                                        <div key={index} className="single-item text-center">
-                                            <img src={thumbnail} alt={`thumbnail-${index}`} className="img-fluid mood-multiply" />
-                                        </div>
-                                    ))}
-                                </div>
+                                {/* Thumbnail slider removed as it's not part of the Product type */}
                             </div>
                         </div>
                         <div className="col-xl-6">
@@ -72,7 +70,7 @@ const ProductDetails: React.FC = () => {
                                     </ul>
                                     <span className="fs-sm">(3 Customer Reviews)</span>
                                 </div>
-                                <h5 className="mb-0 mt-30">${product.price.toFixed(2)} <del className="ms-1 text-color">${product.oldPrice.toFixed(2)}</del></h5>
+                                <h5 className="mb-0 mt-30">{formatCurrency(product.price)}</h5>
                                 <p className="mb-40 mt-30">{product.description}</p>
                                 <div className="color-variant">
                                     <span className="fs-sm text-uppercase text-main-color fw-medium">Color</span>
@@ -92,9 +90,9 @@ const ProductDetails: React.FC = () => {
                                 </div>
                                 <a href="#" className="pd-wishlist-btn text-uppercase mt-30"><i className="fa-regular fa-heart" />ADD Wishlist</a>
                                 <ul className="product-meta mt-32">
-                                    <li>SKU:{product.sku}</li>
-                                    <li>Categories: {product.category}</li>
-                                    <li>Tags: {product.tags.join(', ')}</li>
+                                    <li>SKU: {product.sku}</li>
+                                    <li>Categories: {product.category_id ? `Category ${product.category_id}` : 'Uncategorized'}</li>
+                                    <li>Stock: {product.stock_quantity}</li>
                                 </ul>
                             </div>
                         </div>
@@ -106,35 +104,35 @@ const ProductDetails: React.FC = () => {
                     <div className="single-product-tab">
                         <ul className="nav nav-tabs border-bottom" role="tablist">
                             <li><a href="#tab-1" data-bs-toggle="tab" className="active">Description</a></li>
-                            <li><a href="#tab-2" data-bs-toggle="tab">Addition information</a></li>
+                            <li><a href="#tab-2" data-bs-toggle="tab">Additional information</a></li>
                             <li><a href="#tab-3" data-bs-toggle="tab">Reviews(2)</a></li>
                         </ul>
                         <div className="tab-content mt-32">
                             <div className="tab-pane fade active show" id="tab-1" role="tabpanel">
-                                {/* Description content */}
                                 <div className="d-flex align-items-center justify-content-between gap-4 flex-wrap flex-lg-nowrap">
                                     <div className="product-description">
-                                        <p className="mb-0 fw-light">Sed porttitor lectus nibh. Donec sollicitudin molestie malesuada. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus.</p>
-                                        <ul className="single-product-features mt-40">
-                                            {/* ... feature list items ... */}
-                                        </ul>
+                                        <p className="mb-0 fw-light">{product.content || 'No detailed description available.'}</p>
                                     </div>
-                                    <div className="video-content flex-shrink-0 position-relative">
-                                        <img src="/assets/user/images/banner/video-banner.jpg" alt="video banner" className="img-fluid" />
-                                        <a href="https://www.youtube.com/watch?v=6WZOxnYi4Cs" data-fancybox="" className="video-popup-btn"><i className="fas fa-play"></i></a>
-                                    </div>
+                                    {product.video_link && (
+                                        <div className="video-content flex-shrink-0 position-relative">
+                                            <img src="/assets/user/images/banner/video-banner.jpg" alt="video banner" className="img-fluid" />
+                                            <a href={product.video_link} data-fancybox="" className="video-popup-btn"><i className="fas fa-play"></i></a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="tab-pane fade" id="tab-2" role="tabpanel">
                                 <ul className="product-meta d-flex gap-2 flex-column">
-                                    <li>SKU:{product.sku}</li>
-                                    <li>Categories: {product.category}</li>
-                                    <li>Tags: {product.tags.join(', ')}</li>
+                                    <li>SKU: {product.sku}</li>
+                                    <li>Categories: {product.category_id ? `Category ${product.category_id}` : 'Uncategorized'}</li>
+                                    <li>Weight: {product.weight ? `${product.weight} kg` : 'N/A'}</li>
+                                    <li>Stock: {product.stock_quantity}</li>
                                 </ul>
                             </div>
                             <div className="tab-pane fade" id="tab-3" role="tabpanel">
                                 <ul className="prduct-reviews">
-                                    {/* ... review list items ... */}
+                                    {/* Review content would go here */}
+                                    <li>No reviews yet.</li>
                                 </ul>
                             </div>
                         </div>
