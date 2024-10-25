@@ -14,3 +14,11 @@ export const formatDateTime = (date: string) => {
 export const formatDateYMD = (date: string) => {
     return format(new Date(date), 'yyyy-MM-dd');
 };
+
+// format currency VND
+export const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+    }).format(value)
+};
