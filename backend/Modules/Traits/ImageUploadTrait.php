@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Traits;
 
 use Illuminate\Http\Request;
@@ -20,7 +21,11 @@ trait ImageUploadTrait
             $image = $request->file($inputName);
             $ext = $image->getClientOriginalExtension();
             $imageName = 'media_' . uniqid() . '.' . $ext;
-            $image->move(public_path($path), $imageName);
+            $fullPath = public_path('../../frontend/public/' . $path);
+            if (!File::isDirectory($fullPath)) {
+                File::makeDirectory($fullPath, 0777, true, true);
+            }
+            $image->move($fullPath, $imageName);
             return $path . '/' . $imageName;
         }
         return null;
@@ -42,7 +47,11 @@ trait ImageUploadTrait
             foreach ($images as $image) {
                 $ext = $image->getClientOriginalExtension();
                 $imageName = 'media_' . uniqid() . '.' . $ext;
-                $image->move(public_path($path), $imageName);
+                $fullPath = public_path('../../frontend/public/' . $path);
+                if (!File::isDirectory($fullPath)) {
+                    File::makeDirectory($fullPath, 0777, true, true);
+                }
+                $image->move($fullPath, $imageName);
                 $imagePaths[] = $path . '/' . $imageName;
             }
         }
@@ -67,7 +76,11 @@ trait ImageUploadTrait
             $image = $request->file($inputName);
             $ext = $image->getClientOriginalExtension();
             $imageName = 'media_' . uniqid() . '.' . $ext;
-            $image->move(public_path($path), $imageName);
+            $fullPath = public_path('../../frontend/public/' . $path);
+            if (!File::isDirectory($fullPath)) {
+                File::makeDirectory($fullPath, 0777, true, true);
+            }
+            $image->move($fullPath, $imageName);
             return $path . '/' . $imageName;
         }
         return $oldPath;
@@ -81,8 +94,9 @@ trait ImageUploadTrait
      */
     public function deleteImage(string $path)
     {
-        if (File::exists(public_path($path))) {
-            File::delete(public_path($path));
+        $fullPath = public_path('../../frontend/public/' . $path);
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
         }
     }
 }

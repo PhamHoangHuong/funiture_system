@@ -41,9 +41,9 @@ const AdminMenu: React.FC = () => {
                         </NavLink>
                     </li>
                     <li className="nav-item">
-                        <NavLink 
+                        <NavLink
                             className={`nav-link menu-arrow ${openMenus['sidebarProducts'] ? 'active' : ''}`}
-                            to="#sidebarProducts" 
+                            to="#sidebarProducts"
                             onClick={() => toggleMenu('sidebarProducts')}
                         >
                             <span className="nav-icon">
@@ -64,9 +64,9 @@ const AdminMenu: React.FC = () => {
                     </li>
                     {/* categories */}
                     <li className="nav-item">
-                        <NavLink 
+                        <NavLink
                             className={`nav-link menu-arrow ${openMenus['sidebarCategory'] ? 'active' : ''}`}
-                            to="#sidebarCategory" 
+                            to="#sidebarCategory"
                             onClick={() => toggleMenu('sidebarCategory')}
                         >
                             <span className="nav-icon">
@@ -87,9 +87,9 @@ const AdminMenu: React.FC = () => {
                     </li>
                     {/* orders */}
                     <li className="nav-item">
-                        <NavLink 
+                        <NavLink
                             className={`nav-link menu-arrow ${openMenus['sidebarOrders'] ? 'active' : ''}`}
-                            to="#sidebarOrders" 
+                            to="#sidebarOrders"
                             onClick={() => toggleMenu('sidebarOrders')}
                         >
                             <span className="nav-icon">
@@ -117,9 +117,9 @@ const AdminMenu: React.FC = () => {
 
                     {/* inventory */}
                     <li className="nav-item">
-                        <NavLink 
+                        <NavLink
                             className={`nav-link menu-arrow ${openMenus['sidebarInventory'] ? 'active' : ''}`}
-                            to="#sidebarInventory" 
+                            to="#sidebarInventory"
                             onClick={() => toggleMenu('sidebarInventory')}
                         >
                             <span className="nav-icon">
