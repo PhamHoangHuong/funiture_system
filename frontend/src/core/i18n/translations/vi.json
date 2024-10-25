@@ -12,6 +12,11 @@
   "loginError": "Lỗi đăng nhập:",
   "logoutError": "Lỗi đăng xuất:",
   "refreshTokenError": "Lỗi làm mới token:",
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi: {{message}}",
+    "noData": "Không có dữ liệu"
+  },
   "product": {
     "id": "ID",
     "image": "Hình ảnh",
@@ -23,6 +28,8 @@
     "management": "Quản lý Sản phẩm",
     "totalCount": "Tổng số sản phẩm: {{count}}",
     "add": "Thêm Sản phẩm",
-    "searchPlaceholder": "Tìm {{field}}..."
+    "searchPlaceholder": "Tìm {{field}}...",
+    "inStock": "Còn hàng",
+    "outOfStock": "Hết hàng"
   }
 }
