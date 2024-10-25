@@ -3,21 +3,21 @@ import React from "react"
 import { Route, Routes, Navigate } from "react-router-dom"
 import AdminLayout from "../layouts/admin/AdminLayout"
 import Dashboard from "../pages/admin/Dashboard"
-import ProductList from "../pages/admin/Products/ProductList"
-import ProductCreate from "../pages/admin/Products/ProductCreate"
-import ProductEdit from "../pages/admin/Products/ProductEdit"
+import ProductList from "../pages/admin/products/ProductList"
+import ProductCreate from "../pages/admin/products/ProductCreate"
+import ProductEdit from "../pages/admin/products/ProductEdit"
 import Logout from "../pages/admin/auth/Logout"
 import Warehouse from "../pages/admin/Inventory/Warehouse"
 import ReceivedOrders from "../pages/admin/Inventory/ReceivedOrders"
-import CategoryList from "../pages/admin/Categories/CategoryList"
-import CategoryCreate from "../pages/admin/Categories/CategoryCreate"
-import OrdersList from "../pages/admin/Orders/OrdersList"
-import OrdersDetails from "../pages/admin/Orders/OrdersDetails"
-import OrdersCart from "../pages/admin/Orders/OrdersCart"
-import OrdersCheckOut from "../pages/admin/Orders/OrdersCheckOut"
+import CategoryList from "../pages/admin/categories/CategoryList"
+import CategoryCreate from "../pages/admin/categories/CategoryCreate"
+import OrdersList from "../pages/admin/orders/OrdersList"
+import OrdersDetails from "../pages/admin/orders/OrdersDetails"
+import OrdersCart from "../pages/admin/orders/OrdersCart"
+import OrdersCheckOut from "../pages/admin/orders/OrdersCheckOut"
 import Settings from "../pages/admin/Settings"
-import QuanLyKhachHangThemKhachHang from "../pages/admin/QuanLyKhachHang/ThemKhachHang";
-import QuanLyKhachHangDanhSachKhachHang from "../pages/admin/QuanLyKhachHang/DanhSachKhachHang";
+import QuanLyKhachHangThemKhachHang from "../pages/admin/quanLyKhachHang/ThemKhachHang";
+import QuanLyKhachHangDanhSachKhachHang from "../pages/admin/quanLyKhachHang/DanhSachKhachHang";
 import PageManager from "../pages/admin/PageManager"
 
 // New imports will be added here automatically
