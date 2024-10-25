@@ -11,5 +11,18 @@
   "authCheckError": "Lỗi kiểm tra xác thực:",
   "loginError": "Lỗi đăng nhập:",
   "logoutError": "Lỗi đăng xuất:",
-  "refreshTokenError": "Lỗi làm mới token:"
+  "refreshTokenError": "Lỗi làm mới token:",
+  "product": {
+    "id": "ID",
+    "image": "Hình ảnh",
+    "name": "Tên sản phẩm",
+    "price": "Giá",
+    "status": "Trạng thái",
+    "stock": "Số lượng",
+    "actions": "Thao tác",
+    "management": "Quản lý Sản phẩm",
+    "totalCount": "Tổng số sản phẩm: {{count}}",
+    "add": "Thêm Sản phẩm",
+    "searchPlaceholder": "Tìm {{field}}..."
+  }
 }

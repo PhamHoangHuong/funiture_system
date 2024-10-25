@@ -4,9 +4,8 @@ import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "react-data-table-component"
 import { Input, Button } from "reactstrap"
 import { useQuery } from "@tanstack/react-query"
-import productApi from "../../../services/productService"
-import { Product } from "../../../types/product.type"
-
+import { ProductService } from "../../../core/services/productService"
+import { Product } from "../../../core/hooks/dataTypes"
 const headers = [
     { key: "id", label: "ID", sortable: true },
     { key: "imageUrl", label: "Hình ảnh", sortable: false },
@@ -25,9 +24,9 @@ const ProductList: React.FC = () => {
     const [filters, setFilters] = useState<Record<string, string>>({})
     const { data } = useQuery({
         queryKey: ["products"],
-        queryFn: () => productApi.getProduct(),
+        queryFn: () => ProductService.getAll(),
     })
-    const productList = data?.data.data ?? []
+    const productList = data ?? []
 
     const fetchProducts = useCallback(
         (page: number) => {
@@ -57,10 +56,10 @@ const ProductList: React.FC = () => {
     }, [filters, fetchProducts])
 
     useEffect(() => {
-        if (data?.data.data) {
-            setOriginalProducts(data.data.data)
-            setProducts(data.data.data)
-            setTotalRows(data.data.data.length)
+        if (data) {
+            setOriginalProducts(data)
+            setProducts(data)
+            setTotalRows(data.length)
         }
     }, [data])
     const handlePageChange = (page: number) => {

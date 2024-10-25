@@ -14,7 +14,8 @@
     "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/custom.d.ts"
   ],
   "exclude": [
     "node_modules"
