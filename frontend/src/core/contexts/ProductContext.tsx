@@ -8,6 +8,7 @@ interface ProductContextType {
     loading: boolean;
     error: string | null;
     fetchProducts: () => Promise<void>;
+    fetchProductById: (id: number) => Promise<Product | undefined>;
 }
 
 // Tạo context
@@ -35,6 +36,18 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+
+    // Lấy sản phẩm theo ID
+    const fetchProductById = async (id: number) => {
+        try {
+            const data = await ProductService.getById(id);
+            return data;
+        } catch (err) {
+            console.error('Lỗi khi lấy sản phẩm theo ID:', err);
+        }
+    };
+
+
     // Gọi fetchProducts khi component được mount
     useEffect(() => {
         fetchProducts();
@@ -42,7 +55,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Cung cấp context cho các component con
     return (
-        <ProductContext.Provider value={{ products, loading, error, fetchProducts }}>
+        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById }}>
             {children}
         </ProductContext.Provider>
     );

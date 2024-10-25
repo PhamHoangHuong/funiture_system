@@ -139,6 +139,7 @@ export default function ShopSection() {
                                 </div>
                                 <div className="products-grid mt-40">
                                     <div className="row g-4">
+                                        {/* get product */}
                                         {products.map((product) => (
                                             <div key={product.id} className="col-lg-4 col-md-6">
                                                 <div className="vr5-product-card">
