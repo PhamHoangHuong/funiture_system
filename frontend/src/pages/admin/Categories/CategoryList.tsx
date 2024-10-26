@@ -6,7 +6,7 @@ import { Input, Button } from 'reactstrap';
 import { categoryService } from '../../../core/services/categoryService';
 import { Category, TableHeader } from '../../../core/hooks/dataTypes';
 import { formatDateTime, formatDate, formatDateYMD } from '../../../core/hooks/format';
-
+import { useCategory } from '../../../core/contexts/CategoryContext';
 
 const headers: TableHeader[] = [
   { key: 'id', label: 'ID', sortable: true },
@@ -21,31 +21,20 @@ const headers: TableHeader[] = [
 ];
 
 const CategoryList: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categories, loading, error, fetchCategories } = useCategory();
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [perPage, setPerPage] = useState(10);
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  const fetchCategories = async () => {
-    try {
-      const data = await categoryService.getAll();
-      console.log("categories", data);
-      const filteredData = data.filter(category =>
-        Object.entries(filters).every(([key, value]) =>
-          category[key as keyof Category]?.toString().toLowerCase().includes(value.toLowerCase())
-        )
-      );
-
-      setCategories(filteredData);
-      setTotalRows(filteredData.length);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
-  }, [filters]);
+    const filtered = categories.filter(category =>
+      Object.entries(filters).every(([key, value]) =>
+        category[key as keyof Category]?.toString().toLowerCase().includes(value.toLowerCase())
+      )
+    );
+    setFilteredCategories(filtered);
+    setTotalRows(filtered.length);
+  }, [categories, filters]);
 
   const handleSearch = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -108,7 +97,7 @@ const CategoryList: React.FC = () => {
 
       <DataTable
         columns={columns as TableColumn<Category>[]}
-        data={categories}
+        data={filteredCategories}
         fixedHeader
         pagination
         paginationTotalRows={totalRows}

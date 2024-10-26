@@ -18,9 +18,9 @@ export const ProductService = {
     },
 
     // Tạo sản phẩm mới
-    create: async (product: Omit<Product, 'id'>) => {
-        const response = await axios.post<{ data: Product }>(API_URL, product);
-        return response.data.data;
+    create: async (productData: Partial<Product>): Promise<Product> => {
+        const response = await axios.post<Product>(API_URL, productData);
+        return response.data;
     },
 
     // Cập nhật sản phẩm

@@ -72,3 +72,35 @@ export interface AuthContextType {
     handleLogout: () => Promise<void>;
     handleRefreshToken: () => Promise<boolean>;
 }
+
+export interface Attribute {
+    id: number;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+    attribute_values: AttributeValue[];
+}
+
+export interface AttributeValue {
+    id: number;
+    attribute_id: number;
+    value: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface AttributeContextType {
+    attributes: Attribute[];
+    attributeValues: AttributeValue[];
+    loading: boolean;
+    error: string | null;
+    fetchAttributes: () => Promise<void>;
+    fetchAttributeValues: () => Promise<void>;
+    createAttribute: (attributeData: Partial<Attribute>) => Promise<Attribute>;
+    updateAttribute: (id: number, attributeData: Partial<Attribute>) => Promise<Attribute>;
+    deleteAttribute: (id: number) => Promise<void>;
+    createAttributeValue: (attributeValueData: Partial<AttributeValue>) => Promise<AttributeValue>;
+    updateAttributeValue: (id: number, attributeValueData: Partial<AttributeValue>) => Promise<AttributeValue>;
+    deleteAttributeValue: (id: number) => Promise<void>;
+}

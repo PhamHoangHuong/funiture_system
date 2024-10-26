@@ -9,6 +9,7 @@ interface ProductContextType {
     error: string | null;
     fetchProducts: () => Promise<void>;
     fetchProductById: (id: number) => Promise<Product | undefined>;
+    createProduct: (productData: Partial<Product>) => Promise<Product>;
 }
 
 // Tạo context
@@ -47,6 +48,16 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    const createProduct = async (productData: Partial<Product>) => {
+        try {
+            const newProduct = await ProductService.create(productData);
+            setProducts([...products, newProduct]);
+            return newProduct;
+        } catch (err) {
+            console.error('Error creating product:', err);
+            throw err;
+        }
+    };
 
     // Gọi fetchProducts khi component được mount
     useEffect(() => {
@@ -55,7 +66,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Cung cấp context cho các component con
     return (
-        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById }}>
+        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById, createProduct }}>
             {children}
         </ProductContext.Provider>
     );
