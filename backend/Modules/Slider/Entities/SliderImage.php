@@ -10,17 +10,18 @@ class SliderImage extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
-
     protected $fillable = [
         'slider_id',
         'image',
         'name',
         'link',
-        'title',
         'description',
         'sort_order',
-        'status',
+        'active',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function slider()

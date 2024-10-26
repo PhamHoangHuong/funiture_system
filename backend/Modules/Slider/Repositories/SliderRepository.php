@@ -11,4 +11,14 @@ class SliderRepository extends BaseRepository implements SliderRepositoryInterfa
     {
         return Slider::class;
     }
+
+    public function update($id, array $data)
+    {
+        $slider = $this->find($id);
+        if ($slider) {
+            $slider->update($data);
+            return $slider;
+        }
+        return null;
+    }
 }

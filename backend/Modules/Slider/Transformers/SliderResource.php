@@ -19,7 +19,7 @@ class SliderResource extends JsonResource
             'title' => $this->title,
             'type' => $this->type,
             'position' => $this->position,
-            'status' => $this->status == 1 ? 'active' : 'inactive',
+            'status' => $this->status ? 'active' : 'inactive',
             'images' => SliderImageResource::collection($this->whenLoaded('images')),
         ];
     }

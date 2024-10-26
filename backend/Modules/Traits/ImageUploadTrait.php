@@ -13,15 +13,16 @@ trait ImageUploadTrait
      * @param Request $request Đối tượng HTTP request.
      * @param string $inputName Tên của trường input chứa ảnh.
      * @param string $path Đường dẫn thư mục nơi ảnh sẽ được lưu trữ.
+     * @param string $prefix Prefix cho tên ảnh.
      * @return string|null Đường dẫn đến ảnh đã upload hoặc null nếu không có ảnh nào được upload.
      */
-    public function uploadImage(Request $request, $inputName, $path)
+    protected function uploadImage(Request $request, $inputName, $path, $prefix = '')
     {
         if ($request->hasFile($inputName)) {
             $image = $request->file($inputName);
             $ext = $image->getClientOriginalExtension();
-            $imageName = 'media_' . uniqid() . '.' . $ext;
-            $fullPath = public_path('../../frontend/public/' . $path);
+            $imageName = $prefix . '_' . uniqid() . '.' . $ext;
+            $fullPath = public_path('../../frontend/public/images/' . $path);
             if (!File::isDirectory($fullPath)) {
                 File::makeDirectory($fullPath, 0777, true, true);
             }
@@ -37,17 +38,18 @@ trait ImageUploadTrait
      * @param Request $request Đối tượng HTTP request.
      * @param string $inputName Tên của trường input chứa các ảnh.
      * @param string $path Đường dẫn thư mục nơi các ảnh sẽ được lưu trữ.
+     * @param string $prefix Prefix cho tên ảnh.
      * @return array Mảng chứa đường dẫn đến các ảnh đã upload.
      */
-    public function uploadMultiImage(Request $request, $inputName, $path)
+    public function uploadMultiImage(Request $request, $inputName, $path, $prefix = '')
     {
         $imagePaths = [];
         if ($request->hasFile($inputName)) {
             $images = $request->file($inputName);
-            foreach ($images as $image) {
+            foreach ($images as $index => $image) {
                 $ext = $image->getClientOriginalExtension();
-                $imageName = 'media_' . uniqid() . '.' . $ext;
-                $fullPath = public_path('../../frontend/public/' . $path);
+                $imageName = $prefix . '_' . ($index + 1) . '_' . uniqid() . '.' . $ext;
+                $fullPath = public_path('../../frontend/public/images' . $path);
                 if (!File::isDirectory($fullPath)) {
                     File::makeDirectory($fullPath, 0777, true, true);
                 }
@@ -76,7 +78,7 @@ trait ImageUploadTrait
             $image = $request->file($inputName);
             $ext = $image->getClientOriginalExtension();
             $imageName = 'media_' . uniqid() . '.' . $ext;
-            $fullPath = public_path('../../frontend/public/' . $path);
+            $fullPath = public_path('../../frontend/public/images' . $path);
             if (!File::isDirectory($fullPath)) {
                 File::makeDirectory($fullPath, 0777, true, true);
             }
@@ -92,9 +94,9 @@ trait ImageUploadTrait
      * @param string $path Đường dẫn đến ảnh sẽ bị xóa.
      * @return void
      */
-    public function deleteImage(string $path)
+    protected function deleteImage(string $path)
     {
-        $fullPath = public_path('../../frontend/public/' . $path);
+        $fullPath = public_path('../../frontend/public/images' . $path);
         if (File::exists($fullPath)) {
             File::delete($fullPath);
         }

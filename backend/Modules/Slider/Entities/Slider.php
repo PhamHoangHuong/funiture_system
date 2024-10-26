@@ -8,15 +8,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Slider extends Model
 {
-    use HasFactory,softDeletes;
+    use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
     protected $fillable = [
         'title',
         'type',
         'position',
         'status',
     ];
+
+    protected $casts = [
+        'status' => 'boolean',
+    ];
+
     public function images()
     {
         return $this->hasMany(SliderImage::class);

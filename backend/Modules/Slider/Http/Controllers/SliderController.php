@@ -2,23 +2,21 @@
 
 namespace Modules\Slider\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use Modules\Slider\Entities\SliderImage;
 use Modules\Slider\Http\Requests\StoreSliderRequest;
 use Modules\Slider\Http\Requests\UpdateSliderRequest;
-use Modules\Slider\Repositories\SliderImageRepositoryInterface;
 use Modules\Slider\Repositories\SliderRepositoryInterface;
-use Modules\Slider\Transformers\SliderResource;
+use Modules\Slider\Repositories\SliderImageRepositoryInterface;
 use Modules\Traits\ImageUploadTrait;
 use Modules\Traits\ResponseTrait;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Log;
 
 class SliderController extends Controller
 {
     use ResponseTrait, ImageUploadTrait;
+
     protected $sliderRepository;
     protected $sliderImageRepository;
 
@@ -27,99 +25,161 @@ class SliderController extends Controller
         $this->sliderRepository = $sliderRepository;
         $this->sliderImageRepository = $sliderImageRepository;
     }
+
     public function index()
     {
-        $sliders= $this->sliderRepository->getAll()->load('images');
-        if($sliders->isEmpty()){
-            return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NO_CONTENT);
+        try {
+            $sliders = $this->sliderRepository->getAll()->load('images');
+            if ($sliders->isEmpty()) {
+                return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NO_CONTENT);
+            }
+            return $this->toResponseSuccess($sliders, 'Tìm thấy dữ liệu');
+        } catch (\Exception $e) {
+            return $this->handleException($e);
         }
-        return $this->toResponseSuccess($sliders, 'Tìm thấy dữ liệu', Response::HTTP_OK);
     }
 
     public function show($id)
     {
-        $slider = $this->sliderRepository->find($id);
-        if(!$slider){
-            return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NO_CONTENT);
+        try {
+            $slider = $this->sliderRepository->find($id);
+            if (!$slider) {
+                return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
+            }
+            return $this->toResponseSuccess($slider->load('images'), 'Tìm thấy dữ liệu');
+        } catch (\Exception $e) {
+            return $this->handleException($e);
         }
-        return $this->toResponseSuccess($slider->load('images'), 'Tìm thấy dữ liệu', Response::HTTP_OK);
     }
 
     public function store(StoreSliderRequest $request)
     {
         DB::beginTransaction();
         try {
-            // Tạo Slider
-            $slider = $this->sliderRepository->create($request->validated());
+            $sliderData = $request->only(['title', 'type', 'position', 'status']);
+            $slider = $this->sliderRepository->create($sliderData);
 
-            if (isset($slider['images'])) {
+            $sliderFolder = 'slider/' . str_pad($slider->id, 2, '0', STR_PAD_LEFT);
 
-                foreach ($slider['images'] as $image) {
-                    $uploadedImagePath = $this->uploadImage($request, 'images.*.image', 'sliders');
+            $imageKeys = preg_grep('/^images_\d+_image$/', array_keys($request->all()));
+            foreach ($imageKeys as $imageKey) {
+                $index = explode('_', $imageKey)[1];
+                $uploadedImagePath = $this->uploadImage($request, $imageKey, $sliderFolder, 'slider');
 
-
-                    // Lưu thông tin hình ảnh vào bảng hình ảnh
-                    $slider->images()->create([
-                        'image' => $uploadedImagePath,
-                        'link' => $image['link'] ?? null,
-                        'name' => $image['name'] ?? null,
-                        'description' => $image['description'] ?? null,
-                        'sort_order' => $image['sort_order'] ?? null,
-                        'active' => $image['active'] ?? false,
-                    ]);
-                }
+                $slider->images()->create([
+                    'image' => $uploadedImagePath,
+                    'link' => $request->input("images_{$index}_link"),
+                    'name' => $request->input("images_{$index}_name"),
+                    'description' => $request->input("images_{$index}_description"),
+                    'sort_order' => $request->input("images_{$index}_sort_order"),
+                    'active' => $request->boolean("images_{$index}_active"),
+                ]);
             }
-
 
             DB::commit();
             return $this->toResponseSuccess(null, 'Tạo slider mới thành công', Response::HTTP_CREATED);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            return $this->toResponseBad($exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
         }
     }
-
-
 
     public function update(UpdateSliderRequest $request, $id)
     {
         DB::beginTransaction();
         try {
-
-
             $slider = $this->sliderRepository->find($id);
             if (!$slider) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
-            $this->sliderRepository->update($id,$request->validated());
-            if ($request->has('images')) {
-                // Tải lên nhiều hình ảnh
-                $imagePaths = $this->updateImage($request, 'images.*.image', 'uploads/sliders');
 
-                foreach ($imagePaths as $key => $imagePath) {
-                    $slider->images()->updateOrCreate([
-                        'image' => $imagePath,
-                        'link' => $request->images[$key]['link'] ?? null,
-                        'name' => $request->images[$key]['name'] ?? null,
-                        'description' => $request->images[$key]['description'] ?? null,
-                        'sort_order' => $request->images[$key]['sort_order'] ?? 1,
-                        'active' => $request->images[$key]['active'] ?? 1,
-                    ]);
+            $sliderData = $request->only(['title', 'type', 'position', 'status']);
+            $this->sliderRepository->update($id, $sliderData);
+
+            $sliderFolder = 'slider/slider' . str_pad($slider->id, 2, '0', STR_PAD_LEFT);
+
+            if ($request->has('images')) {
+                $keepImageIds = [];
+                foreach ($request->images as $index => $imageData) {
+                    $imageId = $imageData['id'] ?? null;
+                    $newImageData = [
+                        'link' => $imageData['link'],
+                        'name' => $imageData['name'],
+                        'description' => $imageData['description'],
+                        'sort_order' => $imageData['sort_order'],
+                        'active' => $imageData['active'],
+                    ];
+
+                    if (isset($request->file('images')[$index]['image'])) {
+                        $newImageData['image'] = $this->uploadImage($request, "images.{$index}.image", $sliderFolder, 'slider');
+                    }
+
+                    if ($imageId) {
+                        $image = $this->sliderImageRepository->find($imageId);
+                        if ($image) {
+                            if (isset($newImageData['image'])) {
+                                $this->deleteImage($image->image);
+                            }
+                            $this->sliderImageRepository->update($imageId, $newImageData);
+                            $keepImageIds[] = $imageId;
+                        }
+                    } else {
+                        $newImageData['slider_id'] = $slider->id;
+                        $newImage = $this->sliderImageRepository->create($newImageData);
+                        $keepImageIds[] = $newImage->id;
+                    }
                 }
+
+                // Xóa các ảnh không còn trong request
+                $slider->images()->whereNotIn('id', $keepImageIds)->get()->each(function ($image) {
+                    $this->deleteImage($image->image);
+                    $image->delete();
+                });
             }
 
             DB::commit();
-            return $this->toResponseSuccess(null, 'Cập nhật dữ liệu thành công', Response::HTTP_OK);
-        } catch (\Exception $exception) {
+            $updatedSlider = $this->sliderRepository->find($id)->load('images');
+            return $this->toResponseSuccess($updatedSlider, 'Cập nhật slider thành công', Response::HTTP_OK);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return $this->toResponseBad($exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            Log::error('Lỗi cập nhật slider: ' . $e->getMessage());
+            return $this->handleException($e);
         }
     }
 
-
-
     public function destroy($id)
     {
-        //
+        try {
+            $slider = $this->sliderRepository->find($id);
+            if (!$slider) {
+                return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
+            }
+            $this->sliderRepository->delete($id);
+            return $this->toResponseDeleteSuccess();
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    protected function updateSliderImages($slider, $images)
+    {
+        $sliderFolder = 'slider/' . str_pad($slider->id, 2, '0', STR_PAD_LEFT);
+
+        foreach ($images as $imageData) {
+            if (isset($imageData['id'])) {
+                $image = $this->sliderImageRepository->find($imageData['id']);
+                if ($image) {
+                    if (isset($imageData['image']) && $imageData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $this->deleteImage($image->image);
+                        $imageData['image'] = $this->uploadImage($imageData, 'image', $sliderFolder, 'slider');
+                    }
+                    $image->update($imageData);
+                }
+            } else {
+                if (isset($imageData['image']) && $imageData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                    $imageData['image'] = $this->uploadImage($imageData, 'image', $sliderFolder, 'slider');
+                }
+                $slider->images()->create($imageData);
+            }
+        }
     }
 }

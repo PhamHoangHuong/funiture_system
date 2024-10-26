@@ -13,22 +13,19 @@ class StoreSliderRequest extends FormRequest
      */
     public function rules()
     {
-//        dd($this->all());
         return [
             'title' => 'required|string|max:255',
-            'type' => 'required|string',
+            'type' => 'required|string|in:1,2',
             'position' => 'required|string|unique:sliders',
-            'status' => 'nullable|boolean',
-
+            'status' => 'required|boolean',
             'images' => 'required|array',
             'images.*.image' => 'required|image|max:2048',
-            'images.*.link' => 'nullable|url',
-            'images.*.name' => 'nullable|string|max:255',
+            'images.*.link' => 'required|url',
+            'images.*.name' => 'required|string|max:255',
             'images.*.description' => 'nullable|string',
-            'images.*.sort_order' => 'nullable|integer',
-            'images.*.active' => 'nullable|boolean',
+            'images.*.sort_order' => 'required|integer',
+            'images.*.active' => 'required|boolean',
         ];
-
     }
 
     /**
