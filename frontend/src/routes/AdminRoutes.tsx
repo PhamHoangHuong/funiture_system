@@ -19,21 +19,22 @@ import Settings from "../pages/admin/Settings"
 import QuanLyKhachHangThemKhachHang from "../pages/admin/QuanLyKhachHang/ThemKhachHang";
 import QuanLyKhachHangDanhSachKhachHang from "../pages/admin/QuanLyKhachHang/DanhSachKhachHang";
 import PageManager from "../pages/admin/PageManager"
+import { ProductProvider } from "../core/contexts/ProductContext"
 
-// New imports will be added here automatically
 
 const AdminRoutes: React.FC = () => {
     return (
         <AdminLayout>
             <Routes>
 
-                {/* New routes will be added here automatically */}
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="products">
-                    <Route index element={<ProductList />} />
-                    <Route path="create" element={<ProductCreate />} />
-                    <Route path="edit/:id" element={<ProductEdit />} />
-                </Route>
+                <Route path="products" element={<ProductProvider>
+                    <Routes>
+                        <Route index element={<ProductList />} />
+                        <Route path="create" element={<ProductCreate />} />
+                        <Route path="edit/:id" element={<ProductEdit />} />
+                    </Routes>
+                </ProductProvider>} />
                 <Route path="categories">
                     <Route index element={<CategoryList />} />
                     <Route path="create" element={<CategoryCreate />} />

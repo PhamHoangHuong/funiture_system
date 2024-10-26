@@ -72,7 +72,7 @@ class ProductController extends Controller
             if (!$product) {
                 return $this->toResponseBad('Không tìm thấy sản phẩm', Response::HTTP_NOT_FOUND);
             }
-            return $this->toResponseSuccess(new ProductResource($product->load('variants', 'parent','categories')));
+            return $this->toResponseSuccess(new ProductResource($product->load('variants', 'parent', 'categories')));
         } catch (\Exception $e) {
             return $this->handleException($e);
         }
@@ -130,7 +130,9 @@ class ProductController extends Controller
     protected function prepareProductData(Request $request, $id = null)
     {
         $productData = $request->validated();
-        $productData['image'] = $this->uploadImage($request, 'image', 'product');
+        if ($request->hasFile('image')) {
+            $productData['image'] = $this->uploadImage($request, 'image', 'assets/images/product');
+        }
         $productData['slug'] = Str::slug($request->name);
 
         if ($id && $this->productRepository->existsBySlug($productData['slug'], $id)) {

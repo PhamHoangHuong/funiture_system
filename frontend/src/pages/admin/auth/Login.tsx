@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-bootstrap';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../core/contexts/AuthContext';
 import { useTranslation } from '../../../core/hooks/translation';
 
 const Login: React.FC = () => {
