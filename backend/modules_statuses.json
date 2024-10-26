@@ -10,5 +10,6 @@
     "Customer": true,
     "Cart": true,
     "Topic": true,
+    "Slider": true,
     "Post": true
 }
