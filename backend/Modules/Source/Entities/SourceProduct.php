@@ -15,7 +15,7 @@ class SourceProduct extends Model
         'product_id',
         'source_id',
         'quantity',
-        'stock'
+        'status'
     ];
 
     public function product()

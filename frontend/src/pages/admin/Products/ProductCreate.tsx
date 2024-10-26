@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton } from "@mui/material";
+import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress } from "@mui/material";
 import { Accordion, AccordionSummary, AccordionDetails } from '../../../components/shared/StyledAccordion';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import AddIcon from '@mui/icons-material/Add';
@@ -15,23 +15,24 @@ import { useAttribute } from '../../../core/contexts/AttributeContext';
 const ProductCreate: React.FC = () => {
     const { createProduct } = useProductContext();
     const { categories, fetchCategories } = useCategory();
-    const { attributes, fetchAttributes } = useAttribute();
+    const { attributes, attributeValues, fetchAttributes, fetchAttributeValues, loading } = useAttribute();
     const [product, setProduct] = useState({
         name: "", slug: "", description: "", content: "", image: null as File | null,
         status: 1, weight: "", price: "", start_new_time: null as dayjs.Dayjs | null,
         end_new_time: null as dayjs.Dayjs | null, advanced_price_id: "", parent_id: "",
         sku: "", stock_quantity: "", seo_title: "", seo_description: "", video_link: "",
-        category_id: "", variants: [] as any[], sources: [] as any[],
+        category_id: "", attributes: [] as { attribute_id: number; value_id: number }[], sources: [] as any[],
     });
 
     useEffect(() => {
         fetchCategories();
         fetchAttributes();
+        fetchAttributeValues();
     }, []);
 
     const handleProductChange = (field: string, value: any, index?: number) => {
         setProduct((prev) => {
-            if (field === 'variants' || field === 'sources') {
+            if (field === 'sources') {
                 const newArray = [...prev[field]];
                 if (index !== undefined) {
                     newArray[index] = { ...newArray[index], ...value };
@@ -47,8 +48,7 @@ const ProductCreate: React.FC = () => {
 
     const removeItem = (field: string, index: number) => {
         setProduct((prev) => ({
-            ...prev,
-            [field]: prev[field].filter((_: any, i: number) => i !== index)
+            ...prev, [field]: prev[field].filter((_: any, i: number) => i !== index)
         }));
     };
 
@@ -65,13 +65,13 @@ const ProductCreate: React.FC = () => {
             Object.entries(product).forEach(([key, value]) => {
                 if (key === 'image' && value instanceof File) {
                     formData.append(key, value);
-                } else if (key === 'variants' || key === 'sources') {
+                } else if (key === 'attributes' || key === 'sources') {
                     formData.append(key, JSON.stringify(value));
                 } else if (value !== null) {
                     formData.append(key, value.toString());
                 }
             });
-            await createProduct(formData);
+            await createProduct(formData as any);
         } catch (error) {
             console.error('Error creating product:', error);
         }
@@ -87,6 +87,23 @@ const ProductCreate: React.FC = () => {
             onChange={(e) => handleProductChange(e.target.name, e.target.value)}
         />
     );
+
+    const handleAttributeChange = (attributeId: number, valueId: number) => {
+        setProduct(prev => {
+            const newAttributes = [...prev.attributes];
+            const index = newAttributes.findIndex(attr => attr.attribute_id === attributeId);
+            if (index !== -1) {
+                newAttributes[index].value_id = valueId;
+            } else {
+                newAttributes.push({ attribute_id: attributeId, value_id: valueId });
+            }
+            return { ...prev, attributes: newAttributes };
+        });
+    };
+
+    if (loading) {
+        return <CircularProgress />;
+    }
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -140,16 +157,6 @@ const ProductCreate: React.FC = () => {
                                     <Grid item xs={12}>
                                         {renderTextField("Nội dung", "content", product.content)}
                                     </Grid>
-                                </Grid>
-                            </AccordionDetails>
-                        </Accordion>
-
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Thông tin bổ sung</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <Grid container spacing={3}>
                                     <Grid item xs={12} md={6}>
                                         {renderTextField("SKU", "sku", product.sku)}
                                     </Grid>
@@ -175,16 +182,6 @@ const ProductCreate: React.FC = () => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
-                                </Grid>
-                            </AccordionDetails>
-                        </Accordion>
-
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">SEO và Media</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <Grid container spacing={3}>
                                     <Grid item xs={12} md={6}>
                                         {renderTextField("SEO Title", "seo_title", product.seo_title)}
                                     </Grid>
@@ -228,54 +225,53 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Variants</Typography>
+                                <Typography variant="h6">Thuộc tính</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                {product.variants.map((variant, index) => (
-                                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-                                        <Grid container spacing={2} alignItems="center">
-                                            <Grid item xs={12} md={3}>
-                                                {renderTextField("Variant Name", `variants[${index}].name`, variant.name)}
+                                <Grid container spacing={2}>
+                                    {Array.isArray(attributes) && attributes.length > 0 ? (
+                                        attributes.map((attribute) => (
+                                            <Grid item xs={12} sm={6} key={attribute.id}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>{attribute.name}</InputLabel>
+                                                    <Select
+                                                        value={product.attributes.find(attr => attr.attribute_id === attribute.id)?.value_id || ''}
+                                                        onChange={(e) => handleAttributeChange(attribute.id, Number(e.target.value))}
+                                                    >
+                                                        {attributeValues
+                                                            .filter(av => av.attribute_id === attribute.id)
+                                                            .map((attrValue) => (
+                                                                <MenuItem key={attrValue.id} value={attrValue.id}>
+                                                                    {attrValue.value}
+                                                                </MenuItem>
+                                                            ))
+                                                        }
+                                                    </Select>
+                                                </FormControl>
                                             </Grid>
-                                            <Grid item xs={12} md={3}>
-                                                {renderTextField("Price", `variants[${index}].price`, variant.price, "number")}
-                                            </Grid>
-                                            <Grid item xs={12} md={3}>
-                                                {renderTextField("SKU", `variants[${index}].sku`, variant.sku)}
-                                            </Grid>
-                                            <Grid item xs={12} md={2}>
-                                                {renderTextField("Stock Quantity", `variants[${index}].stock_quantity`, variant.stock_quantity, "number")}
-                                            </Grid>
-                                            <Grid item xs={12} md={1}>
-                                                <IconButton onClick={() => removeItem('variants', index)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Grid>
+                                        ))
+                                    ) : (
+                                        <Grid item xs={12}>
+                                            <Typography>Không có thuộc tính nào.</Typography>
                                         </Grid>
-                                    </Box>
-                                ))}
-                                <Button startIcon={<AddIcon />} onClick={() => handleProductChange('variants', { name: "", price: "", sku: "", stock_quantity: "" })}>
-                                    Add Variant
-                                </Button>
+                                    )}
+                                </Grid>
                             </AccordionDetails>
                         </Accordion>
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Sources</Typography>
+                                <Typography variant="h6">Nguồn hàng</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 {product.sources.map((source, index) => (
                                     <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
                                         <Grid container spacing={2} alignItems="center">
-                                            <Grid item xs={12} md={4}>
+                                            <Grid item xs={12} md={5}>
                                                 {renderTextField("Source ID", `sources[${index}].source_id`, source.source_id)}
                                             </Grid>
-                                            <Grid item xs={12} md={3}>
+                                            <Grid item xs={12} md={5}>
                                                 {renderTextField("Quantity", `sources[${index}].quantity`, source.quantity, "number")}
-                                            </Grid>
-                                            <Grid item xs={12} md={3}>
-                                                {renderTextField("Stock", `sources[${index}].stock`, source.stock, "number")}
                                             </Grid>
                                             <Grid item xs={12} md={2}>
                                                 <IconButton onClick={() => removeItem('sources', index)}>
@@ -285,7 +281,7 @@ const ProductCreate: React.FC = () => {
                                         </Grid>
                                     </Box>
                                 ))}
-                                <Button startIcon={<AddIcon />} onClick={() => handleProductChange('sources', { source_id: "", quantity: "", stock: "" })}>
+                                <Button startIcon={<AddIcon />} onClick={() => handleProductChange('sources', { source_id: "", quantity: "" })}>
                                     Add Source
                                 </Button>
                             </AccordionDetails>

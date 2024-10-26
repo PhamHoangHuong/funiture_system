@@ -27,7 +27,7 @@ class UpdateSourceProductRequest extends FormRequest
             'product_id' => 'required|exists:products,id',
             'source_id' => 'required|exists:sources,id',
             'quantity' => 'required|integer|min:0',
-            'stock' => 'required|integer|min:0',
+            'status' => 'required|string|in:active,inactive',
         ];
     }
 }

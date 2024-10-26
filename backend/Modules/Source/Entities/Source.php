@@ -41,7 +41,7 @@ class Source extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, 'source_products')
-            ->withPivot('quantity', 'stock')
+            ->withPivot('quantity', 'status')
             ->withTimestamps();
     }
 }

@@ -51,7 +51,6 @@ class StoreProductRequest extends FormRequest
             'sources' => 'nullable|array',
             'sources.*.source_id' => 'required_with:sources|exists:sources,id',
             'sources.*.quantity' => 'required_with:sources|integer|min:0',
-            'sources.*.stock' => 'required_with:sources|integer|min:0',
         ];
     }
 }
