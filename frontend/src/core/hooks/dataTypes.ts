@@ -104,3 +104,24 @@ export interface AttributeContextType {
     updateAttributeValue: (id: number, attributeValueData: Partial<AttributeValue>) => Promise<AttributeValue>;
     deleteAttributeValue: (id: number) => Promise<void>;
 }
+
+export interface AdvancedPrice {
+    id: number;
+    product_id: number;
+    type: string;
+    start_time: string | null;
+    end_time: string | null;
+    amount: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface AdvancedPriceContextType {
+    advancedPrices: AdvancedPrice[];
+    loading: boolean;
+    error: string | null;
+    fetchAdvancedPrices: () => Promise<void>;
+    createAdvancedPrice: (advancedPriceData: Partial<AdvancedPrice>) => Promise<AdvancedPrice>;
+    updateAdvancedPrice: (id: number, advancedPriceData: Partial<AdvancedPrice>) => Promise<AdvancedPrice>;
+    deleteAdvancedPrice: (id: number) => Promise<void>;
+}
