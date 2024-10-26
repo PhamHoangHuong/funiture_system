@@ -4,7 +4,6 @@ import App from "./App"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 // import './i18n/config';
-// // import 'bootstrap/dist/css/bootstrap.min.css';
 // import 'datatables.net-dt';
 
 const queryClient = new QueryClient()
