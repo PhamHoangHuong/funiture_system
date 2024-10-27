@@ -14,18 +14,12 @@ class UpdateSliderRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|in:1,2',
-            'position' => 'sometimes|required|string|unique:sliders,position,' . $this->route('slider'),
-            'status' => 'sometimes|required|boolean',
-            'images' => 'sometimes|array',
-            'images.*.id' => 'sometimes|exists:slider_images,id',
-            'images.*.image' => 'nullable|image|max:2048',
-            'images.*.link' => 'required|url',
-            'images.*.name' => 'required|string|max:255',
-            'images.*.description' => 'nullable|string',
-            'images.*.sort_order' => 'required|integer',
-            'images.*.active' => 'required|boolean',
+            'title' => 'required|string|max:255',
+            'type' => 'required|string|in:1,2',
+            'position' => 'sometimes|string|unique:sliders'. $this->route('slider'),
+            'link' => 'nullable|string',
+            'description' => 'nullable|string',
+            'status' => 'required|boolean',
         ];
     }
 

@@ -16,12 +16,9 @@ return new class extends Migration
         Schema::create('slider_images', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('slider_id')->nullable()->comment('Slider ID');
-            $table->string('image')->comment('Hình ảnh');
-            $table->string('link')->nullable()->comment('Liên kết');
-            $table->string('name')->nullable()->comment('Tiêu đề');
-            $table->string('description')->nullable()->comment('Mô tả');
+            $table->string('image_url')->comment('Hình ảnh');
             $table->integer('sort_order')->default(1)->comment('Thứ tự');
-            $table->tinyInteger('active')->default(1)->comment('Trạng thái');
+            $table->tinyInteger('status')->default(1)->comment('Trạng thái');
             $table->timestamps();
             $table->softDeletes();
 

@@ -15,11 +15,8 @@ class StoreSliderImageRequest extends FormRequest
     {
         return [
             'slider_id' => 'required|exists:sliders,id',
-            'image' => 'required|string',
-            'link' => 'nullable|url',
-            'title' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'sort_order' => 'integer|min:0',
+            'image_url' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'sort_order' => 'integer|min:1',
             'status' => 'required|in:0,1', // 0:inactive, 1:active
         ];
     }
