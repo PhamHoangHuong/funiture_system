@@ -13,11 +13,8 @@ use Modules\Product\Transformers\ProductResource;
 use Modules\Product\Http\Requests\StoreProductRequest;
 use Modules\Product\Http\Requests\UpdateProductRequest;
 use Modules\Product\Repositories\ProductRepositoryInterface;
-use Modules\Product\Entities\ProductAttribute;
-use Modules\Attributes\Entities\AttributeValue;
 use Modules\Source\Repositories\SourceProductRepositoryInterface;
-use Modules\Source\Repositories\SourceProductRepository;
-use Modules\Source\Repositories\SourceRepositoryInterface;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -39,16 +36,28 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request)
     {
+        Log::info('Store method called');
         DB::beginTransaction();
         try {
             $productData = $this->prepareProductData($request);
             $product = $this->productRepository->create($productData);
-            $this->handleAttributes($request, $product);
+            Log::info('Product created: ' . json_encode($product));
+            
+            $productAttributes = $this->handleAttributes($request, $product);
             $this->handleProductCategories($request, $product);
+            
             DB::commit();
-            return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', new ProductResource($product), Response::HTTP_CREATED);
+            Log::info('Transaction committed');
+            
+            // Thêm thông tin về product_attributes vào response
+            $productResource = new ProductResource($product);
+            $productResource->additional(['product_attributes' => $productAttributes]);
+            
+            return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', $productResource, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error in store method: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return $this->handleException($e);
         }
     }
@@ -108,21 +117,58 @@ class ProductController extends Controller
 
     protected function handleAttributes(Request $request, $product)
     {
-        if ($request->has('attributes')) {
-            $product->productAttributes()->delete();
-            foreach ($request->attributes as $attribute) {
-                $product->productAttributes()->create([
-                    'attribute_id' => $attribute['attribute_id'],
-                    'attribute_value_id' => $attribute['attribute_value_id'],
-                ]);
+        Log::info('Handling attributes for product: ' . $product->id);
+        Log::info('Attributes data: ' . json_encode($request->input('attributes')));
+        Log::info('Attributes data type: ' . gettype($request->input('attributes')));
+
+        Log::info('Product class: ' . get_class($product));
+        Log::info('productAttributes() method exists: ' . method_exists($product, 'productAttributes'));
+
+        if ($request->has('attributes') && is_array($request->input('attributes'))) {
+            Log::info('Attributes found in request');
+            DB::beginTransaction();
+            try {
+                // Bỏ dòng xóa thuộc tính cũ
+                // $product->productAttributes()->forceDelete();
+                // Log::info('Deleted existing product attributes');
+
+                foreach ($request->attributes as $index => $attribute) {
+                    Log::info("Processing attribute {$index}: " . json_encode($attribute));
+                    try {
+                        $createdAttribute = $product->productAttributes()->create([
+                            'attribute_id' => $attribute['attribute_id'],
+                            'attribute_value_id' => $attribute['attribute_value_id'],
+                        ]);
+                        Log::info("Created attribute {$index}: " . json_encode($createdAttribute));
+                    } catch (\Exception $e) {
+                        Log::error("Error creating attribute {$index}: " . $e->getMessage());
+                        Log::error("Error trace: " . $e->getTraceAsString());
+                    }
+                }
+                DB::commit();
+                Log::info('All attributes processed successfully');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error in handleAttributes: ' . $e->getMessage());
+                Log::error('Stack trace: ' . $e->getTraceAsString());
             }
+        } else {
+            Log::info('No valid attributes array found in the request');
         }
+
+        // Kiểm tra sau khi xử lý
+        $finalAttributes = $product->productAttributes()->get();
+        Log::info('Final attributes for product ' . $product->id . ': ' . json_encode($finalAttributes));
+
+        // Kiểm tra trực tiếp từ database
+        $dbAttributes = DB::table('product_attributes')->where('product_id', $product->id)->get();
+        Log::info('Attributes from database for product ' . $product->id . ': ' . json_encode($dbAttributes));
     }
 
     protected function handleProductCategories(Request $request, $product)
     {
         if ($request->has('category_ids')) {
-            $categoryIds = explode(',', $request['category_ids']);
+            $categoryIds = $request['category_ids'];
             $product->categories()->sync($categoryIds);
         }
     }
