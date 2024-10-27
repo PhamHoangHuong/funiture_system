@@ -36,7 +36,14 @@ class ProductResource extends JsonResource
             // Quan hệ với sản phẩm phụ (biến thể)
             'variants' => ProductResource::collection($this->whenLoaded('variants')), //trả về danh sách sản phẩm phụ nếu có
             // Attributes
-            'attributes' => AttributeValueResource::collection($this->whenLoaded('attributeValues')),
+            'attributes' => $this->productAttributes->map(function ($productAttribute) {
+                return [
+                    'attribute_id' => $productAttribute->attribute_id,
+                    'attribute_name' => $productAttribute->attribute->name ?? null,
+                    'value_id' => $productAttribute->value_id,
+                    'value' => $productAttribute->attributeValue->value ?? null,
+                ];
+            }),
             // Advanced Prices
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
             // SourceProduct

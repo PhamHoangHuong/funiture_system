@@ -162,6 +162,16 @@ const theme = createTheme({
                 },
             },
         },
+        MuiCircularProgress: {
+            styleOverrides: {
+                root: {
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                },
+            },
+        },
     },
 });
 

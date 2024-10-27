@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Product\Entities\Product;
 use Modules\Attributes\Entities\Attribute;
+use Modules\Attributes\Entities\AttributeValue;
 
 class ProductAttribute extends Model
 {
@@ -15,6 +16,7 @@ class ProductAttribute extends Model
     protected $fillable = [
         'product_id',
         'attribute_id',
+        'value_id',
     ];
 
     public function product()
@@ -25,5 +27,10 @@ class ProductAttribute extends Model
     public function attribute()
     {
         return $this->belongsTo(Attribute::class);
+    }
+
+    public function attributeValue()
+    {
+        return $this->belongsTo(AttributeValue::class, 'value_id');
     }
 }

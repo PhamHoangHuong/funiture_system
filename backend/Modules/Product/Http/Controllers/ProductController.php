@@ -46,20 +46,16 @@ class ProductController extends Controller
         DB::beginTransaction();
         try {
             $productData = $this->prepareProductData($request);
-            // Tạo sản phẩm mới
             $product = $this->productRepository->create($productData);
-            // Xử lý các thuộc tính của sản phẩm
+
             $this->handleAttributes($request, $product);
-            // Xử lý các biến thể của sản phẩm
-            $this->handleVariants($request, $product);
-            // Lưu sản phẩm vào các nguồn
-            $this->saveProductToSources($request, $product);
-            // Lưu vào bảng product_categories
             $this->handleProductCategories($request, $product);
+            $this->saveProductToSources($request, $product);
 
             DB::commit();
-            return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', Response::HTTP_CREATED);
+            return $this->toResponseSuccess(new ProductResource($product), 'Sản phẩm đã được tạo thành công', Response::HTTP_CREATED);
         } catch (\Exception $e) {
+            DB::rollBack();
             return $this->handleException($e);
         }
     }
@@ -146,15 +142,7 @@ class ProductController extends Controller
     protected function handleAttributes(Request $request, $product)
     {
         if ($request->has('attributes')) {
-            ProductAttribute::where('product_id', $product->id)->delete();
-
             foreach ($request->attributes as $attribute) {
-                $attributeValue = AttributeValue::find($attribute['value_id']);
-                if (!$attributeValue) {
-                    throw new \Exception('Attribute value không tồn tại');
-                }
-
-                // Tạo mới thuộc tính cho sản phẩm
                 ProductAttribute::create([
                     'product_id' => $product->id,
                     'attribute_id' => $attribute['attribute_id'],
@@ -191,7 +179,6 @@ class ProductController extends Controller
                     'product_id' => $product->id,
                     'source_id' => $sourceData['source_id'],
                     'quantity' => $sourceData['quantity'],
-                    'stock' => $sourceData['stock'],
                 ];
                 $this->sourceProductRepository->create($sourceProductData);
             }
@@ -207,10 +194,31 @@ class ProductController extends Controller
             // Xóa các danh mục cũ của sản phẩm
             $product->categories()->detach();
 
-            // Thêm các danh mục mới
+            // Thêm các danh mục m��i
             foreach ($categoryIds as $categoryId) {
                 $product->categories()->attach($categoryId);
             }
         }
+    }
+
+    public function storeBasicInfo(Request $request)
+    {
+        // Validate and store basic product information
+        $product = $this->productRepository->create($request->validated());
+        return response()->json(['product_id' => $product->id]);
+    }
+
+    public function storeAttributes(Request $request, $productId)
+    {
+        $product = $this->productRepository->find($productId);
+        $this->handleAttributes($request, $product);
+        return response()->json(['success' => true]);
+    }
+
+    public function storeSourceAndQuantity(Request $request, $productId)
+    {
+        $product = $this->productRepository->find($productId);
+        // Handle source and quantity logic here
+        return response()->json(['success' => true]);
     }
 }

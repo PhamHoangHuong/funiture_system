@@ -1,24 +1,41 @@
-import { format } from 'date-fns';
+import dayjs from 'dayjs';
 
-// format date dd/MM/yyyy
-export const formatDate = (date: string) => {
-    return format(new Date(date), 'dd/MM/yyyy');
+// Định dạng ngày thành DD/MM/YYYY
+export const formatDate = (date: dayjs.Dayjs | string | null): string => {
+    return date ? dayjs(date).format('DD/MM/YYYY') : '';
 };
 
-// format date dd/MM/yyyy HH:mm:ss
-export const formatDateTime = (date: string) => {
-    return format(new Date(date), 'dd/MM/yyyy HH:mm:ss');
+// Định dạng ngày và giờ thành DD/MM/YYYY HH:mm:ss
+export const formatDateTime = (date: dayjs.Dayjs | string | null): string => {
+    return date ? dayjs(date).format('DD/MM/YYYY HH:mm:ss') : '';
 };
 
-// format data dd/MM/yyyy -> yyyy-MM-dd
-export const formatDateYMD = (date: string) => {
-    return format(new Date(date), 'yyyy-MM-dd');
+// Định dạng ngày thành YYYY-MM-DD
+export const formatDateYMD = (date: dayjs.Dayjs | string | null): string => {
+    return date ? dayjs(date).format('YYYY-MM-DD') : '';
 };
 
-// format currency VND
-export const formatCurrency = (value: number) => {
+// Định dạng số tiền thành VNĐ
+export const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-    }).format(value)
+        currencyDisplay: 'code'
+    }).format(value).replace('VND', 'VNĐ');
+};
+
+// Tạo slug từ chuỗi
+export const generateSlug = (str: string): string => {
+    return str
+        .toLowerCase() // Chuyển thành chữ thường
+        .normalize('NFD') // Chuẩn hóa Unicode
+        .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu
+        .replace(/đ/g, 'd') // Thay thế đ bằng d
+        .replace(/[^a-z0-9\s]/g, '') // Loại bỏ ký tự đặc biệt
+        .replace(/\s+/g, '-'); // Thay thế khoảng trắng bằng dấu gạch ngang
+};
+
+// Chuyển đổi chuỗi ngày DD/MM/YYYY thành đối tượng Dayjs
+export const parseDateFromDisplay = (dateString: string): dayjs.Dayjs | null => {
+    return dateString ? dayjs(dateString, 'DD/MM/YYYY') : null;
 };

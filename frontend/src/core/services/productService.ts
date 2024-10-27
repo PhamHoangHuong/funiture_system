@@ -32,5 +32,17 @@ export const ProductService = {
     // Xóa sản phẩm
     delete: async (id: number) => {
         await axios.delete(`${API_URL}/${id}`);
+    },
+
+    // Lưu các thuộc tính cho sản phẩm
+    storeAttributes: async (productId: number, attributes: any): Promise<any> => {
+        const response = await axios.post(`${API_URL}/${productId}/attributes`, attributes);
+        return response.data;
+    },
+
+    // Lưu nguồn và số lượng cho sản phẩm
+    storeSourceAndQuantity: async (productId: number, sourceData: any): Promise<any> => {
+        const response = await axios.post(`${API_URL}/${productId}/source`, sourceData);
+        return response.data;
     }
 };

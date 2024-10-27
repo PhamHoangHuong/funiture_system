@@ -62,6 +62,8 @@ export interface Product {
     seo_description: string | null // nullable nếu không có giá trị
     video_link: string | null // nullable nếu không có giá trị
     category_id: number | null // nullable nếu không có giá trị
+    attributes: ProductAttribute[];
+    sources: SourceProduct[];
 }
 
 // Auth context type
@@ -124,4 +126,43 @@ export interface AdvancedPriceContextType {
     createAdvancedPrice: (advancedPriceData: Partial<AdvancedPrice>) => Promise<AdvancedPrice>;
     updateAdvancedPrice: (id: number, advancedPriceData: Partial<AdvancedPrice>) => Promise<AdvancedPrice>;
     deleteAdvancedPrice: (id: number) => Promise<void>;
+}
+
+export interface ProductAttribute {
+    attribute_id: number;
+    attribute_value_ids: number[];
+}
+
+export interface Source {
+    id: number;
+    name: string;
+    address: string;
+    province_id: string | null;
+    district_id: string | null;
+    ward_id: string | null;
+    active: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface SourceProduct {
+    id: number;
+    product_id: number;
+    source_id: number;
+    quantity: number;
+    status: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface SourceContextType {
+    sources: Source[];
+    loading: boolean;
+    error: string | null;
+    fetchSources: () => Promise<void>;
+    createSource: (sourceData: Partial<Source>) => Promise<Source>;
+    updateSource: (id: number, sourceData: Partial<Source>) => Promise<Source>;
+    deleteSource: (id: number) => Promise<void>;
 }
