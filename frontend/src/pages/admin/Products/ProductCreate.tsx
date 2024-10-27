@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress } from "@mui/material";
+import * as React from 'react';
+import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress, Checkbox, ListItemText, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { Accordion, AccordionSummary, AccordionDetails } from '../../../components/shared/StyledAccordion';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import AddIcon from '@mui/icons-material/Add';
@@ -10,51 +10,101 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext } from '../../../core/contexts/ProductContext';
 import { useCategory } from '../../../core/contexts/CategoryContext';
+import { useSource } from '../../../core/contexts/SourceContext';
 import { useAttribute } from '../../../core/contexts/AttributeContext';
+import { Product } from '../../../core/hooks/dataTypes';
+import { generateSlug } from '../../../core/hooks/format';
+import { useAdvancedPrice } from '../../../core/contexts/AdvancedPriceContext';
+import { AdvancedPrice } from '../../../core/hooks/dataTypes';
+import axios from 'axios';
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
+
+// Add this type definition
+type ProductWithArrays = Product & {
+    sources: any[];
+    attributes: any[];
+    variants: any[];
+};
 
 const ProductCreate: React.FC = () => {
     const { createProduct } = useProductContext();
     const { categories, fetchCategories } = useCategory();
-    const { attributes, attributeValues, fetchAttributes, fetchAttributeValues, loading } = useAttribute();
-    const [product, setProduct] = useState({
-        name: "", slug: "", description: "", content: "", image: null as File | null,
-        status: 1, weight: "", price: "", start_new_time: null as dayjs.Dayjs | null,
-        end_new_time: null as dayjs.Dayjs | null, advanced_price_id: "", parent_id: "",
-        sku: "", stock_quantity: "", seo_title: "", seo_description: "", video_link: "",
-        category_id: "", attributes: [] as { attribute_id: number; value_id: number }[], sources: [] as any[],
+    const { sources, fetchSources } = useSource();
+    const { attributes, attributeValues, loading, error } = useAttribute();
+    const [selectedAttributes, setSelectedAttributes] = React.useState([]);
+    const [selectedAttributeValues, setSelectedAttributeValues] = React.useState({});
+    const [product, setProduct] = React.useState<ProductWithArrays>({
+        id: 0, name: "", slug: "", description: "", content: "", image: "",
+        status: 1, weight: 0, price: 0, start_new_time: null,
+        end_new_time: null, advanced_price_id: 0, parent_id: 0,
+        sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
+        category_id: 0, sources: [], attributes: [], variants: [], advanced_prices: []
     });
+    const { createAdvancedPrice } = useAdvancedPrice();
+    const [advancedPrices, setAdvancedPrices] = React.useState<Partial<AdvancedPrice>[]>([]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         fetchCategories();
-        fetchAttributes();
-        fetchAttributeValues();
+        fetchSources();
     }, []);
 
-    const handleProductChange = (field: string, value: any, index?: number) => {
+    const handleAttributeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+        const value = event.target.value as number[];
+        setSelectedAttributes(value as never[]);
+    };
+
+    const handleAttributeValueChange = (attributeId: number, event: React.ChangeEvent<{ value: unknown }>) => {
+        const value = event.target.value as number[];
+        setSelectedAttributeValues(prev => ({
+            ...prev,
+            [attributeId]: value,
+        }));
+    };
+
+    const handleProductChange = (field: keyof Product, value: any, index?: number) => {
         setProduct((prev) => {
-            if (field === 'sources') {
-                const newArray = [...prev[field]];
+            let updatedProduct = { ...prev };
+            if (field === 'sources' || field === 'attributes' || field === 'variants' || field === 'advanced_prices') {
+                const newArray = [...(prev[field] as any[])];
                 if (index !== undefined) {
                     newArray[index] = { ...newArray[index], ...value };
                 } else {
                     newArray.push(value);
                 }
-                return { ...prev, [field]: newArray };
+                updatedProduct[field] = newArray;
             } else {
-                return { ...prev, [field]: value };
+                updatedProduct[field] = value as never;
             }
+
+            // Generate slug when name changes
+            if (field === 'name') {
+                updatedProduct.slug = generateSlug(value);
+            }
+
+            return updatedProduct;
         });
     };
 
-    const removeItem = (field: string, index: number) => {
+    const removeItem = (field: keyof typeof product, index: number) => {
         setProduct((prev) => ({
-            ...prev, [field]: prev[field].filter((_: any, i: number) => i !== index)
+            ...prev,
+            [field]: (prev[field] as any[]).filter((_: any, i: number) => i !== index)
         }));
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setProduct((prev) => ({ ...prev, image: e.target.files![0] }));
+        if (e.target.files && e.target.files.length > 0) {
+            setProduct((prev: any) => ({ ...prev, image: e.target.files![0] }));
         }
     };
 
@@ -65,15 +115,45 @@ const ProductCreate: React.FC = () => {
             Object.entries(product).forEach(([key, value]) => {
                 if (key === 'image' && value instanceof File) {
                     formData.append(key, value);
-                } else if (key === 'attributes' || key === 'sources') {
+                } else if (Array.isArray(value)) {
                     formData.append(key, JSON.stringify(value));
                 } else if (value !== null) {
                     formData.append(key, value.toString());
                 }
             });
-            await createProduct(formData as any);
+
+            // Ensure weight is a number
+            if (product.weight) {
+                formData.set('weight', Number(product.weight).toString());
+            }
+
+            // Create the product
+            const newProduct = await createProduct(formData as any);
+
+            // If product creation is successful, create advanced prices
+            if (newProduct.id) {
+                await Promise.all(
+                    advancedPrices.map(price => createAdvancedPrice({ ...price, product_id: newProduct.id }))
+                );
+            }
+
+            console.log('Product created successfully');
+            // You might want to redirect or show a success message here
         } catch (error) {
-            console.error('Error creating product:', error);
+            if (axios.isAxiosError(error) && error.response) {
+                console.error('Error creating product:', error.response.data);
+                // Handle validation errors
+                if (error.response.status === 422) {
+                    const validationErrors = error.response.data.errors;
+                    // Display validation errors to the user
+                    Object.entries(validationErrors).forEach(([field, messages]) => {
+                        console.error(`${field}: ${messages.join(', ')}`);
+                        // You might want to set these errors in state and display them in the UI
+                    });
+                }
+            } else {
+                console.error('Error creating product:', error);
+            }
         }
     };
 
@@ -84,26 +164,47 @@ const ProductCreate: React.FC = () => {
             name={name}
             value={value}
             type={type}
-            onChange={(e) => handleProductChange(e.target.name, e.target.value)}
+            onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
         />
     );
 
-    const handleAttributeChange = (attributeId: number, valueId: number) => {
-        setProduct(prev => {
-            const newAttributes = [...prev.attributes];
-            const index = newAttributes.findIndex(attr => attr.attribute_id === attributeId);
-            if (index !== -1) {
-                newAttributes[index].value_id = valueId;
-            } else {
-                newAttributes.push({ attribute_id: attributeId, value_id: valueId });
+    const generateVariants = () => {
+        const selectedAttributes = product.attributes.filter((attr: any) => attr.attribute_id && attr.value_id);
+        if (selectedAttributes.length === 0) return;
+
+        const generateCombinations = (attrs: any[], index: number = 0, current: any[] = []): any[][] => {
+            if (index === attrs.length) {
+                return [current];
             }
-            return { ...prev, attributes: newAttributes };
+            const attribute = attrs[index];
+            const combinations: any[][] = [];
+            combinations.push(...generateCombinations(attrs, index + 1, [...current, attribute]));
+            return combinations;
+        };
+
+        const combinations = generateCombinations(selectedAttributes);
+        const newVariants = combinations.map(combination => ({
+            name: `${product.name} - ${combination.map(attr => attr.value).join(' - ')}`,
+            price: product.price,
+            sku: '',
+            stock_quantity: 0,
+            attributes: combination
+        }));
+
+        setProduct((prev: any) => ({ ...prev, variants: newVariants }));
+    };
+
+    const handleAdvancedPriceChange = (index: number, field: keyof AdvancedPrice, value: any) => {
+        setAdvancedPrices(prev => {
+            const newPrices = [...prev];
+            newPrices[index] = { ...newPrices[index], [field]: value };
+            return newPrices;
         });
     };
 
-    if (loading) {
-        return <CircularProgress />;
-    }
+    const handleAddAdvancedPrice = () => {
+        setAdvancedPrices([...advancedPrices, { type: '', amount: 0, start_time: null, end_time: null }]);
+    };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -140,7 +241,7 @@ const ProductCreate: React.FC = () => {
                                             <Select
                                                 name="status"
                                                 value={product.status}
-                                                onChange={(e) => handleProductChange(e.target.name, e.target.value)}
+                                                onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
                                                 label="Trạng thái"
                                             >
                                                 <MenuItem value={1}>Hoạt động</MenuItem>
@@ -208,14 +309,14 @@ const ProductCreate: React.FC = () => {
                                     <Grid item xs={12} md={6}>
                                         <DatePicker
                                             label="Start New Time"
-                                            value={product.start_new_time}
+                                            value={product.start_new_time ? dayjs(product.start_new_time) : null}
                                             onChange={(date) => handleProductChange('start_new_time', date)}
                                         />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
                                         <DatePicker
                                             label="End New Time"
-                                            value={product.end_new_time}
+                                            value={product.end_new_time ? dayjs(product.end_new_time) : null}
                                             onChange={(date) => handleProductChange('end_new_time', date)}
                                         />
                                     </Grid>
@@ -228,34 +329,134 @@ const ProductCreate: React.FC = () => {
                                 <Typography variant="h6">Thuộc tính</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <Grid container spacing={2}>
-                                    {Array.isArray(attributes) && attributes.length > 0 ? (
-                                        attributes.map((attribute) => (
-                                            <Grid item xs={12} sm={6} key={attribute.id}>
+                                {loading ? (
+                                    <CircularProgress />
+                                ) : error ? (
+                                    <Typography color="error">{error}</Typography>
+                                ) : (
+                                    <>
+                                        <FormControl sx={{ m: 1, width: 300 }}>
+                                            <InputLabel id="attributes-checkbox-label">Attributes</InputLabel>
+                                            <Select
+                                                labelId="attributes-checkbox-label"
+                                                id="attributes-checkbox"
+                                                multiple
+                                                value={selectedAttributes}
+                                                onChange={handleAttributeChange}
+                                                input={<OutlinedInput label="Attributes" />}
+                                                renderValue={(selected) => selected.map(id => attributes.find(attr => attr.id === id)?.name || '').join(', ')}
+                                                MenuProps={MenuProps}
+                                            >
+                                                {attributes.map((attribute) => (
+                                                    <MenuItem key={attribute.id} value={attribute.id}>
+                                                        <Checkbox checked={selectedAttributes.includes(attribute.id as never)} />
+                                                        <ListItemText primary={attribute.name} />
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+
+                                        {selectedAttributes.length > 0 && (
+                                            <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                                <Table>
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell>Attribute</TableCell>
+                                                            <TableCell>Values</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {selectedAttributes.map((attributeId) => {
+                                                            const attribute = attributes.find(attr => attr.id === attributeId);
+                                                            if (!attribute) return null;
+                                                            return (
+                                                                <TableRow key={attributeId}>
+                                                                    <TableCell>{attribute.name}</TableCell>
+                                                                    <TableCell>
+                                                                        <FormControl sx={{ width: '100%' }}>
+                                                                            <Select
+                                                                                multiple
+                                                                                value={selectedAttributeValues[attributeId] || []}
+                                                                                onChange={(e) => handleAttributeValueChange(attributeId, e)}
+                                                                                renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
+                                                                                MenuProps={MenuProps}
+                                                                            >
+                                                                                {attributeValues
+                                                                                    .filter(v => v.attribute_id === attributeId)
+                                                                                    .map((v) => (
+                                                                                        <MenuItem key={v.id} value={v.id}>
+                                                                                            <Checkbox checked={(selectedAttributeValues[attributeId] || []).indexOf(v.id) > -1} />
+                                                                                            <ListItemText primary={v.value} />
+                                                                                        </MenuItem>
+                                                                                    ))}
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        })}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        )}
+
+                                        <Button onClick={generateVariants} sx={{ mt: 2 }}>
+                                            Generate Variants
+                                        </Button>
+                                    </>
+                                )}
+                            </AccordionDetails>
+                        </Accordion>
+
+                        <Accordion>
+                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
+                                <Typography variant="h6">Advanced Prices</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                {advancedPrices.map((price, index) => (
+                                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={12} md={3}>
                                                 <FormControl fullWidth>
-                                                    <InputLabel>{attribute.name}</InputLabel>
+                                                    <InputLabel>Type</InputLabel>
                                                     <Select
-                                                        value={product.attributes.find(attr => attr.attribute_id === attribute.id)?.value_id || ''}
-                                                        onChange={(e) => handleAttributeChange(attribute.id, Number(e.target.value))}
+                                                        value={price.type}
+                                                        onChange={(e) => handleAdvancedPriceChange(index, 'type', e.target.value)}
                                                     >
-                                                        {attributeValues
-                                                            .filter(av => av.attribute_id === attribute.id)
-                                                            .map((attrValue) => (
-                                                                <MenuItem key={attrValue.id} value={attrValue.id}>
-                                                                    {attrValue.value}
-                                                                </MenuItem>
-                                                            ))
-                                                        }
+                                                        <MenuItem value="discount">Discount</MenuItem>
+                                                        <MenuItem value="special">Special</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
-                                        ))
-                                    ) : (
-                                        <Grid item xs={12}>
-                                            <Typography>Không có thuộc tính nào.</Typography>
+                                            <Grid item xs={12} md={3}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Amount"
+                                                    type="number"
+                                                    value={price.amount}
+                                                    onChange={(e) => handleAdvancedPriceChange(index, 'amount', parseFloat(e.target.value))}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12} md={3}>
+                                                <DatePicker
+                                                    label="Start Time"
+                                                    value={price.start_time ? dayjs(price.start_time) : null}
+                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'start_time', newValue?.toISOString())}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12} md={3}>
+                                                <DatePicker
+                                                    label="End Time"
+                                                    value={price.end_time ? dayjs(price.end_time) : null}
+                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'end_time', newValue?.toISOString())}
+                                                />
+                                            </Grid>
                                         </Grid>
-                                    )}
-                                </Grid>
+                                    </Box>
+                                ))}
+                                <Button startIcon={<AddIcon />} onClick={handleAddAdvancedPrice}>
+                                    Add Advanced Price
+                                </Button>
                             </AccordionDetails>
                         </Accordion>
 
@@ -268,10 +469,22 @@ const ProductCreate: React.FC = () => {
                                     <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
                                         <Grid container spacing={2} alignItems="center">
                                             <Grid item xs={12} md={5}>
-                                                {renderTextField("Source ID", `sources[${index}].source_id`, source.source_id)}
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Source</InputLabel>
+                                                    <Select
+                                                        value={source.source_id}
+                                                        onChange={(e) => handleProductChange('sources', { ...source, source_id: e.target.value }, index)}
+                                                    >
+                                                        {sources.map((s) => (
+                                                            <MenuItem key={s.id} value={s.id}>
+                                                                {s.name} - {s.address}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
                                             </Grid>
                                             <Grid item xs={12} md={5}>
-                                                {renderTextField("Quantity", `sources[${index}].quantity`, source.quantity, "number")}
+                                                {renderTextField("Quantity", `sources[${index}].quantity`, source.quantity.toString(), "number")}
                                             </Grid>
                                             <Grid item xs={12} md={2}>
                                                 <IconButton onClick={() => removeItem('sources', index)}>
@@ -286,6 +499,8 @@ const ProductCreate: React.FC = () => {
                                 </Button>
                             </AccordionDetails>
                         </Accordion>
+
+
                     </Paper>
                 </Container>
             </form>

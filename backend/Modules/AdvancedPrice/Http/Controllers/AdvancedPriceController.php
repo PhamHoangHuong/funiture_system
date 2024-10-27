@@ -11,9 +11,14 @@ use Modules\AdvancedPrice\Repositories\AdvancedPriceRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\QueryException;
 use Modules\AdvancedPrice\Transformers\AdvancedPriceResource;
+use Modules\Traits\ResponseTrait;
+use Modules\Product\Entities\Product;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AdvancedPriceController extends Controller
 {
+    use ResponseTrait;
+
     protected $advancedPriceRepository;
 
     public function __construct(AdvancedPriceRepositoryInterface $advancedPriceRepository)
@@ -23,17 +28,28 @@ class AdvancedPriceController extends Controller
 
     public function index()
     {
-        return AdvancedPriceResource::collection($this->advancedPriceRepository->getAll());
+        try {
+            $advancedPrices = $this->advancedPriceRepository->getAll();
+            return $this->toResponseSuccess(
+                AdvancedPriceResource::collection($advancedPrices),
+                'Advanced prices retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
     public function store(StoreAdvancedPriceRequest $request)
     {
         try {
+            $product = Product::findOrFail($request->product_id);
             $advancedPrice = $this->advancedPriceRepository->create($request->validated());
             return response()->json([
                 'message' => 'Giá nâng cao đã được tạo thành công',
                 'data' => $advancedPrice
             ], Response::HTTP_CREATED);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Sản phẩm không tồn tại'], Response::HTTP_NOT_FOUND);
         } catch (QueryException $e) {
             return response()->json(['error' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()], Response::HTTP_CONFLICT);
         } catch (\Exception $e) {

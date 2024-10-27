@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Source, SourceContextType } from '../hooks/dataTypes';
+import { Source, SourceContextType, SourceProduct } from '../hooks/dataTypes';
 import { SourceService } from '../services/sourceService';
 
 const SourceContext = createContext<SourceContextType | undefined>(undefined);

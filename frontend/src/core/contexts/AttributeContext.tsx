@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Attribute, AttributeValue, AttributeContextType } from '../hooks/dataTypes';
-import { attributeService } from '../services/attributeService';
+import { AttributeService } from '../services/attributeService';
 
 const AttributeContext = createContext<AttributeContextType | undefined>(undefined);
 
@@ -13,7 +13,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const fetchAttributes = async () => {
         try {
             setLoading(true);
-            const data = await attributeService.getAllAttributes();
+            const data = await AttributeService.getAllAttributes();
             setAttributes(data);
             setError(null);
         } catch (err) {
@@ -27,7 +27,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const fetchAttributeValues = async () => {
         try {
             setLoading(true);
-            const data = await attributeService.getAllAttributeValues();
+            const data = await AttributeService.getAllAttributeValues();
             setAttributeValues(data);
             setError(null);
         } catch (err) {
@@ -40,7 +40,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const createAttribute = async (attributeData: Partial<Attribute>) => {
         try {
-            const newAttribute = await attributeService.createAttribute(attributeData);
+            const newAttribute = await AttributeService.createAttribute(attributeData);
             setAttributes([...attributes, newAttribute]);
             return newAttribute;
         } catch (err) {
@@ -51,7 +51,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const updateAttribute = async (id: number, attributeData: Partial<Attribute>) => {
         try {
-            const updatedAttribute = await attributeService.updateAttribute(id, attributeData);
+            const updatedAttribute = await AttributeService.updateAttribute(id, attributeData);
             setAttributes(attributes.map(attr => attr.id === id ? updatedAttribute : attr));
             return updatedAttribute;
         } catch (err) {
@@ -62,7 +62,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const deleteAttribute = async (id: number) => {
         try {
-            await attributeService.deleteAttribute(id);
+            await AttributeService.deleteAttribute(id);
             setAttributes(attributes.filter(attr => attr.id !== id));
         } catch (err) {
             console.error('Error deleting attribute:', err);
@@ -72,7 +72,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const createAttributeValue = async (attributeValueData: Partial<AttributeValue>) => {
         try {
-            const newAttributeValue = await attributeService.createAttributeValue(attributeValueData);
+            const newAttributeValue = await AttributeService.createAttributeValue(attributeValueData);
             setAttributeValues([...attributeValues, newAttributeValue]);
             return newAttributeValue;
         } catch (err) {
@@ -83,7 +83,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const updateAttributeValue = async (id: number, attributeValueData: Partial<AttributeValue>) => {
         try {
-            const updatedAttributeValue = await attributeService.updateAttributeValue(id, attributeValueData);
+            const updatedAttributeValue = await AttributeService.updateAttributeValue(id, attributeValueData);
             setAttributeValues(attributeValues.map(attrVal => attrVal.id === id ? updatedAttributeValue : attrVal));
             return updatedAttributeValue;
         } catch (err) {
@@ -94,7 +94,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const deleteAttributeValue = async (id: number) => {
         try {
-            await attributeService.deleteAttributeValue(id);
+            await AttributeService.deleteAttributeValue(id);
             setAttributeValues(attributeValues.filter(attrVal => attrVal.id !== id));
         } catch (err) {
             console.error('Error deleting attribute value:', err);

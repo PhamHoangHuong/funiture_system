@@ -23,42 +23,45 @@ import { ProductProvider } from "../core/contexts/ProductContext"
 import { CategoryProvider } from "../core/contexts/CategoryContext"
 import { AttributeProvider } from "../core/contexts/AttributeContext"
 import { AdvancedPriceProvider } from "../core/contexts/AdvancedPriceContext"
+import { SourceProvider } from "../core/contexts/SourceContext"
 const AdminRoutes: React.FC = () => {
     return (
         <ProductProvider>
             <CategoryProvider>
                 <AttributeProvider>
                     <AdvancedPriceProvider>
-                        <AdminLayout>
-                            <Routes>
-                                <Route path="dashboard" element={<Dashboard />} />
-                                <Route path="products">
-                                    <Route index element={<ProductList />} />
-                                    <Route path="create" element={<ProductCreate />} />
-                                    <Route path="edit/:id" element={<ProductEdit />} />
-                                </Route>
-                                <Route path="categories">
-                                    <Route index element={<CategoryList />} />
-                                    <Route path="create" element={<CategoryCreate />} />
-                                </Route>
-                                <Route path="inventory">
-                                    <Route path="warehouse" element={<Warehouse />} />
-                                    <Route path="received-orders" element={<ReceivedOrders />} />
-                                </Route>
-                                <Route path="orders">
-                                    <Route index element={<OrdersList />} />
-                                    <Route path="details" element={<OrdersDetails />} />
-                                    <Route path="cart" element={<OrdersCart />} />
-                                    <Route path="checkout" element={<OrdersCheckOut />} />
-                                </Route>
-                                <Route path="quan-ly-khach-hang/danh-sach" element={<QuanLyKhachHangDanhSachKhachHang />} />
-                                <Route path="quan-ly-khach-hang/them-moi" element={<QuanLyKhachHangThemKhachHang />} />
-                                <Route path="page-manager" element={<PageManager />} />
-                                <Route path="settings" element={<Settings />} />
-                                <Route path="logout" element={<Logout />} />
-                                <Route path="*" element={<Navigate to="dashboard" replace />} />
-                            </Routes>
-                        </AdminLayout>
+                        <SourceProvider>
+                            <AdminLayout>
+                                <Routes>
+                                    <Route path="dashboard" element={<Dashboard />} />
+                                    <Route path="products">
+                                        <Route index element={<ProductList />} />
+                                        <Route path="create" element={<ProductCreate />} />
+                                        <Route path="edit/:id" element={<ProductEdit />} />
+                                    </Route>
+                                    <Route path="categories">
+                                        <Route index element={<CategoryList />} />
+                                        <Route path="create" element={<CategoryCreate />} />
+                                    </Route>
+                                    <Route path="inventory">
+                                        <Route path="warehouse" element={<Warehouse />} />
+                                        <Route path="received-orders" element={<ReceivedOrders />} />
+                                    </Route>
+                                    <Route path="orders">
+                                        <Route index element={<OrdersList />} />
+                                        <Route path="details" element={<OrdersDetails />} />
+                                        <Route path="cart" element={<OrdersCart />} />
+                                        <Route path="checkout" element={<OrdersCheckOut />} />
+                                    </Route>
+                                    <Route path="quan-ly-khach-hang/danh-sach" element={<QuanLyKhachHangDanhSachKhachHang />} />
+                                    <Route path="quan-ly-khach-hang/them-moi" element={<QuanLyKhachHangThemKhachHang />} />
+                                    <Route path="page-manager" element={<PageManager />} />
+                                    <Route path="settings" element={<Settings />} />
+                                    <Route path="logout" element={<Logout />} />
+                                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                </Routes>
+                            </AdminLayout>
+                        </SourceProvider>
                     </AdvancedPriceProvider>
                 </AttributeProvider>
             </CategoryProvider>

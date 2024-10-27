@@ -9,3 +9,7 @@ Route::put('products/{id}/change-status', [ProductController::class, 'changeStat
 
 // ProductAttribute\
 Route::apiResource('product-attributes', ProductAttributeController::class);
+
+Route::post('products/variant-prices', [ProductController::class, 'getVariantPrices']);
+Route::post('products/{productId}/variants', [ProductController::class, 'addVariant']);
+Route::delete('products/variants/{variantId}', [ProductController::class, 'deleteVariant']);

@@ -45,15 +45,15 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try {
-            $productData = $this->prepareProductData($request);
+            $productData = $request->validated();
+            $productData['slug'] = Str::slug($productData['name']);
             $product = $this->productRepository->create($productData);
-
             $this->handleAttributes($request, $product);
             $this->handleProductCategories($request, $product);
             $this->saveProductToSources($request, $product);
-
+            $this->handleVariants($request, $product);
             DB::commit();
-            return $this->toResponseSuccess(new ProductResource($product), 'Sản phẩm đã được tạo thành công', Response::HTTP_CREATED);
+            return $this->toResponseSuccess(new ProductResource($product), 'Product created successfully', Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->handleException($e);
@@ -143,8 +143,7 @@ class ProductController extends Controller
     {
         if ($request->has('attributes')) {
             foreach ($request->attributes as $attribute) {
-                ProductAttribute::create([
-                    'product_id' => $product->id,
+                $product->productAttributes()->create([
                     'attribute_id' => $attribute['attribute_id'],
                     'value_id' => $attribute['value_id'],
                 ]);
@@ -165,11 +164,6 @@ class ProductController extends Controller
         }
     }
 
-    // nếu sản phẩm có nguồn cung cấp thì lưu sản phẩm vào nguồn đó
-    // ví dụ: sản phẩm có nguồn từ nhà cung cấp A, B, C thì lưu sản phẩm vào các nguồn A, B, C
-    // với số lượng và số lượng tồn kho tương ứng với nguồn đó
-    // và ngược lại, nếu sản phẩm không có nguồn cung cấp thì không cần lưu vào nguồn
-    // và với sản phẩm biến thể thì cũng lưu vào nguồn tương ứng với sản phẩm chính
 
     protected function saveProductToSources(Request $request, $product)
     {
@@ -194,7 +188,7 @@ class ProductController extends Controller
             // Xóa các danh mục cũ của sản phẩm
             $product->categories()->detach();
 
-            // Thêm các danh mục m��i
+            // Thêm các danh mục mới
             foreach ($categoryIds as $categoryId) {
                 $product->categories()->attach($categoryId);
             }
@@ -211,7 +205,17 @@ class ProductController extends Controller
     public function storeAttributes(Request $request, $productId)
     {
         $product = $this->productRepository->find($productId);
-        $this->handleAttributes($request, $product);
+        $attributes = $request->input('attributes', []);
+
+        $product->productAttributes()->delete(); // Remove existing attributes
+
+        foreach ($attributes as $attribute) {
+            $product->productAttributes()->create([
+                'attribute_id' => $attribute['attribute_id'],
+                'value_id' => $attribute['value_id'],
+            ]);
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -220,5 +224,86 @@ class ProductController extends Controller
         $product = $this->productRepository->find($productId);
         // Handle source and quantity logic here
         return response()->json(['success' => true]);
+    }
+
+    public function getVariantPrices(Request $request)
+    {
+        try {
+            $variantIds = $request->input('variant_ids', []);
+            $variants = $this->productRepository->findMany($variantIds);
+
+            $variantPrices = $variants->map(function ($variant) {
+                return [
+                    'id' => $variant->id,
+                    'name' => $variant->name,
+                    'price' => $variant->price,
+                    'advanced_prices' => $variant->advancedPrices->map(function ($advancedPrice) {
+                        return [
+                            'id' => $advancedPrice->id,
+                            'type' => $advancedPrice->type,
+                            'amount' => $advancedPrice->amount,
+                            'start_time' => $advancedPrice->start_time,
+                            'end_time' => $advancedPrice->end_time,
+                        ];
+                    }),
+                ];
+            });
+
+            return $this->toResponseSuccess($variantPrices, 'Variant prices retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function addVariant(Request $request, $productId)
+    {
+        DB::beginTransaction();
+        try {
+            $product = $this->productRepository->find($productId);
+            if (!$product) {
+                return $this->toResponseBad('Product not found', Response::HTTP_NOT_FOUND);
+            }
+
+            $variantData = $request->validate([
+                'name' => 'required|string|max:255',
+                'price' => 'required|numeric',
+                'sku' => 'nullable|string|max:255',
+                'stock_quantity' => 'integer',
+                'attributes' => 'array',
+                'attributes.*.attribute_id' => 'required|exists:attributes,id',
+                'attributes.*.value_id' => 'required|exists:attribute_values,id',
+            ]);
+
+            $variantData['parent_id'] = $product->id;
+            $variantData['slug'] = Str::slug($product->slug . '-' . $variantData['name']);
+            $variant = $this->productRepository->create($variantData);
+
+            $this->handleAttributes(new Request(['attributes' => $variantData['attributes']]), $variant);
+
+            DB::commit();
+            return $this->toResponseSuccess(new ProductResource($variant), 'Variant added successfully', Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e);
+        }
+    }
+
+    public function deleteVariant($variantId)
+    {
+        DB::beginTransaction();
+        try {
+            $variant = $this->productRepository->find($variantId);
+            if (!$variant || !$variant->parent_id) {
+                return $this->toResponseBad('Variant not found or not a valid variant', Response::HTTP_NOT_FOUND);
+            }
+
+            $this->productRepository->delete($variantId);
+
+            DB::commit();
+            return $this->toResponseSuccess(null, 'Variant deleted successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e);
+        }
     }
 }

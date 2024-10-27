@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Product, SuccessResponse } from '../hooks/dataTypes';
+import { Product, SuccessResponse, SourceProduct } from '../hooks/dataTypes';
 
 const API_URL = 'http://localhost:8000/api/products';
 
@@ -19,8 +19,8 @@ export const ProductService = {
 
     // Tạo sản phẩm mới
     create: async (productData: Partial<Product>): Promise<Product> => {
-        const response = await axios.post<Product>(API_URL, productData);
-        return response.data;
+        const response = await axios.post<SuccessResponse<Product>>(API_URL, productData);
+        return response.data.data;
     },
 
     // Cập nhật sản phẩm
@@ -34,15 +34,10 @@ export const ProductService = {
         await axios.delete(`${API_URL}/${id}`);
     },
 
-    // Lưu các thuộc tính cho sản phẩm
-    storeAttributes: async (productId: number, attributes: any): Promise<any> => {
-        const response = await axios.post(`${API_URL}/${productId}/attributes`, attributes);
-        return response.data;
-    },
 
     // Lưu nguồn và số lượng cho sản phẩm
-    storeSourceAndQuantity: async (productId: number, sourceData: any): Promise<any> => {
-        const response = await axios.post(`${API_URL}/${productId}/source`, sourceData);
-        return response.data;
+    storeSourceAndQuantity: async (productId: number, sourceProducts: Partial<SourceProduct>[]): Promise<SourceProduct[]> => {
+        const response = await axios.post<SuccessResponse<SourceProduct[]>>(`${API_URL}/${productId}/sources`, sourceProducts);
+        return response.data.data;
     }
 };

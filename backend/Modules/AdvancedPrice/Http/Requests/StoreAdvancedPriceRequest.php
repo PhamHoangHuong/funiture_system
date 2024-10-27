@@ -17,8 +17,8 @@ class StoreAdvancedPriceRequest extends FormRequest
             'product_id' => 'required|exists:products,id',
             'type' => 'required|string',
             'start_time' => 'nullable|date',
-            'end_time' => 'nullable|date',
-            'amount' => 'required|numeric',
+            'end_time' => 'nullable|date|after_or_equal:start_time',
+            'amount' => 'required|numeric|min:0',
         ];
     }
 

@@ -1,52 +1,54 @@
-import api from './api';
-import { Attribute, AttributeValue } from '../hooks/dataTypes';
+import axios from 'axios';
+import { Attribute, AttributeValue, SuccessResponse } from '../hooks/dataTypes';
 
-export const attributeService = {
-    getAllAttributes: async (): Promise<Attribute[]> => {
-        const response = await api.get('/attributes');
-        return response.data;
+const API_URL = 'http://localhost:8000/api';
+
+export const AttributeService = {
+    getAllAttributes: async () => {
+        const response = await axios.get<SuccessResponse<Attribute[]>>(`${API_URL}/attributes`);
+        return response.data.data;
     },
 
-    getAttribute: async (id: number): Promise<Attribute> => {
-        const response = await api.get(`/attributes/${id}`);
-        return response.data;
+    getAttributeById: async (id: number) => {
+        const response = await axios.get<SuccessResponse<Attribute>>(`${API_URL}/attributes/${id}`);
+        return response.data.data;
     },
 
     createAttribute: async (attributeData: Partial<Attribute>): Promise<Attribute> => {
-        const response = await api.post('/attributes', attributeData);
-        return response.data;
+        const response = await axios.post<SuccessResponse<Attribute>>(`${API_URL}/attributes`, attributeData);
+        return response.data.data;
     },
 
     updateAttribute: async (id: number, attributeData: Partial<Attribute>): Promise<Attribute> => {
-        const response = await api.put(`/attributes/${id}`, attributeData);
-        return response.data;
+        const response = await axios.put<SuccessResponse<Attribute>>(`${API_URL}/attributes/${id}`, attributeData);
+        return response.data.data;
     },
 
     deleteAttribute: async (id: number): Promise<void> => {
-        await api.delete(`/attributes/${id}`);
+        await axios.delete(`${API_URL}/attributes/${id}`);
     },
 
-    getAllAttributeValues: async (): Promise<AttributeValue[]> => {
-        const response = await api.get('/attribute-values');
-        return response.data;
+    getAllAttributeValues: async () => {
+        const response = await axios.get<SuccessResponse<AttributeValue[]>>(`${API_URL}/attribute-values`);
+        return response.data.data;
     },
 
-    getAttributeValue: async (id: number): Promise<AttributeValue> => {
-        const response = await api.get(`/attribute-values/${id}`);
-        return response.data;
+    getAttributeValueById: async (id: number) => {
+        const response = await axios.get<SuccessResponse<AttributeValue>>(`${API_URL}/attribute-values/${id}`);
+        return response.data.data;
     },
 
     createAttributeValue: async (attributeValueData: Partial<AttributeValue>): Promise<AttributeValue> => {
-        const response = await api.post('/attribute-values', attributeValueData);
-        return response.data;
+        const response = await axios.post<SuccessResponse<AttributeValue>>(`${API_URL}/attribute-values`, attributeValueData);
+        return response.data.data;
     },
 
     updateAttributeValue: async (id: number, attributeValueData: Partial<AttributeValue>): Promise<AttributeValue> => {
-        const response = await api.put(`/attribute-values/${id}`, attributeValueData);
-        return response.data;
+        const response = await axios.put<SuccessResponse<AttributeValue>>(`${API_URL}/attribute-values/${id}`, attributeValueData);
+        return response.data.data;
     },
 
     deleteAttributeValue: async (id: number): Promise<void> => {
-        await api.delete(`/attribute-values/${id}`);
+        await axios.delete(`${API_URL}/attribute-values/${id}`);
     },
 };

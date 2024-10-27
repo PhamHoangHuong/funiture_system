@@ -45,25 +45,27 @@ export interface Category {
 export interface Product {
     id: number
     name: string
-    slug: string | null // nullable nếu không có giá trị
-    description: string | null // nullable nếu không có giá trị
-    content: string | null // nullable nếu không có giá trị
-    image: string // nullable nếu không có giá trị
-    status: number // có thể dùng enum nếu cần
-    weight: number | null // nullable nếu không có giá trị
-    price: number // giữ nguyên kiểu string để phù hợp với định dạng giá
-    start_new_time: string | null // nullable nếu không có giá trị
-    end_new_time: string | null // nullable nếu không có giá trị
-    advanced_price_id: number | null // nullable nếu không có giá trị
-    parent_id: number | null // nullable nếu không có giá trị
-    sku: string | null // nullable nếu không có giá trị
-    stock_quantity: number // số lượng trong kho
-    seo_title: string | null // nullable nếu không có giá trị
-    seo_description: string | null // nullable nếu không có giá trị
-    video_link: string | null // nullable nếu không có giá trị
-    category_id: number | null // nullable nếu không có giá trị
-    attributes: ProductAttribute[];
+    slug: string | null
+    description: string | null
+    content: string | null
+    image: string
+    status: number
+    weight: number | null
+    price: number
+    start_new_time: string | null
+    end_new_time: string | null
+    advanced_price_id: number | null
+    parent_id: number | null
+    sku: string | null
+    stock_quantity: number
+    seo_title: string | null
+    seo_description: string | null
+    video_link: string | null
+    category_id: number | null
     sources: SourceProduct[];
+    attributes: ProductAttribute[];
+    variants: Product[];
+    advanced_prices: AdvancedPrice[];
 }
 
 // Auth context type
@@ -108,14 +110,14 @@ export interface AttributeContextType {
 }
 
 export interface AdvancedPrice {
-    id: number;
-    product_id: number;
+    id?: number;
+    product_id?: number;
     type: string;
     start_time: string | null;
     end_time: string | null;
     amount: number;
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface AdvancedPriceContextType {
@@ -130,7 +132,7 @@ export interface AdvancedPriceContextType {
 
 export interface ProductAttribute {
     attribute_id: number;
-    attribute_value_ids: number[];
+    value_id: number;
 }
 
 export interface Source {
@@ -141,9 +143,9 @@ export interface Source {
     district_id: string | null;
     ward_id: string | null;
     active: boolean;
+    deleted_at: string | null;
     created_at: string;
     updated_at: string;
-    deleted_at: string | null;
 }
 
 export interface SourceProduct {

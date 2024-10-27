@@ -36,6 +36,9 @@ class UpdateProductRequest extends FormRequest
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
             'video_link' => 'nullable|string',
+            'attributes' => 'nullable|array',
+            'attributes.*.attribute_id' => 'required|exists:attributes,id',
+            'attributes.*.value_id' => 'required|exists:attribute_values,id',
         ];
     }
 }

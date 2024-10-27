@@ -4,6 +4,8 @@ namespace Modules\AdvancedPrice\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
+use Modules\AdvancedPrice\Repositories\AdvancedPriceRepository;
+use Modules\AdvancedPrice\Repositories\AdvancedPriceRepositoryInterface;
 
 class AdvancedPriceServiceProvider extends ServiceProvider
 {
@@ -40,8 +42,8 @@ class AdvancedPriceServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
 
         $this->app->bind(
-            \Modules\AdvancedPrice\Repositories\AdvancedPriceRepositoryInterface::class,
-            \Modules\AdvancedPrice\Repositories\AdvancedPriceRepository::class
+            AdvancedPriceRepositoryInterface::class,
+            AdvancedPriceRepository::class
         );
     }
 
@@ -56,7 +58,8 @@ class AdvancedPriceServiceProvider extends ServiceProvider
             module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower . '.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower
+            module_path($this->moduleName, 'Config/config.php'),
+            $this->moduleNameLower
         );
     }
 

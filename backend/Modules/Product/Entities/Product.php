@@ -37,12 +37,6 @@ class Product extends Model
         'category_id'
     ];
 
-    // Quan hệ với sản phẩm chính
-    public function parent()
-    {
-        return $this->belongsTo(Product::class, 'parent_id');
-    }
-
     // Quan hệ với sản phẩm phụ (biến thể)
     public function variants()
     {
@@ -64,7 +58,7 @@ class Product extends Model
     // Quan hệ với AttributeValues thông qua bảng product_attributes
     public function attributeValues()
     {
-        return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'attribute_id');
+        return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'value_id');
     }
 
     // Quan hệ với Sources

@@ -11,4 +11,9 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         return Product::class;
     }
+
+    public function findMany(array $ids)
+    {
+        return $this->model->whereIn('id', $ids)->with('advancedPrices')->get();
+    }
 }
