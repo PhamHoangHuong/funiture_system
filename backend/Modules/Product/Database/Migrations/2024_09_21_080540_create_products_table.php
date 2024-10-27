@@ -28,15 +28,12 @@ return new class extends Migration
             $table->unsignedBigInteger('advanced_price_id')->nullable()->comment('Liên kết với bảng Advanced_price');
             $table->unsignedBigInteger('parent_id')->nullable()->comment('Liên kết sản phẩm chính/phụ');
             $table->string('sku')->nullable()->comment('Mã sản phẩm');
-            $table->unsignedInteger('stock_quantity')->default(0)->comment('Tổng số lượng trong kho');
             $table->string('seo_title')->nullable()->comment('Tiêu đề SEO');
             $table->text('seo_description')->nullable()->comment('Mô tả SEO');
             $table->string('video_link')->nullable()->comment('Đường dẫn video liên quan');
-            $table->unsignedBigInteger('category_id')->nullable()->comment('Liên kết danh mục sản phẩm');
             $table->timestamps();
             $table->softDeletes();
         });
-        
     }
 
     /**

@@ -19,11 +19,8 @@ use Modules\Source\Repositories\SourceProductRepositoryInterface;
 use Modules\Source\Repositories\SourceProductRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 
-
-
 class ProductController extends Controller
 {
-    // Sử dụng các trait
     use ImageUploadTrait, ResponseTrait;
 
     protected $productRepository, $sourceProductRepository;
@@ -34,47 +31,38 @@ class ProductController extends Controller
         $this->sourceProductRepository = $sourceProductRepository;
     }
 
-    // Lấy danh sách tất cả sản phẩm
     public function index()
     {
-        return ProductResource::collection($this->productRepository->getAll());
+        $products = $this->productRepository->getAll();
+        return ProductResource::collection($products);
     }
 
-    // Tạo mới một sản phẩm
     public function store(StoreProductRequest $request)
     {
         DB::beginTransaction();
         try {
-            $productData = $request->validated();
-            $productData['slug'] = Str::slug($productData['name']);
+            $productData = $this->prepareProductData($request);
             $product = $this->productRepository->create($productData);
             $this->handleAttributes($request, $product);
             $this->handleProductCategories($request, $product);
-            $this->saveProductToSources($request, $product);
-            $this->handleVariants($request, $product);
             DB::commit();
-            return $this->toResponseSuccess(new ProductResource($product), 'Product created successfully', Response::HTTP_CREATED);
+            return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', new ProductResource($product), Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->handleException($e);
         }
     }
 
-    // Hiển thị thông tin chi tiết của một sản phẩm
     public function show($id)
     {
         try {
             $product = $this->productRepository->find($id);
-            if (!$product) {
-                return $this->toResponseBad('Không tìm thấy sản phẩm', Response::HTTP_NOT_FOUND);
-            }
-            return $this->toResponseSuccess(new ProductResource($product->load('variants', 'parent', 'categories')));
+            return new ProductResource($product);
         } catch (\Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    // Cập nhật thông tin sản phẩm
     public function update(UpdateProductRequest $request, $id)
     {
         DB::beginTransaction();
@@ -86,43 +74,23 @@ class ProductController extends Controller
             $this->handleAttributes($request, $product);
             $this->handleProductCategories($request, $product);
             DB::commit();
-            return $this->toResponseSuccess('Sản phẩm đã được cập nhật thành công');
+            return $this->toResponseSuccess('Sản phẩm đã được cập nhật thành công', new ProductResource($product));
         } catch (\Exception $e) {
+            DB::rollBack();
             return $this->handleException($e);
         }
     }
 
-    // Xóa sản phẩm
     public function destroy($id)
     {
-        DB::beginTransaction();
         try {
-            $product = $this->productRepository->find($id);
-            $product->variants()->delete();
-            $product->delete();
-            DB::commit();
-            return $this->toResponseDeleteSuccess('Sản phẩm đã được xóa thành công');
+            $this->productRepository->delete($id);
+            return $this->toResponseSuccess('Sản phẩm đã được xóa thành công');
         } catch (\Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    // Phương thức thay đổi trạng thái của sản phẩm
-    public function changeStatus($id)
-    {
-        DB::beginTransaction();
-        try {
-            $product = $this->productRepository->find($id);
-            $product->status = !$product->status;
-            $product->save();
-            DB::commit();
-            return $this->toResponseSuccess(new ProductResource($product->load('variants')), 'Thay đổi trạng thái sản phẩm thành công');
-        } catch (\Exception $e) {
-            return $this->handleException($e);
-        }
-    }
-
-    // Phương thức hỗ trợ để chuẩn bị dữ liệu sản phẩm
     protected function prepareProductData(Request $request, $id = null)
     {
         $productData = $request->validated();
@@ -138,66 +106,29 @@ class ProductController extends Controller
         return $productData;
     }
 
-    // Phương thức xử lý attributes (xử lý các thuộc tính của sản phẩm)
     protected function handleAttributes(Request $request, $product)
     {
         if ($request->has('attributes')) {
+            $product->productAttributes()->delete();
             foreach ($request->attributes as $attribute) {
                 $product->productAttributes()->create([
                     'attribute_id' => $attribute['attribute_id'],
-                    'value_id' => $attribute['value_id'],
+                    'attribute_value_id' => $attribute['attribute_value_id'],
                 ]);
             }
         }
     }
 
-    // Phương thức xử lý variants (sản phẩm biến thể)
-    protected function handleVariants(Request $request, $product)
-    {
-        if ($request->has('variants')) {
-            foreach ($request->variants as $variantData) {
-                $variantData['parent_id'] = $product->id;
-                $variantData['slug'] = Str::slug($product->slug . '-' . $variantData['name']);
-                $variant = $this->productRepository->create($variantData);
-                $this->handleAttributes(new Request(['attributes' => $variantData['attributes']]), $variant);
-            }
-        }
-    }
-
-
-    protected function saveProductToSources(Request $request, $product)
-    {
-        if ($request->has('sources')) {
-            foreach ($request->sources as $sourceData) {
-                $sourceProductData = [
-                    'product_id' => $product->id,
-                    'source_id' => $sourceData['source_id'],
-                    'quantity' => $sourceData['quantity'],
-                ];
-                $this->sourceProductRepository->create($sourceProductData);
-            }
-        }
-    }
-
-    // Phương thức xử lý để lưu vào bảng product_categories
     protected function handleProductCategories(Request $request, $product)
     {
-        $categoryIds = explode(',', $request['category_ids']);
-
         if ($request->has('category_ids')) {
-            // Xóa các danh mục cũ của sản phẩm
-            $product->categories()->detach();
-
-            // Thêm các danh mục mới
-            foreach ($categoryIds as $categoryId) {
-                $product->categories()->attach($categoryId);
-            }
+            $categoryIds = explode(',', $request['category_ids']);
+            $product->categories()->sync($categoryIds);
         }
     }
 
-    public function storeBasicInfo(Request $request)
+    public function storeBasicInfo(StoreProductRequest $request)
     {
-        // Validate and store basic product information
         $product = $this->productRepository->create($request->validated());
         return response()->json(['product_id' => $product->id]);
     }
@@ -207,103 +138,14 @@ class ProductController extends Controller
         $product = $this->productRepository->find($productId);
         $attributes = $request->input('attributes', []);
 
-        $product->productAttributes()->delete(); // Remove existing attributes
-
+        $product->productAttributes()->delete();
         foreach ($attributes as $attribute) {
             $product->productAttributes()->create([
                 'attribute_id' => $attribute['attribute_id'],
-                'value_id' => $attribute['value_id'],
+                'attribute_value_id' => $attribute['attribute_value_id'],
             ]);
         }
 
-        return response()->json(['success' => true]);
-    }
-
-    public function storeSourceAndQuantity(Request $request, $productId)
-    {
-        $product = $this->productRepository->find($productId);
-        // Handle source and quantity logic here
-        return response()->json(['success' => true]);
-    }
-
-    public function getVariantPrices(Request $request)
-    {
-        try {
-            $variantIds = $request->input('variant_ids', []);
-            $variants = $this->productRepository->findMany($variantIds);
-
-            $variantPrices = $variants->map(function ($variant) {
-                return [
-                    'id' => $variant->id,
-                    'name' => $variant->name,
-                    'price' => $variant->price,
-                    'advanced_prices' => $variant->advancedPrices->map(function ($advancedPrice) {
-                        return [
-                            'id' => $advancedPrice->id,
-                            'type' => $advancedPrice->type,
-                            'amount' => $advancedPrice->amount,
-                            'start_time' => $advancedPrice->start_time,
-                            'end_time' => $advancedPrice->end_time,
-                        ];
-                    }),
-                ];
-            });
-
-            return $this->toResponseSuccess($variantPrices, 'Variant prices retrieved successfully');
-        } catch (\Exception $e) {
-            return $this->handleException($e);
-        }
-    }
-
-    public function addVariant(Request $request, $productId)
-    {
-        DB::beginTransaction();
-        try {
-            $product = $this->productRepository->find($productId);
-            if (!$product) {
-                return $this->toResponseBad('Product not found', Response::HTTP_NOT_FOUND);
-            }
-
-            $variantData = $request->validate([
-                'name' => 'required|string|max:255',
-                'price' => 'required|numeric',
-                'sku' => 'nullable|string|max:255',
-                'stock_quantity' => 'integer',
-                'attributes' => 'array',
-                'attributes.*.attribute_id' => 'required|exists:attributes,id',
-                'attributes.*.value_id' => 'required|exists:attribute_values,id',
-            ]);
-
-            $variantData['parent_id'] = $product->id;
-            $variantData['slug'] = Str::slug($product->slug . '-' . $variantData['name']);
-            $variant = $this->productRepository->create($variantData);
-
-            $this->handleAttributes(new Request(['attributes' => $variantData['attributes']]), $variant);
-
-            DB::commit();
-            return $this->toResponseSuccess(new ProductResource($variant), 'Variant added successfully', Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->handleException($e);
-        }
-    }
-
-    public function deleteVariant($variantId)
-    {
-        DB::beginTransaction();
-        try {
-            $variant = $this->productRepository->find($variantId);
-            if (!$variant || !$variant->parent_id) {
-                return $this->toResponseBad('Variant not found or not a valid variant', Response::HTTP_NOT_FOUND);
-            }
-
-            $this->productRepository->delete($variantId);
-
-            DB::commit();
-            return $this->toResponseSuccess(null, 'Variant deleted successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->handleException($e);
-        }
+        return $this->toResponseSuccess('Thuộc tính sản phẩm đã được cập nhật thành công');
     }
 }

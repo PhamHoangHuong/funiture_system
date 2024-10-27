@@ -14,19 +14,20 @@ class StoreAttributeRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255|unique:attributes,name',
+            'description' => 'nullable|string|max:1000',
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required' => 'The name field is required.',
-            'name.string' => 'The name must be a string.',
-            'name.max' => 'The name may not be greater than 255 characters.',
-            'description.string' => 'The description must be a string.',
-            'description.max' => 'The description may not be greater than 255 characters.',
+            'name.required' => 'Tên thuộc tính là bắt buộc.',
+            'name.string' => 'Tên thuộc tính phải là một chuỗi.',
+            'name.max' => 'Tên thuộc tính không được vượt quá 255 ký tự.',
+            'name.unique' => 'Tên thuộc tính đã tồn tại.',
+            'description.string' => 'Mô tả phải là một chuỗi.',
+            'description.max' => 'Mô tả không được vượt quá 1000 ký tự.',
         ];
     }
 }

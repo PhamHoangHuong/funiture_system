@@ -3,7 +3,6 @@
 namespace Modules\Product\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Attributes\Transformers\AttributeValueResource;
 use Modules\Attributes\Transformers\AttributeResource;
 
 class ProductAttributeResource extends JsonResource
@@ -13,7 +12,6 @@ class ProductAttributeResource extends JsonResource
         return [
             'id' => $this->id,
             'attribute' => new AttributeResource($this->whenLoaded('attribute')),
-            'value' => new AttributeValueResource($this->whenLoaded('value')),
         ];
     }
 }

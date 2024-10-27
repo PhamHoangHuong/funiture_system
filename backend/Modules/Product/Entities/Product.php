@@ -30,57 +30,62 @@ class Product extends Model
         'advanced_price_id',
         'parent_id',
         'sku',
-        'stock_quantity',
         'seo_title',
         'seo_description',
-        'video_link',
-        'category_id'
+        'video_link'
     ];
 
-    // Quan hệ với sản phẩm phụ (biến thể)
+    protected $casts = [
+        'status' => 'boolean',
+        'weight' => 'float',
+        'price' => 'decimal:2',
+        'start_new_time' => 'datetime',
+        'end_new_time' => 'datetime',
+    ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Product::class, 'parent_id');
+    }
+
     public function variants()
     {
         return $this->hasMany(Product::class, 'parent_id');
     }
 
-    // Quan hệ với AdvancedPrice
-    public function advancedPrices()
+    public function advancedPrice()
     {
-        return $this->hasMany(AdvancedPrice::class);
+        return $this->belongsTo(AdvancedPrice::class);
     }
 
-    // Quan hệ với Attributes
     public function attributes()
     {
-        return $this->belongsToMany(Attribute::class, 'product_attributes');
+        return $this->belongsToMany(Attribute::class, 'product_attributes')
+                    ->withPivot('attribute_value_id')
+                    ->withTimestamps();
     }
 
-    // Quan hệ với AttributeValues thông qua bảng product_attributes
     public function attributeValues()
     {
-        return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'value_id');
+        return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'attribute_value_id')
+                    ->withTimestamps();
     }
 
-    // Quan hệ với Sources
     public function sources()
     {
-        return $this->belongsToMany(Source::class, 'source_products');
+        return $this->belongsToMany(Source::class, 'source_products')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
     }
 
-    // Quan hệ với SourceProducts
     public function sourceProducts()
     {
         return $this->hasMany(SourceProduct::class);
     }
 
-    // Quan hệ với ProductAttributes
-    public function productAttributes()
-    {
-        return $this->hasMany(ProductAttribute::class);
-    }
-
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id');
+        return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id')
+                    ->withTimestamps();
     }
 }
