@@ -16,4 +16,14 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         return $this->model->whereIn('id', $ids)->with('advancedPrices')->get();
     }
+    public function getSourceContainProduct($product_id)
+    {
+        $product = $this->model->find($product_id);
+        $sources = $product->sources()
+            ->wherePivot('quantity', '>', 0)
+            ->wherePivot('status', 1)
+            ->get();
+
+        return $sources->pluck('id');
+    }
 }

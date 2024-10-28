@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('product_attributes')) {
-            Schema::dropIfExists('product_attributes');
-        }
-
         Schema::create('product_attributes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            $table->foreignId('attribute_id')->constrained('attributes')->onDelete('cascade');
-            $table->foreignId('attribute_value_id')->constrained('attribute_values')->onDelete('cascade');
-            $table->timestamps();
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('attribute_id');
+            $table->unsignedBigInteger('attribute_value_id');
             $table->softDeletes();
+            $table->timestamps();
+
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('attribute_id')->references('id')->on('attributes');
+            $table->foreign('attribute_value_id')->references('id')->on('attribute_values');
         });
     }
 

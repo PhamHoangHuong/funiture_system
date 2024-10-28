@@ -29,8 +29,6 @@ class ProductResource extends JsonResource
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
-            'category_id' => $this->category_id,
-
             // Quan hệ với sản phẩm chính
             'parent' => new ProductResource($this->whenLoaded('parent')), //trả về sản phẩm chính nếu có
             // Quan hệ với sản phẩm phụ (biến thể)

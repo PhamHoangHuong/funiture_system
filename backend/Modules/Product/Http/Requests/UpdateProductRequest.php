@@ -46,7 +46,7 @@ class UpdateProductRequest extends FormRequest
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
             'video_link' => 'nullable|string|url',
-            'category_ids' => 'sometimes|required|array',
+            'category_ids' => 'required|array',
             'category_ids.*' => 'exists:categories,id',
             'attributes' => 'nullable|array',
             'attributes.*.attribute_id' => 'required|exists:attributes,id',
