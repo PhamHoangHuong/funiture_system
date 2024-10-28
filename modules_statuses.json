@@ -1,0 +1,12 @@
+{
+    "Blog": true,
+    "Auth": true,
+    "Attributes": true,
+    "Product": true,
+    "Source": true,
+    "AdvancedPrice": true,
+    "Category": true,
+    "GroupCustomer": true,
+    "Customer": true,
+    "Cart": true
+}
