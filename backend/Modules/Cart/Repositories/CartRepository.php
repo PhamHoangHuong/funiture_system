@@ -19,7 +19,7 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
             $query->select('cart_id', 'product_id', 'quantity');
         })->first();
         $cart->items->map(function($item){
-            $item->product = $item->product()->select('id', 'name', 'price', 'image')->first();
+            $item->product = $item->product()->select('id', 'name', 'price', 'image', 'weight')->first();
             return $item;
         });
         return $cart;
@@ -38,5 +38,23 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
         return $cartItem;
     }
 
+    public function addToCart($product_id, $quantity){
+        $cart = $this->model->firstOrCreate([
+            'user_id' => auth('customer')->id(),
+        ]);
+
+        $cartItem = $cart->items()->where('product_id', $product_id)->first();
+        if($cartItem){
+            $cartItem->quantity += $quantity;
+            $cartItem->save();
+        } else {
+            $cartItem = $cart->items()->updateOrCreate([
+                'product_id' => $product_id,
+                'quantity' => $quantity
+            ]);
+        }
+
+        return $cartItem;
+    }
 
 }
