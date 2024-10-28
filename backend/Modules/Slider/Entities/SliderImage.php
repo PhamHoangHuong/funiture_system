@@ -12,16 +12,9 @@ class SliderImage extends Model
 
     protected $fillable = [
         'slider_id',
-        'image',
-        'name',
-        'link',
-        'description',
+        'image_url',
         'sort_order',
-        'active',
-    ];
-
-    protected $casts = [
-        'active' => 'boolean',
+        'status',
     ];
 
     public function slider()
