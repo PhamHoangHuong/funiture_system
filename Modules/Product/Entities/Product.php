@@ -69,7 +69,8 @@ class Product extends Model
     // Quan hệ với Sources
     public function sources()
     {
-        return $this->belongsToMany(Source::class, 'source_products');
+        return $this->belongsToMany(Source::class, 'source_products', 'product_id', 'source_id')
+            ->withPivot('quantity', 'status');
     }
 
     // Quan hệ với SourceProducts
