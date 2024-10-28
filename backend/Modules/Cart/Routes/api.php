@@ -23,3 +23,5 @@ Route::group(['prefix' => '/cart', 'middleware' => 'jwt'], function () {
     Route::delete('/{itemId}', [CartController::class, 'destroy']);
     Route::delete('', [CartController::class, 'clear']);
 });
+
+Route::get('/getLatLong', [CartController::class, 'getLatLong']);
