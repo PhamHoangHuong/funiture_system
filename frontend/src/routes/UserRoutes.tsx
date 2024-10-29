@@ -17,12 +17,16 @@ import Contact from "../pages/user/contact/Contact"
 import Signup from "../pages/user/auth/Signup"
 import Login from "../pages/user/auth/Login"
 import { ProductProvider } from "../core/contexts/ProductContext"
+import { AuthProvider } from "../core/contexts/AuthContext_user"
+import { CartProvider } from "../core/contexts/CartContext"
 
 const UserRoutes: React.FC = () => {
     return (
         <ProductProvider>
-            <Routes>
-                <Route element={<UserLayout />}>
+            <AuthProvider>
+                <CartProvider>
+                    <Routes>
+                        <Route element={<UserLayout />}>
                     <Route index element={<Home />} />
                     <Route path="products" element={<UserProductLayout />} />
                     <Route path="products/:id" element={<ProductDetails />} />
@@ -45,7 +49,9 @@ const UserRoutes: React.FC = () => {
                 {/* Error page */}
                 <Route path="error" element={<ErrorPage />} />
                 <Route path="*" element={<ErrorPage />} />
-            </Routes>
+                    </Routes>
+                </CartProvider>
+            </AuthProvider>
         </ProductProvider>
     )
 }
