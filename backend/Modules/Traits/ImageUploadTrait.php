@@ -49,7 +49,7 @@ trait ImageUploadTrait
             foreach ($images as $index => $image) {
                 $ext = $image->getClientOriginalExtension();
                 $imageName = $prefix . '_' . ($index + 1) . '_' . uniqid() . '.' . $ext;
-                $fullPath = public_path('../../frontend/public/images' . $path);
+                $fullPath = public_path('../../frontend/public/images/' . $path);
                 if (!File::isDirectory($fullPath)) {
                     File::makeDirectory($fullPath, 0777, true, true);
                 }
@@ -78,7 +78,7 @@ trait ImageUploadTrait
             $image = $request->file($inputName);
             $ext = $image->getClientOriginalExtension();
             $imageName = 'media_' . uniqid() . '.' . $ext;
-            $fullPath = public_path('../../frontend/public/images' . $path);
+            $fullPath = public_path('../../frontend/public/images/' . $path);
             if (!File::isDirectory($fullPath)) {
                 File::makeDirectory($fullPath, 0777, true, true);
             }
@@ -96,7 +96,7 @@ trait ImageUploadTrait
      */
     protected function deleteImage(string $path)
     {
-        $fullPath = public_path('../../frontend/public/images' . $path);
+        $fullPath = public_path('../../frontend/public/images/' . $path);
         if (File::exists($fullPath)) {
             File::delete($fullPath);
         }
