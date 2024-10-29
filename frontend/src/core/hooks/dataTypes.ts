@@ -68,6 +68,15 @@ export interface Product {
     advanced_prices: AdvancedPrice[];
 }
 
+// cart 
+export interface Cart {
+    id: number;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+
 // Auth context type
 export interface AuthContextType {
     user: User | null;
