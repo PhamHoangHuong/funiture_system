@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Modules\Slider\Http\Controllers\SliderController;
+use Modules\Slider\Http\Controllers\SliderImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,3 +20,4 @@ use Modules\Slider\Http\Controllers\SliderController;
 //});
 
 Route::apiResource('sliders', SliderController::class);
+Route::apiResource('slider-images', SliderImageController::class);

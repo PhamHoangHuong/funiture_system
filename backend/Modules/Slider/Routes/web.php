@@ -11,6 +11,6 @@
 |
 */
 
-//Route::prefix('slider')->group(function() {
-//    Route::get('/', 'SliderController@index');
-//});
+Route::prefix('slider')->group(function() {
+    Route::get('/', 'SliderController@index');
+});
