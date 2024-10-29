@@ -3,6 +3,7 @@
 namespace Modules\Slider\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSliderRequest extends FormRequest
 {
@@ -13,19 +14,19 @@ class UpdateSliderRequest extends FormRequest
      */
     public function rules()
     {
+        $sliderId = $this->route('slider');
         return [
-            'title' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|in:1,2',
-            'position' => 'sometimes|required|string|unique:sliders,position,' . $this->route('slider'),
-            'status' => 'sometimes|required|boolean',
-            'images' => 'sometimes|array',
-            'images.*.id' => 'sometimes|exists:slider_images,id',
-            'images.*.image' => 'nullable|image|max:2048',
-            'images.*.link' => 'required|url',
-            'images.*.name' => 'required|string|max:255',
-            'images.*.description' => 'nullable|string',
-            'images.*.sort_order' => 'required|integer',
-            'images.*.active' => 'required|boolean',
+            'title' => 'required|string|max:255',
+            'type' => 'required|string|in:1,2',
+            'position' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('sliders')->ignore($sliderId),
+            ],
+            'link' => 'nullable|string',
+            'description' => 'nullable|string',
+            'status' => 'required|boolean',
         ];
     }
 

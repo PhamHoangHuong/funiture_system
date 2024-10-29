@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('sliders', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->comment('Tiêu đề');
-            $table->string('type')->comment('Loại: 1:slider, 2:banner');
-            $table->string('position')->unique()->comment('Vị trí');
+            $table->string('title')->nullable()->comment('Tiêu đề');
+            $table->tinyInteger('type')->nullable()->comment('Loại: 1:slider, 2:banner');
+            $table->string('position')->nullable()->comment('Vị trí');
             $table->tinyInteger('status')->default(1)->comment('Trạng thái');
             $table->timestamps();
             $table->softDeletes();
