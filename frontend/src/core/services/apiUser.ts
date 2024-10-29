@@ -21,17 +21,21 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        const response = await api.post('/auth/refresh', { refresh_token: refreshToken });
-        localStorage.setItem('access_token', response.data.access_token);
-        originalRequest.headers['Authorization'] = `Bearer ${response.data.access_token}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        // window.location.href = '/admin/login';
+      originalRequest._retryCount = originalRequest._retryCount || 0;
+
+      if (originalRequest._retryCount < 3) {
+        originalRequest._retryCount += 1;
+        try {
+          const refreshToken = localStorage.getItem('refresh_token');
+          const response = await api.post('/refresh', { refresh_token: refreshToken });
+          localStorage.setItem('access_token', response.data.access_token);
+          originalRequest.headers['Authorization'] = `Bearer ${response.data.access_token}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
       }
     }
     return Promise.reject(error);

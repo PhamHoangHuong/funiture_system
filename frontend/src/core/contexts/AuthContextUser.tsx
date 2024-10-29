@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login, logout, refreshToken, getProfile } from '../services/api';
+import { login, logout, refreshToken, getProfile } from '../services/apiUser';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../hooks/translation';
 import { AuthContextType, User } from '../hooks/dataTypes';

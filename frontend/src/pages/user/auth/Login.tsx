@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../core/contexts/AuthContext';
-import { toast } from 'react-toastify';
 
 
 const Login: React.FC = () => {
@@ -11,7 +10,7 @@ const Login: React.FC = () => {
     remember: false,
   });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { handleLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,13 +25,12 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await login(formData.email, formData.password);
+      const result = await handleLogin(formData.email, formData.password);
       if (result.success) {
-        toast.success('Login successful!');
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -45,25 +43,25 @@ const Login: React.FC = () => {
           <div className="col-xl-6">
             <form className="theme-form" onSubmit={handleSubmit}>
               <h3 className="mb-40">Login Account</h3>
-              <input 
+              <input
                 type="text"
-                name="email" 
-                placeholder="User name or email address*" 
+                name="email"
+                placeholder="User name or email address*"
                 className="theme-input"
                 value={formData.email}
                 onChange={handleChange}
               />
-              <input 
+              <input
                 type="password"
                 name="password"
-                placeholder="Password*" 
+                placeholder="Password*"
                 className="theme-input mt-3"
                 value={formData.password}
                 onChange={handleChange}
               />
               <div className="forgot-password d-flex align-items-center justify-content-between gap-2 mt-32 flex-wrap">
                 <label className="mb-0">
-                  <input 
+                  <input
                     type="checkbox"
                     name="remember"
                     checked={formData.remember}
@@ -72,8 +70,8 @@ const Login: React.FC = () => {
                 </label>
                 <Link to="#" className="text-main-color">Lost your password?</Link>
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="template-btn primary-btn w-100 mt-32"
                 disabled={loading}
               >

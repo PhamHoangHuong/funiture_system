@@ -11,11 +11,13 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// Get dữ liệu của giỏ hàng
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cart, setCart] = useState<Cart[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Fetch dữ liệu của giỏ hàng
     const fetchCart = async () => {
         try {
             setLoading(true);
