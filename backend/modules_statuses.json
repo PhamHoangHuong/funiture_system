@@ -9,6 +9,7 @@
     "GroupCustomer": true,
     "Customer": true,
     "Cart": true,
+    "CartPriceRule": true,
     "Topic": true,
     "Slider": true,
     "Post": true
