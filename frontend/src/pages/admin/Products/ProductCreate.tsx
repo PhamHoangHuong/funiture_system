@@ -113,7 +113,7 @@ const ProductCreate: React.FC = () => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             setProduct((prev: any) => ({ ...prev, image: file }));
-            setImagePreview(URL.createObjectURL(file)); // Create a URL for the image preview
+            setImagePreview(URL.createObjectURL(file)); // Tạo URL cho xem trước hình ảnh
         }
     };
 
@@ -167,21 +167,12 @@ const ProductCreate: React.FC = () => {
         }
     };
 
-    // Hàm render TextField
-    const renderTextField = (label: string, name: string, value: any, type: string = "text") => (
-        <TextField
-            fullWidth
-            label={label}
-            name={name}
-            value={value}
-            type={type}
-            onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
-        />
-    );
 
     // Hàm tạo các biến thể sản phẩm
     const generateVariants = () => {
         const selectedAttributes = product.attributes.filter((attr: any) => attr.attribute_id && attr.value_id);
+        console.log("Selected Attributes:", selectedAttributes);
+
         if (selectedAttributes.length === 0) return;
 
         const generateCombinations = (attrs: any[], index: number = 0, current: any[] = []): any[][] => {
@@ -195,22 +186,29 @@ const ProductCreate: React.FC = () => {
         };
 
         const combinations = generateCombinations(selectedAttributes);
+        console.log("Generated Combinations:", combinations);
+
         const newVariants = combinations.map(combination => ({
             name: `${product.name} - ${combination.map(attr => attr.value).join(' - ')}`,
             price: product.price,
             sku: '',
-            attributes: combination
+            image: '',
+            weight: product.weight,
+            status: product.status,
+            attributes: combination.map(attr => mapAttribute(product, attr))
         }));
+
+        console.log("New Variants:", newVariants);
 
         setProduct((prev: any) => ({ ...prev, variants: newVariants }));
     };
 
-    // Hàm xử lý khi thay đổi giá nâng cao
-    const handleAdvancedPriceChange = (index: number, field: keyof AdvancedPrice, value: any) => {
-        setAdvancedPrices(prev => {
-            const newPrices = [...prev];
-            newPrices[index] = { ...newPrices[index], [field]: value };
-            return newPrices;
+    // Hàm xử lý khi thay đổi biến thể
+    const handleVariantChange = (index: number, field: string, value: any) => {
+        setProduct((prev) => {
+            const updatedVariants = [...prev.variants];
+            updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+            return { ...prev, variants: updatedVariants };
         });
     };
 
@@ -230,24 +228,18 @@ const ProductCreate: React.FC = () => {
         // console.log("map thuộc tính", selectedAttributeValues);
     };
 
-    // map sản phẩm biến thể (imgage, name sku, pract weight, status, attributes, actions)
-    const renderVariant = () => {
-        return product.variants.map((variant: any) => (
-            <div key={variant.id}>
-                {variant.name}
-                {variant.sku}
-                {variant.pract_weight}
-                {variant.status}
-                {variant.attributes.map((attr: any) => mapAttribute(product, attr))}
-            </div>
-        ))
-        image: '';
-    }
+    // Hàm xóa biến thể
+    const handleRemoveVariant = (index: number) => {
+        setProduct((prev) => ({
+            ...prev,
+            variants: prev.variants.filter((_, i) => i !== index)
+        }));
+    };
 
-    // handleAddVariant
-    const handleAddVariant = () => {
-        generateVariants();
-    }
+    // Hàm chỉnh sửa biến thể (có thể triển khai logic theo nhu cầu)
+    const handleEditVariant = (index: number) => {
+        // Triển khai logic chỉnh sửa ở đây
+    };
 
     // Hàm xóa giá nâng cao
     const removeAdvancedPrice = (index: number) => {
@@ -259,7 +251,7 @@ const ProductCreate: React.FC = () => {
         setSelectedAttributes(prev => prev.filter(id => id !== attributeId));
         setSelectedAttributeValues(prev => {
             const updatedValues = { ...prev };
-            delete updatedValues[attributeId];
+            // delete updatedValues[attributeId];
             return updatedValues;
         });
     };
@@ -281,6 +273,7 @@ const ProductCreate: React.FC = () => {
                         </Grid>
                         <Divider sx={{ my: 4 }} />
 
+                        {/* sản phẩm cơ bản (Chính) */}
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thông tin cơ bản</Typography>
@@ -450,6 +443,7 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
+                        {/* Thuộc tính */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thuộc tính</Typography>
@@ -528,17 +522,95 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* map sản phẩm biến thể */}
+                        {/* Bảng sản phẩm biến thể */}
                         <Accordion>
-                            <AccordionSummary>
-                                <Typography variant="h6">Sản phẩm biến thể </Typography>
-                                <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                    {renderVariant()}
-                                </TableContainer>
-                                <Button onClick={handleAddVariant}>Thêm biến thể</Button>
+                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
+                                <Typography variant="h6">Sản phẩm biến thể</Typography>
                             </AccordionSummary>
+                            <AccordionDetails>
+                                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Hình ảnh</TableCell>
+                                                <TableCell>Tên</TableCell>
+                                                <TableCell>SKU</TableCell>
+                                                <TableCell>Giá</TableCell>
+                                                <TableCell>Cân nặng</TableCell>
+                                                <TableCell>Trạng thái</TableCell>
+                                                <TableCell>Thuộc tính</TableCell>
+                                                <TableCell>Hành động</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {product.variants.map((variant: any, index: number) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>
+                                                        {variant.image ? (
+                                                            <img src={variant.image} alt="Variant" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                                                        ) : (
+                                                            <Typography variant="body2" color="textSecondary">Không có hình ảnh</Typography>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.name}
+                                                            onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.sku}
+                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variant.price}
+                                                            onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variant.weight}
+                                                            onChange={(e) => handleVariantChange(index, 'weight', parseFloat(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Select
+                                                            value={variant.status}
+                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.value)}
+                                                        >
+                                                            <MenuItem value={1}>Hoạt động</MenuItem>
+                                                            <MenuItem value={0}>Không hoạt động</MenuItem>
+                                                        </Select>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {variant.attributes.map((attr: any, attrIndex: number) => (
+                                                            <Typography key={attrIndex} variant="body2">
+                                                                {attr.name}: {attr.value}
+                                                            </Typography>
+                                                        ))}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => handleEditVariant(index)}>
+                                                            <EditIcon />
+                                                        </IconButton>
+                                                        <IconButton onClick={() => handleRemoveVariant(index)}>
+                                                            <DeleteIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </AccordionDetails>
                         </Accordion>
 
+                        {/* Giá nâng cao */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Giá nâng cao</Typography>
@@ -549,20 +621,20 @@ const ProductCreate: React.FC = () => {
                                         <Grid container spacing={2}>
                                             <Grid item md={2}>
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Type</InputLabel>
+                                                    <InputLabel>Loại</InputLabel>
                                                     <Select
                                                         value={price.type}
                                                         onChange={(e) => handleAdvancedPriceChange(index, 'type', e.target.value)}
                                                     >
-                                                        <MenuItem value="discount">Discount</MenuItem>
-                                                        <MenuItem value="special">Special</MenuItem>
+                                                        <MenuItem value="discount">Giảm giá</MenuItem>
+                                                        <MenuItem value="special">Đặc biệt</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
                                             <Grid item md={3}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Amount"
+                                                    label="Số tiền"
                                                     type="number"
                                                     value={price.amount}
                                                     onChange={(e) => handleAdvancedPriceChange(index, 'amount', parseFloat(e.target.value))}
@@ -570,14 +642,14 @@ const ProductCreate: React.FC = () => {
                                             </Grid>
                                             <Grid item md={3}>
                                                 <DatePicker
-                                                    label="Start Time"
+                                                    label="Thời gian bắt đầu"
                                                     value={price.start_time ? dayjs(price.start_time) : null}
                                                     onChange={(newValue) => handleAdvancedPriceChange(index, 'start_time', newValue?.toISOString())}
                                                 />
                                             </Grid>
                                             <Grid item md={3}>
                                                 <DatePicker
-                                                    label="End Time"
+                                                    label="Thời gian kết thúc"
                                                     value={price.end_time ? dayjs(price.end_time) : null}
                                                     onChange={(newValue) => handleAdvancedPriceChange(index, 'end_time', newValue?.toISOString())}
                                                 />
@@ -588,30 +660,6 @@ const ProductCreate: React.FC = () => {
                                                 </IconButton>
                                             </Grid>
                                         </Grid>
-                                        <Grid container spacing={2} sx={{ mt: 2 }} >
-                                            {price.attributes.map((attr, attrIndex) => (
-                                                <Grid item xs={12} md={6} key={attrIndex}>
-                                                    <Typography variant="subtitle1">{attributes.find(a => a.id === attr.attribute_id)?.name}</Typography>
-                                                    <Select
-                                                        multiple
-                                                        value={attr.values}
-                                                        onChange={(e) => {
-                                                            const newValues = e.target.value as number[];
-                                                            handleAdvancedPriceChange(index, 'attributes', price.attributes.map((a, i) => i === attrIndex ? { ...a, values: newValues } : a));
-                                                        }}
-                                                        renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
-                                                        MenuProps={MenuProps}
-                                                    >
-                                                        {attributeValues.filter(v => v.attribute_id === attr.attribute_id).map((v) => (
-                                                            <MenuItem key={v.id} value={v.id}>
-                                                                <Checkbox checked={attr.values.includes(v.id)} />
-                                                                <ListItemText primary={v.value} />
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </Grid>
-                                            ))}
-                                        </Grid>
                                     </Box>
                                 ))}
                                 <Button startIcon={<AddIcon />} onClick={handleAddAdvancedPrice}>
@@ -620,6 +668,7 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
+                        {/* Nguồn hàng */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Nguồn hàng</Typography>
@@ -630,7 +679,7 @@ const ProductCreate: React.FC = () => {
                                         <Grid container spacing={2} alignItems="center">
                                             <Grid item xs={12} md={5}>
                                                 <FormControl fullWidth required>
-                                                    <InputLabel>Source</InputLabel>
+                                                    <InputLabel>Nguồn</InputLabel>
                                                     <Select
                                                         value={source.source_id}
                                                         onChange={(e) => handleProductChange('sources', { ...source, source_id: e.target.value }, index)}
@@ -646,7 +695,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item xs={12} md={5}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Quantity"
+                                                    label="Số lượng"
                                                     type="number"
                                                     value={source.quantity}
                                                     onChange={(e) => handleProductChange(`sources[${index}].quantity`, e.target.value)}
