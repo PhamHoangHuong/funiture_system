@@ -8,14 +8,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import { useProductContext } from '../../../core/contexts/ProductContext';
-import { useCategory } from '../../../core/contexts/CategoryContext';
-import { useSource } from '../../../core/contexts/SourceContext';
-import { useAttribute } from '../../../core/contexts/AttributeContext';
-import { Product } from '../../../core/hooks/dataTypes';
+import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
+import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
 import { generateSlug, mapAttribute } from '../../../core/hooks/format';
-import { useAdvancedPrice } from '../../../core/contexts/AdvancedPriceContext';
-import { AdvancedPrice } from '../../../core/hooks/dataTypes';
 import axios from 'axios';
 
 const ITEM_HEIGHT = 48;
