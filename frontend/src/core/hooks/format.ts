@@ -35,7 +35,13 @@ export const generateSlug = (str: string): string => {
         .replace(/\s+/g, '-'); // Thay thế khoảng trắng bằng dấu gạch ngang
 };
 
+// map thuộc tính sản phẩm biến thể = name sản phẩm chính + name giá trị thuộc tính
+export const mapAttribute = (product: any, attribute: any) => {
+    return `${attribute.name}: ${attribute.value}`;
+};
+
 // Chuyển đổi chuỗi ngày DD/MM/YYYY thành đối tượng Dayjs
 export const parseDateFromDisplay = (dateString: string): dayjs.Dayjs | null => {
     return dateString ? dayjs(dateString, 'DD/MM/YYYY') : null;
 };
+

@@ -8,14 +8,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import { useProductContext } from '../../../core/contexts/ProductContext';
-import { useCategory } from '../../../core/contexts/CategoryContext';
-import { useSource } from '../../../core/contexts/SourceContext';
-import { useAttribute } from '../../../core/contexts/AttributeContext';
-import { Product } from '../../../core/hooks/dataTypes';
-import { generateSlug } from '../../../core/hooks/format';
-import { useAdvancedPrice } from '../../../core/contexts/AdvancedPriceContext';
-import { AdvancedPrice } from '../../../core/hooks/dataTypes';
+import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
+import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
+import { generateSlug, mapAttribute } from '../../../core/hooks/format';
 import axios from 'axios';
 
 const ITEM_HEIGHT = 48;
@@ -29,7 +24,7 @@ const MenuProps = {
     },
 };
 
-// Add this type definition
+// Định nghĩa kiểu dữ liệu cho sản phẩm với các mảng
 type ProductWithArrays = Product & {
     sources: any[];
     attributes: any[];
@@ -52,17 +47,21 @@ const ProductCreate: React.FC = () => {
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [advancedPrices, setAdvancedPrices] = React.useState<Partial<AdvancedPrice>[]>([]);
+    const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 
+    // Sử dụng useEffect để lấy danh mục và nguồn hàng khi component được mount
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
 
+    // Hàm xử lý khi thay đổi thuộc tính
     const handleAttributeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         const value = event.target.value as number[];
         setSelectedAttributes(value as never[]);
     };
 
+    // Hàm xử lý khi thay đổi giá trị thuộc tính
     const handleAttributeValueChange = (attributeId: number, event: React.ChangeEvent<{ value: unknown }>) => {
         const value = event.target.value as number[];
         setSelectedAttributeValues(prev => ({
@@ -71,6 +70,7 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
+    // Hàm xử lý khi thay đổi thông tin sản phẩm
     const handleProductChange = (field: keyof Product, value: any, index?: number) => {
         setProduct((prev) => {
             let updatedProduct = { ...prev };
@@ -86,7 +86,7 @@ const ProductCreate: React.FC = () => {
                 updatedProduct[field] = value as never;
             }
 
-            // Generate slug when name changes
+            // Tạo slug khi tên thay đổi
             if (field === 'name') {
                 updatedProduct.slug = generateSlug(value);
             }
@@ -95,6 +95,7 @@ const ProductCreate: React.FC = () => {
         });
     };
 
+    // Hàm xóa một mục trong mảng
     const removeItem = (field: keyof typeof product, index: number) => {
         setProduct((prev) => ({
             ...prev,
@@ -102,12 +103,16 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
+    // Hàm xử lý khi thay đổi hình ảnh  
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setProduct((prev: any) => ({ ...prev, image: e.target.files![0] }));
+            const file = e.target.files[0];
+            setProduct((prev: any) => ({ ...prev, image: file }));
+            setImagePreview(URL.createObjectURL(file)); // Tạo URL cho xem trước hình ảnh
         }
     };
 
+    // Hàm xử lý khi submit form
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -122,15 +127,15 @@ const ProductCreate: React.FC = () => {
                 }
             });
 
-            // Ensure weight is a number
+            // Đảm bảo cân nặng là số
             if (product.weight) {
                 formData.set('weight', Number(product.weight).toString());
             }
 
-            // Create the product
+            // Tạo sản phẩm
             const newProduct = await createProduct(formData as any);
 
-            // If product creation is successful, create advanced prices
+            // Nếu tạo sản phẩm thành công, tạo giá nâng cao
             if (newProduct.id) {
                 await Promise.all(
                     advancedPrices.map(price => createAdvancedPrice({ ...price, product_id: newProduct.id }))
@@ -138,17 +143,17 @@ const ProductCreate: React.FC = () => {
             }
 
             console.log('Product created successfully');
-            // You might want to redirect or show a success message here
+            // Có thể chuyển hướng hoặc hiển thị thông báo thành công ở đây
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 console.error('Error creating product:', error.response.data);
-                // Handle validation errors
+                // Xử lý lỗi xác thực
                 if (error.response.status === 422) {
                     const validationErrors = error.response.data.errors;
-                    // Display validation errors to the user
+                    // Hiển thị lỗi xác thực cho người dùng
                     Object.entries(validationErrors).forEach(([field, messages]) => {
                         console.error(`${field}: ${messages.join(', ')}`);
-                        // You might want to set these errors in state and display them in the UI
+                        // Có thể đặt các lỗi này vào state và hiển thị chúng trong giao diện người dùng
                     });
                 }
             } else {
@@ -157,19 +162,12 @@ const ProductCreate: React.FC = () => {
         }
     };
 
-    const renderTextField = (label: string, name: string, value: any, type: string = "text") => (
-        <TextField
-            fullWidth
-            label={label}
-            name={name}
-            value={value}
-            type={type}
-            onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
-        />
-    );
 
+    // Hàm tạo các biến thể sản phẩm
     const generateVariants = () => {
         const selectedAttributes = product.attributes.filter((attr: any) => attr.attribute_id && attr.value_id);
+        console.log("Selected Attributes:", selectedAttributes);
+
         if (selectedAttributes.length === 0) return;
 
         const generateCombinations = (attrs: any[], index: number = 0, current: any[] = []): any[][] => {
@@ -183,27 +181,74 @@ const ProductCreate: React.FC = () => {
         };
 
         const combinations = generateCombinations(selectedAttributes);
+        console.log("Generated Combinations:", combinations);
+
         const newVariants = combinations.map(combination => ({
             name: `${product.name} - ${combination.map(attr => attr.value).join(' - ')}`,
             price: product.price,
             sku: '',
-            stock_quantity: 0,
-            attributes: combination
+            image: '',
+            weight: product.weight,
+            status: product.status,
+            attributes: combination.map(attr => mapAttribute(product, attr))
         }));
+
+        console.log("New Variants:", newVariants);
 
         setProduct((prev: any) => ({ ...prev, variants: newVariants }));
     };
 
-    const handleAdvancedPriceChange = (index: number, field: keyof AdvancedPrice, value: any) => {
-        setAdvancedPrices(prev => {
-            const newPrices = [...prev];
-            newPrices[index] = { ...newPrices[index], [field]: value };
-            return newPrices;
+    // Hàm xử lý khi thay đổi biến thể
+    const handleVariantChange = (index: number, field: string, value: any) => {
+        setProduct((prev) => {
+            const updatedVariants = [...prev.variants];
+            updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+            return { ...prev, variants: updatedVariants };
         });
     };
 
+    // Hàm thêm giá nâng cao
     const handleAddAdvancedPrice = () => {
-        setAdvancedPrices([...advancedPrices, { type: '', amount: 0, start_time: null, end_time: null }]);
+        const initialPrice = {
+            type: '',
+            amount: 0,
+            start_time: null,
+            end_time: null,
+            attributes: selectedAttributes.map(attrId => ({
+                attribute_id: attrId,
+                values: selectedAttributeValues[attrId] || []
+            }))
+        };
+        setAdvancedPrices([...advancedPrices, initialPrice]);
+        // console.log("map thuộc tính", selectedAttributeValues);
+    };
+
+    // Hàm xóa biến thể
+    const handleRemoveVariant = (index: number) => {
+        setProduct((prev) => ({
+            ...prev,
+            variants: prev.variants.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Hàm chỉnh sửa biến thể (có thể triển khai logic theo nhu cầu)
+    const handleEditVariant = (index: number) => {
+        // Triển khai logic chỉnh sửa ở đây
+    };
+
+    // Hàm xóa giá nâng cao
+    const removeAdvancedPrice = (index: number) => {
+        setAdvancedPrices(prev => prev.filter((_, i) => i !== index));
+    };
+
+    // Hàm xóa thuộc tính
+    const removeAttribute = (attributeId: number) => {
+        setSelectedAttributes(prev => prev.filter(id => id !== attributeId));
+        setSelectedAttributeValues(prev => {
+            const updatedValues = { ...prev };
+            // delete updatedValues[attributeId];
+            return updatedValues;
+        });
     };
 
     return (
@@ -223,76 +268,159 @@ const ProductCreate: React.FC = () => {
                         </Grid>
                         <Divider sx={{ my: 4 }} />
 
+                        {/* sản phẩm cơ bản (Chính) */}
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thông tin cơ bản</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Grid container spacing={3}>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Tên sản phẩm", "name", product.name)}
+
+                                    <Grid item md={10}>
+                                        <Grid container spacing={3}>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Tên sản phẩm"
+                                                    defaultValue={product.name}
+                                                    value={product.name}
+                                                    onChange={(e) => handleProductChange('name', e.target.value)}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Slug"
+                                                    value={product.slug}
+                                                    onChange={(e) => handleProductChange('slug', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="SKU"
+                                                    value={product.sku}
+                                                    onChange={(e) => handleProductChange('sku', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Giá"
+                                                    type="number"
+                                                    value={product.price}
+                                                    onChange={(e) => handleProductChange('price', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Cân nặng"
+                                                    type="number"
+                                                    value={product.weight}
+                                                    onChange={(e) => handleProductChange('weight', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Trạng thái</InputLabel>
+                                                    <Select
+                                                        name="status"
+                                                        value={product.status}
+                                                        onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
+                                                        label="Trạng thái"
+                                                    >
+                                                        <MenuItem value={1}>Hoạt động</MenuItem>
+                                                        <MenuItem value={0}>Không hoạt động</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <FormControl fullWidth required>
+                                                    <InputLabel>Danh mục</InputLabel>
+                                                    <Select
+                                                        value={product.category_id}
+                                                        label="Danh mục"
+                                                        onChange={(e) => handleProductChange('category_id', e.target.value)}
+                                                    >
+                                                        {categories.map((category) => (
+                                                            <MenuItem key={category.id} value={category.id}>
+                                                                {category.name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid item md={4}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="SEO Title"
+                                                    value={product.seo_title}
+                                                    onChange={(e) => handleProductChange('seo_title', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="SEO Description"
+                                                    multiline
+                                                    value={product.seo_description}
+                                                    onChange={(e) => handleProductChange('seo_description', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Mô tả"
+                                                    multiline
+                                                    value={product.description}
+                                                    onChange={(e) => handleProductChange('description', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Nội dung"
+                                                    multiline
+                                                    value={product.content}
+                                                    onChange={(e) => handleProductChange('content', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Video Link"
+                                                    value={product.video_link}
+                                                    onChange={(e) => handleProductChange('video_link', e.target.value)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <DatePicker
+                                                    label="Start New Time"
+                                                    value={product.start_new_time ? dayjs(product.start_new_time) : null}
+                                                    onChange={(date) => handleProductChange('start_new_time', date)}
+                                                />
+                                            </Grid>
+                                            <Grid item md={6}>
+                                                <DatePicker
+                                                    label="End New Time"
+                                                    value={product.end_new_time ? dayjs(product.end_new_time) : null}
+                                                    onChange={(date) => handleProductChange('end_new_time', date)}
+                                                />
+                                            </Grid>
+                                        </Grid>
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Slug", "slug", product.slug)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Trạng thái</InputLabel>
-                                            <Select
-                                                name="status"
-                                                value={product.status}
-                                                onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
-                                                label="Trạng thái"
-                                            >
-                                                <MenuItem value={1}>Hoạt động</MenuItem>
-                                                <MenuItem value={0}>Không hoạt động</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Giá", "price", product.price, "number")}
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        {renderTextField("Mô tả", "description", product.description)}
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        {renderTextField("Nội dung", "content", product.content)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("SKU", "sku", product.sku)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Số lượng trong kho", "stock_quantity", product.stock_quantity, "number")}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Cân nặng", "weight", product.weight)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Danh mục</InputLabel>
-                                            <Select
-                                                value={product.category_id}
-                                                label="Danh mục"
-                                                onChange={(e) => handleProductChange('category_id', e.target.value)}
-                                            >
-                                                {categories.map((category) => (
-                                                    <MenuItem key={category.id} value={category.id}>
-                                                        {category.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("SEO Title", "seo_title", product.seo_title)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("SEO Description", "seo_description", product.seo_description)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        {renderTextField("Video Link", "video_link", product.video_link)}
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
+
+                                    <Grid item md={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+                                        <Box mt={2} sx={{ width: '100%', height: '200px', border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {imagePreview ? (
+                                                <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Image Preview</Typography>
+                                            )}
+                                        </Box>
                                         <input
                                             accept="image/*"
                                             style={{ display: 'none' }}
@@ -300,177 +428,253 @@ const ProductCreate: React.FC = () => {
                                             type="file"
                                             onChange={handleImageChange}
                                         />
-                                        <label htmlFor="raised-button-file">
+                                        <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                             <Button variant="contained" component="span">
                                                 Upload Image
                                             </Button>
                                         </label>
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <DatePicker
-                                            label="Start New Time"
-                                            value={product.start_new_time ? dayjs(product.start_new_time) : null}
-                                            onChange={(date) => handleProductChange('start_new_time', date)}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <DatePicker
-                                            label="End New Time"
-                                            value={product.end_new_time ? dayjs(product.end_new_time) : null}
-                                            onChange={(date) => handleProductChange('end_new_time', date)}
-                                        />
-                                    </Grid>
                                 </Grid>
                             </AccordionDetails>
                         </Accordion>
 
+                        {/* Thuộc tính */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thuộc tính</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                {loading ? (
-                                    <CircularProgress />
-                                ) : error ? (
-                                    <Typography color="error">{error}</Typography>
-                                ) : (
-                                    <>
-                                        <FormControl sx={{ m: 1, width: 300 }}>
-                                            <InputLabel id="attributes-checkbox-label">Attributes</InputLabel>
-                                            <Select
-                                                labelId="attributes-checkbox-label"
-                                                id="attributes-checkbox"
-                                                multiple
-                                                value={selectedAttributes}
-                                                onChange={handleAttributeChange}
-                                                input={<OutlinedInput label="Attributes" />}
-                                                renderValue={(selected) => selected.map(id => attributes.find(attr => attr.id === id)?.name || '').join(', ')}
-                                                MenuProps={MenuProps}
-                                            >
-                                                {attributes.map((attribute) => (
-                                                    <MenuItem key={attribute.id} value={attribute.id}>
-                                                        <Checkbox checked={selectedAttributes.includes(attribute.id as never)} />
-                                                        <ListItemText primary={attribute.name} />
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                <FormControl sx={{ m: 1, width: '100%' }}>
+                                    <InputLabel id="attributes-checkbox-label">Thuộc tính</InputLabel>
+                                    <Select
+                                        labelId="attributes-checkbox-label"
+                                        id="attributes-checkbox"
+                                        multiple
+                                        value={selectedAttributes}
+                                        onChange={handleAttributeChange}
+                                        input={<OutlinedInput label="Thuộc tính" />}
+                                        renderValue={(selected) => selected.map(id => attributes.find(attr => attr.id === id)?.name || '').join(', ')}
+                                        MenuProps={MenuProps}
+                                    >
+                                        {attributes.map((attribute) => (
+                                            <MenuItem key={attribute.id} value={attribute.id}>
+                                                <Checkbox checked={selectedAttributes.includes(attribute.id as never)} />
+                                                <ListItemText primary={attribute.name} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
 
-                                        {selectedAttributes.length > 0 && (
-                                            <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                                <Table>
-                                                    <TableHead>
-                                                        <TableRow>
-                                                            <TableCell>Attribute</TableCell>
-                                                            <TableCell>Values</TableCell>
+                                {selectedAttributes.length > 0 && (
+                                    <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Thuộc tính</TableCell>
+                                                    <TableCell>Giá trị</TableCell>
+                                                    <TableCell>Hành động</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {selectedAttributes.map((attributeId) => {
+                                                    const attribute = attributes.find(attr => attr.id === attributeId);
+                                                    if (!attribute) return null;
+                                                    return (
+                                                        <TableRow key={attributeId}>
+                                                            <TableCell>{attribute.name}</TableCell>
+                                                            <TableCell>
+                                                                <FormControl sx={{ width: '100%' }}>
+                                                                    <Select
+                                                                        multiple
+                                                                        value={selectedAttributeValues[attributeId] || []}
+                                                                        onChange={(e) => handleAttributeValueChange(attributeId, e)}
+                                                                        renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
+                                                                        MenuProps={MenuProps}
+                                                                    >
+                                                                        {attributeValues
+                                                                            .filter(v => v.attribute_id === attributeId)
+                                                                            .map((v) => (
+                                                                                <MenuItem key={v.id} value={v.id}>
+                                                                                    <Checkbox checked={(selectedAttributeValues[attributeId] || []).indexOf(v.id) > -1} />
+                                                                                    <ListItemText primary={v.value} />
+                                                                                </MenuItem>
+                                                                            ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <IconButton onClick={() => removeAttribute(attributeId)}>
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            </TableCell>
                                                         </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        {selectedAttributes.map((attributeId) => {
-                                                            const attribute = attributes.find(attr => attr.id === attributeId);
-                                                            if (!attribute) return null;
-                                                            return (
-                                                                <TableRow key={attributeId}>
-                                                                    <TableCell>{attribute.name}</TableCell>
-                                                                    <TableCell>
-                                                                        <FormControl sx={{ width: '100%' }}>
-                                                                            <Select
-                                                                                multiple
-                                                                                value={selectedAttributeValues[attributeId] || []}
-                                                                                onChange={(e) => handleAttributeValueChange(attributeId, e)}
-                                                                                renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
-                                                                                MenuProps={MenuProps}
-                                                                            >
-                                                                                {attributeValues
-                                                                                    .filter(v => v.attribute_id === attributeId)
-                                                                                    .map((v) => (
-                                                                                        <MenuItem key={v.id} value={v.id}>
-                                                                                            <Checkbox checked={(selectedAttributeValues[attributeId] || []).indexOf(v.id) > -1} />
-                                                                                            <ListItemText primary={v.value} />
-                                                                                        </MenuItem>
-                                                                                    ))}
-                                                                            </Select>
-                                                                        </FormControl>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            );
-                                                        })}
-                                                    </TableBody>
-                                                </Table>
-                                            </TableContainer>
-                                        )}
-
-                                        <Button onClick={generateVariants} sx={{ mt: 2 }}>
-                                            Generate Variants
-                                        </Button>
-                                    </>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
                                 )}
                             </AccordionDetails>
                         </Accordion>
 
+                        {/* Bảng sản phẩm biến thể */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Advanced Prices</Typography>
+                                <Typography variant="h6">Sản phẩm biến thể</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Hình ảnh</TableCell>
+                                                <TableCell>Tên</TableCell>
+                                                <TableCell>SKU</TableCell>
+                                                <TableCell>Giá</TableCell>
+                                                <TableCell>Cân nặng</TableCell>
+                                                <TableCell>Trạng thái</TableCell>
+                                                <TableCell>Thuộc tính</TableCell>
+                                                <TableCell>Hành động</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {product.variants.map((variant: any, index: number) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>
+                                                        {variant.image ? (
+                                                            <img src={variant.image} alt="Variant" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                                                        ) : (
+                                                            <Typography variant="body2" color="textSecondary">Không có hình ảnh</Typography>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.name}
+                                                            onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.sku}
+                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variant.price}
+                                                            onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variant.weight}
+                                                            onChange={(e) => handleVariantChange(index, 'weight', parseFloat(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Select
+                                                            value={variant.status}
+                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.value)}
+                                                        >
+                                                            <MenuItem value={1}>Hoạt động</MenuItem>
+                                                            <MenuItem value={0}>Không hoạt động</MenuItem>
+                                                        </Select>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {variant.attributes.map((attr: any, attrIndex: number) => (
+                                                            <Typography key={attrIndex} variant="body2">
+                                                                {attr.name}: {attr.value}
+                                                            </Typography>
+                                                        ))}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => handleEditVariant(index)}>
+                                                            <EditIcon />
+                                                        </IconButton>
+                                                        <IconButton onClick={() => handleRemoveVariant(index)}>
+                                                            <DeleteIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </AccordionDetails>
+                        </Accordion>
+
+                        {/* Giá nâng cao */}
+                        <Accordion>
+                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
+                                <Typography variant="h6">Giá nâng cao</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 {advancedPrices.map((price, index) => (
                                     <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
                                         <Grid container spacing={2}>
-                                            <Grid item xs={12} md={3}>
+                                            <Grid item md={2}>
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Type</InputLabel>
+                                                    <InputLabel>Loại</InputLabel>
                                                     <Select
                                                         value={price.type}
                                                         onChange={(e) => handleAdvancedPriceChange(index, 'type', e.target.value)}
                                                     >
-                                                        <MenuItem value="discount">Discount</MenuItem>
-                                                        <MenuItem value="special">Special</MenuItem>
+                                                        <MenuItem value="discount">Giảm giá</MenuItem>
+                                                        <MenuItem value="special">Đặc biệt</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
-                                            <Grid item xs={12} md={3}>
+                                            <Grid item md={3}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Amount"
+                                                    label="Số tiền"
                                                     type="number"
                                                     value={price.amount}
                                                     onChange={(e) => handleAdvancedPriceChange(index, 'amount', parseFloat(e.target.value))}
                                                 />
                                             </Grid>
-                                            <Grid item xs={12} md={3}>
+                                            <Grid item md={3}>
                                                 <DatePicker
-                                                    label="Start Time"
+                                                    label="Thời gian bắt đầu"
                                                     value={price.start_time ? dayjs(price.start_time) : null}
                                                     onChange={(newValue) => handleAdvancedPriceChange(index, 'start_time', newValue?.toISOString())}
                                                 />
                                             </Grid>
-                                            <Grid item xs={12} md={3}>
+                                            <Grid item md={3}>
                                                 <DatePicker
-                                                    label="End Time"
+                                                    label="Thời gian kết thúc"
                                                     value={price.end_time ? dayjs(price.end_time) : null}
                                                     onChange={(newValue) => handleAdvancedPriceChange(index, 'end_time', newValue?.toISOString())}
                                                 />
+                                            </Grid>
+                                            <Grid item md={1}>
+                                                <IconButton onClick={() => removeAdvancedPrice(index)}>
+                                                    <DeleteIcon />
+                                                </IconButton>
                                             </Grid>
                                         </Grid>
                                     </Box>
                                 ))}
                                 <Button startIcon={<AddIcon />} onClick={handleAddAdvancedPrice}>
-                                    Add Advanced Price
+                                    Thêm giá
                                 </Button>
                             </AccordionDetails>
                         </Accordion>
 
+                        {/* Nguồn hàng */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Nguồn hàng</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 {product.sources.map((source, index) => (
-                                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                                    <Box key={index} sx={{ mb: 2, p: 2, borderRadius: '4px' }}>
                                         <Grid container spacing={2} alignItems="center">
                                             <Grid item xs={12} md={5}>
-                                                <FormControl fullWidth>
-                                                    <InputLabel>Source</InputLabel>
+                                                <FormControl fullWidth required>
+                                                    <InputLabel>Nguồn</InputLabel>
                                                     <Select
                                                         value={source.source_id}
                                                         onChange={(e) => handleProductChange('sources', { ...source, source_id: e.target.value }, index)}
@@ -484,7 +688,13 @@ const ProductCreate: React.FC = () => {
                                                 </FormControl>
                                             </Grid>
                                             <Grid item xs={12} md={5}>
-                                                {renderTextField("Quantity", `sources[${index}].quantity`, source.quantity.toString(), "number")}
+                                                <TextField
+                                                    fullWidth
+                                                    label="Số lượng"
+                                                    type="number"
+                                                    value={source.quantity}
+                                                    onChange={(e) => handleProductChange(`sources[${index}].quantity`, e.target.value)}
+                                                />
                                             </Grid>
                                             <Grid item xs={12} md={2}>
                                                 <IconButton onClick={() => removeItem('sources', index)}>
@@ -495,16 +705,15 @@ const ProductCreate: React.FC = () => {
                                     </Box>
                                 ))}
                                 <Button startIcon={<AddIcon />} onClick={() => handleProductChange('sources', { source_id: "", quantity: "" })}>
-                                    Add Source
+                                    Thêm nguồn hàng
                                 </Button>
                             </AccordionDetails>
                         </Accordion>
 
-
                     </Paper>
                 </Container>
             </form>
-        </LocalizationProvider>
+        </LocalizationProvider >
     );
 };
 
