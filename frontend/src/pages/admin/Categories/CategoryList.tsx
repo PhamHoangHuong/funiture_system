@@ -1,30 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import DataTable, { TableColumn } from 'react-data-table-component';
-import { Input, Button } from 'reactstrap';
-import { categoryService } from '../../../core/services/categoryService';
-import { Category, TableHeader } from '../../../core/hooks/dataTypes';
-import { formatDateTime, formatDate, formatDateYMD } from '../../../core/hooks/format';
-import { useCategory } from '../../../core/contexts/CategoryContext';
-
-const headers: TableHeader[] = [
-  { key: 'id', label: 'ID', sortable: true },
-  // { key: 'image', label: 'Hình ảnh', sortable: false },
-  { key: 'name', label: 'Tên danh mục', sortable: true },
-  { key: 'slug', label: 'Slug', sortable: true },
-  { key: 'parent_id', label: 'Danh mục cha', sortable: true },
-  { key: 'description', label: 'Mô tả', sortable: true },
-  { key: 'status', label: 'Trạng thái', sortable: true },
-  { key: 'created_at', label: 'Ngày tạo', sortable: true },
-  { key: 'actions', label: 'Thao tác', sortable: false }
-];
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  IconButton,
+  InputAdornment,
+  Menu,
+  MenuItem,
+  Select,
+  FormControl,
+  Pagination,
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { categoryService, useCategory } from '../../../core/hooks/contexts';
+import { Category } from '../../../core/hooks/dataTypes';
 
 const CategoryList: React.FC = () => {
-  const { categories, loading, error, fetchCategories } = useCategory();
+  const { categories, fetchCategories } = useCategory();
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
-  const [totalRows, setTotalRows] = useState(0);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const filtered = categories.filter(category =>
@@ -33,7 +34,6 @@ const CategoryList: React.FC = () => {
       )
     );
     setFilteredCategories(filtered);
-    setTotalRows(filtered.length);
   }, [categories, filters]);
 
   const handleSearch = (key: string, value: string) => {
@@ -51,72 +51,152 @@ const CategoryList: React.FC = () => {
     }
   };
 
-  const columns = headers.map(header => ({
-    name: header.label,
-    selector: (row: Category) => row[header.key as keyof Category],
-    sortable: header.sortable,
-    cell: (row: Category) => {
-      if (header.key === 'image') {
-        return <img src={row.image || ''} alt={row.name} width="50" height="50" className="rounded-circle" />;
-      }
-      if (header.key === 'parent_id') {
-        return row.parent_id === null ? 'Không' : 'Có';
-      }
-      if (header.key === 'created_at') {
-        return formatDate(row.created_at);
-      }
-      if (header.key === 'status') {
-        return row.status ? 'Hoạt động' : 'Tạm ngưng';
-      }
-      if (header.key === 'actions') {
-        return (
-          <>
-            <Link to={`/admin/categories/edit/${row.id}`} className="btn btn-warning btn-sm me-1">
-              <Icon icon="mdi:pencil" />
-            </Link>
-            <Button color="danger" size="sm" onClick={() => handleDelete(row.id)}>
-              <Icon icon="mdi:delete" />
-            </Button>
-          </>
-        );
-      }
-      return row[header.key as keyof Category];
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, categoryId: number) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedCategoryId(categoryId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedCategoryId(null);
+  };
+
+  const handleSelectChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const action = event.target.value as string;
+    if (action === 'export') {
+      console.log('Exporting data...');
+    } else if (action === 'import') {
+      console.log('Importing data...');
+    }
+  };
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  const handleRowsPerPageChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setRowsPerPage(event.target.value as number);
+    setPage(1); // Reset to first page
+  };
+
+  const columns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'name', headerName: 'Tên danh mục', width: 200 },
+    { field: 'slug', headerName: 'Slug', width: 150 },
+    { field: 'parent_id', headerName: 'Danh mục cha', width: 150 },
+    { field: 'description', headerName: 'Mô tả', width: 250 },
+    { field: 'status', headerName: 'Trạng thái', width: 120 },
+    { field: 'created_at', headerName: 'Ngày tạo', width: 180 },
+    {
+      field: 'actions',
+      headerName: 'Thao tác',
+      width: 100,
+      sortable: false,
+      renderCell: (params) => (
+        <>
+          <IconButton
+            onClick={(event) => handleMenuOpen(event, params.row.id)}
+          >
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl) && selectedCategoryId === params.row.id}
+            onClose={handleMenuClose}
+          >
+            <MenuItem component={Link} to={`/admin/categories/edit/${params.row.id}`}>
+              <EditIcon fontSize="small" /> Sửa
+            </MenuItem>
+            <MenuItem onClick={() => handleDelete(params.row.id)}>
+              <DeleteIcon fontSize="small" /> Xóa
+            </MenuItem>
+          </Menu>
+        </>
+      ),
     },
-  }));
+  ];
+
+  // Calculate the range of items being displayed
+  const start = (page - 1) * rowsPerPage + 1;
+  const end = Math.min(page * rowsPerPage, filteredCategories.length);
+  const total = filteredCategories.length;
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Quản Lý Danh Mục</h2>
-      <p>Tổng số danh mục: {totalRows}</p>
-
-      <div className="mb-3">
-        <Link to="/admin/categories/create" className="btn btn-primary">
-          <Icon icon="mdi:plus" className="me-1" /> Thêm Danh Mục
-        </Link>
-      </div>
-
-      <DataTable
-        columns={columns as TableColumn<Category>[]}
-        data={filteredCategories}
-        fixedHeader
-        pagination
-        paginationTotalRows={totalRows}
-        subHeader
-      // subHeaderComponent={
-      //   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-      //     {headers.filter(h => h.sortable).map(header => (
-      //       <Input
-      //         key={header.key}
-      //         type="text"
-      //         placeholder={`Tìm ${header.label.toLowerCase()}...`}
-      //         onChange={(e) => handleSearch(header.key, e.target.value)}
-      //         style={{ width: '200px', marginRight: '10px' }}
-      //       />
-      //     ))}
-      //   </div>
-      // }
-      />
-    </div>
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Quản Lý Danh Mục
+      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Tìm kiếm..."
+          onChange={(e) => handleSearch('name', e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <FormControl variant="outlined" size="small" sx={{ mr: 1 }}>
+            <Select
+              displayEmpty
+              defaultValue="export"
+              onChange={handleSelectChange}
+            >
+              <MenuItem value="export">Export</MenuItem>
+              <MenuItem value="import">Import</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            component={Link}
+            to="/admin/categories/create"
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+          >
+            Thêm Sản Phẩm
+          </Button>
+        </Box>
+      </Box>
+      <Box sx={{ height: 600, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <DataGrid
+          rows={filteredCategories.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+          columns={columns}
+          pageSize={rowsPerPage}
+          pagination={false} // Ensure pagination is set to false
+          hideFooter // Hide the footer completely
+          checkboxSelection
+          disableSelectionOnClick
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, p: 2, border: '1px solid #ccc', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
+          <FormControl variant="outlined" size="small">
+            <Select
+              value={rowsPerPage}
+              onChange={handleRowsPerPageChange}
+            >
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={25}>25</MenuItem>
+              <MenuItem value={100}>100</MenuItem>
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ mr: 2 }}>
+              Showing {start}-{end} of {total}
+            </Typography>
+            <Pagination
+              count={Math.ceil(total / rowsPerPage)}
+              page={page}
+              onChange={handlePageChange}
+              size="large"
+            />
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
