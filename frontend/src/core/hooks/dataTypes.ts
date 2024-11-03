@@ -76,6 +76,14 @@ export interface Cart {
     updated_at: string;
 }
 
+// Wishlist
+export interface Wishlist {
+    id: number;
+    user_id: number;
+    product_id: number;
+    created_at: string;
+    updated_at: string;
+}
 
 // Auth context type
 export interface AuthContextType {
@@ -177,3 +185,5 @@ export interface SourceContextType {
     updateSource: (id: number, sourceData: Partial<Source>) => Promise<Source>;
     deleteSource: (id: number) => Promise<void>;
 }
+
+
