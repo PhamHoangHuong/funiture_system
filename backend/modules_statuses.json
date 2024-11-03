@@ -12,6 +12,5 @@
     "CartPriceRule": true,
     "Topic": true,
     "Slider": true,
-    "Post": true,
-    "CatalogPriceRule": true
+    "Post": true
 }
