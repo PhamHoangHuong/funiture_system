@@ -16,11 +16,18 @@ export default function UserHeader() {
                     <div className="row align-items-center">
                         <div className="col-xl-3 col-5">
                             <div className="logo-wrapper">
-                                <Link to="/"><img src="/assets/user/images/logo-white.png" className="img-fluid" alt="logo" /></Link>
+                                <Link to="/">
+                                    <img 
+                                        src="/assets/user/images/logo-white.png" 
+                                        className="img-fluid" 
+                                        alt="logo" 
+                                        style={{ height: '70px' }}
+                                    />
+                                </Link>
                             </div>
                         </div>
                         <div className="col-xl-6 d-none d-xl-block">
-                            <nav className="header-navigation text-center text-xl-start vr5-header-navigation">
+                            <nav className="header-navigation text-center text-xl-start vr5-header-navigation" style={{ marginTop: '15px' }}>
                                 <ul>
                                     <li><Link to="/">Home</Link></li>
                                     <li><Link to="/products">Products</Link></li>
