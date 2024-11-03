@@ -6,5 +6,4 @@ use App\Repositories\RepositoryInterface;
 
 interface CatalogPriceRuleRepositoryInterface extends  RepositoryInterface
 {
-
 }

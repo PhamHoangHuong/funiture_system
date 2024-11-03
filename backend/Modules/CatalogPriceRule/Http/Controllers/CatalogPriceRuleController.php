@@ -2,8 +2,6 @@
 
 namespace Modules\CatalogPriceRule\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\CatalogPriceRule\Http\Requests\StoreCatalogPriceRuleRequest;
@@ -15,19 +13,21 @@ use Symfony\Component\HttpFoundation\Response;
 class CatalogPriceRuleController extends Controller
 {
     use ResponseTrait;
-    protected  $catalogPriceRuleRepository;
+
+    protected $catalogPriceRuleRepository;
 
     public function __construct(CatalogPriceRuleRepositoryInterface $catalogPriceRuleRepository)
     {
         $this->catalogPriceRuleRepository = $catalogPriceRuleRepository;
     }
+
     public function index()
     {
-            $catalogPriceRules = $this->catalogPriceRuleRepository->getAll();
-            if($catalogPriceRules->isEmpty()){
-                return $this->toResponseBad('Không có dữ liệu', Response::HTTP_NO_CONTENT);
-            }
-            return $this->toResponseSuccess($catalogPriceRules, 'Danh sách chương trình khuyến mãi', Response::HTTP_OK);
+        $catalogPriceRules = $this->catalogPriceRuleRepository->getAll();
+        if ($catalogPriceRules->isEmpty()) {
+            return $this->toResponseBad('Không có dữ liệu', Response::HTTP_NO_CONTENT);
+        }
+        return $this->toResponseSuccess($catalogPriceRules, 'Danh sách chương trình khuyến mãi', Response::HTTP_OK);
     }
 
 
@@ -36,7 +36,7 @@ class CatalogPriceRuleController extends Controller
         DB::beginTransaction();
         try {
             // Lưu thông tin chương trình khuyến mãi
-           $this->catalogPriceRuleRepository->create($request->validated());
+            $this->catalogPriceRuleRepository->create($request->validated());
 
             DB::commit();
             return $this->toResponseSuccess(null,
@@ -53,7 +53,7 @@ class CatalogPriceRuleController extends Controller
     public function show($id)
     {
         $catalogPriceRule = $this->catalogPriceRuleRepository->find($id);
-        if(!$catalogPriceRule){
+        if (!$catalogPriceRule) {
             return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
         }
         return $this->toResponseSuccess($catalogPriceRule, 'Chi tiết chương trình khuyến mãi', Response::HTTP_OK);
@@ -65,7 +65,7 @@ class CatalogPriceRuleController extends Controller
         DB::beginTransaction();
         try {
             $catalogPriceRule = $this->catalogPriceRuleRepository->find($id);
-            if(!$catalogPriceRule){
+            if (!$catalogPriceRule) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             // Cập nhật thông tin chương trình khuyến mãi
@@ -88,7 +88,7 @@ class CatalogPriceRuleController extends Controller
         DB::beginTransaction();
         try {
             $catalogPriceRule = $this->catalogPriceRuleRepository->find($id);
-            if(!$catalogPriceRule){
+            if (!$catalogPriceRule) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             // Xóa chương trình khuyến mãi
