@@ -47,12 +47,11 @@ const UserRoutes: React.FC = () => {
                                 <Route path=":id" element={<BlogDetails />} />
                             </Route>
                             <Route path="contact" element={<Contact />} />
+                            <Route path="cart" element={<CartContent />} />
                             <Route path="signup" element={<Signup />} />
                             <Route path="login" element={<Login />} />
                         </Route>
-                        <Route path="cart" element={<UserCartLayout />}>
-                            <Route index element={<CartContent />} />
-                        </Route>
+
                         <Route path="checkout" element={<PrivateRoute element={<Checkout />} />} />
                         <Route path="payment" element={<Payment />} />
                         <Route path="payment/success" element={<PaymentSuccess />} />
