@@ -14,16 +14,18 @@ class StoreCatalogPriceRuleRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'required|boolean',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'conditions_serialized' => 'nullable|string',
-            'simple_action' => 'required|integer|in:1,2,3,4',
-            'discount_amount' => 'required|numeric',
-            'priority' => 'required|integer',
-            'sort_order' => 'required|integer',
+            'is_active' => 'nullable|integer|in:0,1',
+            'start_time' => 'nullable|date',
+            'end_time' => 'nullable|date|after:start_time',
+            'group_customer_ids' => 'nullable|string',
+            'condition_apply' => 'nullable|integer|in:1,2,3,4',
+            'condition_value' => 'nullable|string',
+            'discount_amount' => 'nullable|numeric',
+            'operator' => 'nullable|integer|in:1,2,3,4,5,6,7,8,9,10,11,12',
+            'priority' => 'nullable|integer',
+            'sort_order' => 'nullable|integer',
         ];
     }
 

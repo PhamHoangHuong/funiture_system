@@ -16,12 +16,14 @@ class UpdateCatalogPriceRuleRequest extends FormRequest
         return [
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'nullable|boolean',
+            'is_active' => 'nullable|integer|in:0,1',
             'start_time' => 'nullable|date',
             'end_time' => 'nullable|date|after:start_time',
-            'conditions_serialized' => 'nullable|string',
-            'simple_action' => 'nullable|integer|in:1,2,3,4',
+            'group_customer_ids' => 'nullable|string',
+            'condition_apply' => 'nullable|integer|in:1,2,3,4',
+            'condition_value' => 'nullable|string',
             'discount_amount' => 'nullable|numeric',
+            'operator' => 'nullable|integer|in:1,2,3,4,5,6,7,8,9,10,11,12',
             'priority' => 'nullable|integer',
             'sort_order' => 'nullable|integer',
         ];
