@@ -18,4 +18,4 @@ use Modules\CartPriceRule\Http\Controllers\CartPriceRuleController;
 //    return $request->user();
 //});
 
-Route::apiResource('cart-rules', CartPriceRuleController::class);
+Route::apiResource('salesrules', CartPriceRuleController::class);
