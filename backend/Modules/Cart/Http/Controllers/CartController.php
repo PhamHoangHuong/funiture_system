@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Session;
 use Modules\Cart\Http\Requests\CartRequest;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 
@@ -49,7 +49,7 @@ class CartController extends Controller
         CartItemRepositoryInterface $cartItemRepository,
         CartRepositoryInterface     $cartRepository,
         SourceRepositoryInterface   $sourceRepository,
-        CartPriceRuleRepositoryInterface $cartPriceRule
+        CartPriceRulesRepositoryInterface $cartPriceRule
     )
     {
         $this->productRepository = $productRepository;
