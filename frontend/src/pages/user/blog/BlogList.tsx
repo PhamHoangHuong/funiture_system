@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BlogBreadcrumb from './blogbreadcrumb';
 
 const BlogList: React.FC = () => {
   return (
+    <>
+    <BlogBreadcrumb/>
     <div className="bp-blog-section ptb-140">
       <div className="container">
         <div className="row g-5 g-xl-4">
@@ -95,6 +98,7 @@ const BlogList: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
