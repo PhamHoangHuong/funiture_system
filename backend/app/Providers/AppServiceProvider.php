@@ -11,8 +11,12 @@ use Modules\Cart\Repositories\CartItemRepository;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-use Modules\CartPriceRule\Repositories\CartPriceRulesRepository;
-use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
+
+use Modules\CartPriceRule\Repositories\CartPriceRuleRepository;
+use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
+use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepository;
+use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepositoryInterface;
+
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;
@@ -122,6 +126,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             SliderImageRepositoryInterface::class,
             SliderImageRepository::class
+        );
+
+        //Catalog Price Rule
+        $this->app->singleton(
+            CatalogPriceRuleRepositoryInterface::class,
+            CatalogPriceRuleRepository::class
         );
     }
 
