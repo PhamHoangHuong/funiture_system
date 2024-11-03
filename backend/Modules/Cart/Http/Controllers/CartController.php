@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Session;
 use Modules\Cart\Http\Requests\CartRequest;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-use Modules\Product\Entities\Product;
+use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 
@@ -37,6 +37,8 @@ class CartController extends Controller
      */
     protected $sourceRepository;
 
+    protected $cartPriceRule;
+
     /**
      * @param ProductRepositoryInterface $productRepository
      * @param CartItemRepositoryInterface $cartItemRepository
@@ -46,13 +48,15 @@ class CartController extends Controller
         ProductRepositoryInterface  $productRepository,
         CartItemRepositoryInterface $cartItemRepository,
         CartRepositoryInterface     $cartRepository,
-        SourceRepositoryInterface   $sourceRepository
+        SourceRepositoryInterface   $sourceRepository,
+        CartPriceRuleRepositoryInterface $cartPriceRule
     )
     {
         $this->productRepository = $productRepository;
         $this->cartItemRepository = $cartItemRepository;
         $this->cartRepository = $cartRepository;
         $this->sourceRepository = $sourceRepository;
+        $this->cartPriceRule = $cartPriceRule;
     }
 
     /**
@@ -80,58 +84,6 @@ class CartController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
-        $arraySource = [];
-        foreach ($cart['items'] as $item) {
-            $sources = $this->productRepository->getSourceContainProduct($item->product->id);
-            $source_info = [];
-
-            foreach ($sources as $source) {
-                $source_address = $this->sourceRepository->getFullAddressSource($source);
-
-                $source_info[] = [
-                    'source_id' => $source,
-                    'source_address' => $source_address
-                ];
-            }
-
-            $arraySource[] = [
-                'product_id' => $item->product->id,
-                'sources' => $source_info
-            ];
-        }
-        $customer_location = '21.028511,105.804817';
-
-        foreach ($arraySource as &$product) {
-            $nearest_source = null;
-            $shortest_distance = PHP_INT_MAX;
-
-            foreach ($product['sources'] as $source) {
-                $source_address = $source['source_address'];
-
-                // Lấy tọa độ của nguồn qua hàm getLatLong
-                $source_latlong = $this->getLatLong($source_address);
-                $customer_latlong = $this->getLatLong($customer_location); // Lấy tọa độ khách hàng (nếu chưa có)
-
-                // Kiểm tra nếu tọa độ của nguồn không rỗng hoặc không có lỗi
-                if ($source_latlong && $customer_latlong) {
-                    // Tính khoảng cách giữa vị trí khách hàng và vị trí nguồn
-                    $distance_value = $this->calculateDistance($customer_latlong, $source_latlong);
-                    // So sánh khoảng cách và tìm nguồn gần nhất
-                    $distance = $distance_value->rows[0]->elements[0]->distance->value;
-                    if ($distance < $shortest_distance) {
-                        $shortest_distance = $distance;
-                        $nearest_source = $source;
-                    }
-                }
-            }
-
-            // Gán kết quả địa chỉ nguồn gần nhất và khoảng cách ngắn nhất cho sản phẩm
-            $product['nearest_source'] = $nearest_source;
-            $product['shortest_distance'] = $shortest_distance;
-        }
-        dd($arraySource);
-
-
         return response()->json($results, 200);
     }
 
@@ -141,17 +93,17 @@ class CartController extends Controller
     public function miniCart()
     {
         // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
-//        try {
-//            if (auth('customer')->check()) {
-//                $cart = Cart::where('user_id', Auth::id())->with('items.product')->first();
-//                if (!$cart) {
-//                    return response()->json(['message' => 'Cart is empty'], 404);
-//                }
-//                return response()->json($cart);
-//            }
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
+        try {
+            if (auth('customer')->check()) {
+                $cart = Cart::where('user_id', auth('customer')->id())->with('items.product')->first();
+                if (!$cart) {
+                    return response()->json(['message' => 'Cart is empty'], 404);
+                }
+                return response()->json($cart);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
 
         // Nếu chưa đăng nhập, lấy giỏ hàng từ session
         $cart = Session::get('cart', []);
@@ -182,7 +134,6 @@ class CartController extends Controller
     {
         $product_id = (int)$request->product_id;
         $quantity = (int)$request->quantity;
-
         try {
             if (auth('customer')->check()) {
                 $cartItem = $this->cartRepository->addToCart($product_id, $quantity);
@@ -232,9 +183,8 @@ class CartController extends Controller
 
         // Nếu chưa đăng nhập, cập nhật giỏ hàng trong session
         $cart = $this->getCartSession();
-
         if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] = $validated['quantity'];
+            $cart[$productId]['quantity'] = (int)$validated['quantity'];
             $this->putCartSession($cart);
             return response()->json(['message' => 'Cart updated']);
         }
@@ -298,20 +248,22 @@ class CartController extends Controller
      */
     public function getTotalCart()
     {
+        $cartPriceRules = $this->cartPriceRule->getAll();
+        foreach ($cartPriceRules as $rule) {
+           $dataRule = $rule->getAttributes();
+           $condition = $rule->load('condition');
+        }
         $cart = $this->getCartSession();
         $subtotal = 0;
         $total = 0;
-        $shipping_fee = 0;
         foreach ($cart as $item) {
             $product = $this->getProduct($item['product_id'], ['id', 'price']);
             $subtotal += $product->price * $item['quantity'];
         }
 
-
         $info_cart = [
             'subtotal' => $subtotal,
-            'shipping_fee' => $shipping_fee,
-            'total' => $subtotal + $shipping_fee
+            'total' => $subtotal
         ];
 
         $results = [
@@ -349,56 +301,5 @@ class CartController extends Controller
     public function getProduct($product_id, $columns = ['*'])
     {
         return $this->productRepository->find($product_id, $columns);
-    }
-
-    /**
-     * @param $address
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getLatLong($address)
-    {
-        $address = urlencode($address);
-        $api_key = 'G0n5p9iThoQo4gQ5fgfgVT8aSIv9Do4HbYn2WAQH'; // Thay thế bằng API key của bạn
-
-        $url = "https://rsapi.goong.io/geocode?address=" . $address . "&api_key=" . $api_key;
-
-        try {
-            $json = file_get_contents($url);
-            $data = json_decode($json);
-
-            if (isset($data->results[0])) {
-                $lat = $data->results[0]->geometry->location->lat;
-                $lng = $data->results[0]->geometry->location->lng;
-                return $lat . ',' . $lng;
-            } else {
-                return false;
-            }
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to retrieve data from API: ' . $e->getMessage()], 500);
-        }
-    }
-
-
-    /**
-     * @param $origins
-     * @param $destinations
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function calculateDistance($origins, $destinations){
-        $api_key = 'G0n5p9iThoQo4gQ5fgfgVT8aSIv9Do4HbYn2WAQH';
-        $api = "https://rsapi.goong.io/DistanceMatrix?origins=$origins&destinations=$destinations&vehicle=car&api_key=" . $api_key;
-        $json = file_get_contents($api);
-        $json = json_decode($json);
-        return $json;
-    }
-
-    /**
-     * @param $sourceId
-     * @return string
-     */
-    public function getFullAddressSource($sourceId)
-    {
-        $address = $this->sourceRepository->getFullAddressSource($sourceId);
-        return $address;
     }
 }
