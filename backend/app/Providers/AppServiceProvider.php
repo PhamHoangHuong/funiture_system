@@ -11,12 +11,10 @@ use Modules\Cart\Repositories\CartItemRepository;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepository;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepository;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
 use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepository;
 use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepositoryInterface;
-
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;

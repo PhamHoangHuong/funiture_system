@@ -17,7 +17,6 @@ class CartPriceRuleController extends Controller
     use ResponseTrait;
 
     protected $cartPriceRuleRepository;
-    protected $cartPriceRuleConditionRepository;
 
     public function __construct(CartPriceRulesRepositoryInterface $cartPriceRuleRepository)
     {
@@ -27,17 +26,28 @@ class CartPriceRuleController extends Controller
 
     public function index()
     {
-            $salesRules = $this->cartPriceRuleRepository->getAll();
-            if($salesRules->isEmpty()){
-                return $this->toResponseBad('Không có dữ liệu', Response::HTTP_NO_CONTENT);
-            }
-            return $this->toResponseSuccess(CartPriceRulesResource::collection($salesRules), 'Danh sách chương trình khuyến mãi', Response::HTTP_OK);
+        $salesRules = $this->cartPriceRuleRepository->getAll();
+
+        if ($salesRules->isEmpty()) {
+            return $this->toResponseBad('Không có dữ liệu', Response::HTTP_NO_CONTENT);
+        }
+
+        return $this->toResponseSuccess(CartPriceRulesResource::collection($salesRules), 'Danh sách chương trình khuyến mãi', Response::HTTP_OK);
     }
 
     public function show($id)
     {
-        return $this->cartPriceRuleRepository->find($id)->load('condition');
+       try{
+            $cartPriceRule = $this->cartPriceRuleRepository->find($id);
 
+            if (!$cartPriceRule) {
+                return $this->toResponseBad('Không tìm thấy dữ liệu!', Response::HTTP_NOT_FOUND);
+            }
+
+            return $this->toResponseSuccess(new CartPriceRulesResource($cartPriceRule), 'Chi tiết chương trình khuyến mãi', Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return $this->handleException($e);
+       }
     }
 
 
