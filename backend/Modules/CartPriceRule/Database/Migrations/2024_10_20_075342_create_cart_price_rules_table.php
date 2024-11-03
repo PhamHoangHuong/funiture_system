@@ -19,7 +19,9 @@ return new class extends Migration {
             $table->dateTime('start_time')->nullable()->comment('Thời gian bắt đầu.');
             $table->dateTime('end_time')->nullable()->comment('Thời gian kết thúc.');
             $table->tinyInteger('is_active')->default(0)->comment('Trạng thái. 0: Không kích hoạt, 1: Kích hoạt.');
-            $table->mediumText('conditions_serialized')->nullable()->comment('1 hoặc nhiều Điều kiện áp dụng.');
+            $table->string('group_customer_ids')->nullable()->comment('Mã nhóm khách hàng');
+            $table->string('condition')->nullable()->comment('Điều kiện áp dụng.');
+            $table->integer('condition_value')->nullable()->comment('Giá trị điều kiện.');
             $table->tinyInteger('simple_action')->nullable()->comment('Hành động đơn giản. 1: Giảm giá giá trị đơn hàng, 2: Giảm giá phần trăm đơn hàng, 3: Giảm giá giá trị sản phẩm, 4: Giảm giá phần trăm sản phẩm.');
             $table->string('coupon')->nullable()->comment('Mã giảm giá.');
             $table->decimal('discount_amount', 12, 4)->nullable()->comment('Số tiền giảm giá.');

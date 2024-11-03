@@ -18,7 +18,9 @@ class CartPriceRule extends Model
         'start_time',
         'end_time',
         'is_active',
-        'conditions_serialized',
+        'group_customer_ids',
+        'condition',
+        'condition_value',
         'simple_action',
         'coupon',
         'discount_amount',
@@ -29,19 +31,7 @@ class CartPriceRule extends Model
         'coupon_type',
         'sort_order',
     ];
-
-    protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'is_active' => 'boolean',
-        'conditions_serialized' => 'array', // Nếu bạn lưu trữ điều kiện dưới dạng JSON hoặc mảng
-        'discount_amount' => 'decimal:4',
-        'discount_qty' => 'integer',
-        'discount_step' => 'integer',
-        'usage_limit' => 'integer',
-        'used' => 'integer',
-        'coupon_type' => 'integer',
-        'sort_order' => 'integer',
+    protected $casts=[
+        'group_customer_ids'=>'array'
     ];
-
 }
