@@ -14,15 +14,14 @@ class UpdateCartPriceRuleRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_time' => 'nullable|date',
-            'end_time' => 'nullable|date|after:start_time',
-            'is_active' => 'nullable|boolean',
-            'group_customer_ids' => 'nullable|array',
-            'condition'=> 'nullable|string',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'is_active' => 'nullable|integer|in:0,1',
+            'group_customer_ids' => 'nullable|string',
+            'condition_apply' => 'nullable|string',
             'condition_value' => 'nullable|integer|min:0',
-            'simple_action' => 'nullable|integer|in:1,2,3,4',
             'coupon' => 'nullable|string|max:100',
             'discount_amount' => 'nullable|numeric|min:0',
             'discount_qty' => 'nullable|integer|min:0',
@@ -30,6 +29,7 @@ class UpdateCartPriceRuleRequest extends FormRequest
             'usage_limit' => 'nullable|integer|min:1',
             'used' => 'nullable|integer|min:0',
             'coupon_type' => 'nullable|integer|in:1,2',
+            'operator' => 'nullable|integer|in:1,2,3,4,5,6',
             'sort_order' => 'nullable|integer|min:0',
         ];
     }

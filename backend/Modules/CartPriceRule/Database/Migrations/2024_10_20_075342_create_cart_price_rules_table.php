@@ -20,9 +20,8 @@ return new class extends Migration {
             $table->dateTime('end_time')->nullable()->comment('Thời gian kết thúc.');
             $table->tinyInteger('is_active')->default(0)->comment('Trạng thái. 0: Không kích hoạt, 1: Kích hoạt.');
             $table->string('group_customer_ids')->nullable()->comment('Mã nhóm khách hàng');
-            $table->string('condition')->nullable()->comment('Điều kiện áp dụng.');
+            $table->string('condition_apply')->nullable()->comment('Điều kiện áp dụng: subtotal, total_qty, total_weight');
             $table->integer('condition_value')->nullable()->comment('Giá trị điều kiện.');
-            $table->tinyInteger('simple_action')->nullable()->comment('Hành động đơn giản. 1: Giảm giá giá trị đơn hàng, 2: Giảm giá phần trăm đơn hàng, 3: Giảm giá giá trị sản phẩm, 4: Giảm giá phần trăm sản phẩm.');
             $table->string('coupon')->nullable()->comment('Mã giảm giá.');
             $table->decimal('discount_amount', 12, 4)->nullable()->comment('Số tiền giảm giá.');
             $table->tinyInteger('discount_qty')->nullable()->comment('Số lượng giảm giá.');
@@ -30,6 +29,8 @@ return new class extends Migration {
             $table->integer('usage_limit')->nullable()->comment('Giới hạn sử dụng.');
             $table->integer('used')->default(0)->comment('Số lần đã sử dụng.');
             $table->tinyInteger('coupon_type')->nullable()->default(1)->comment('Loại mã giảm giá. 1: Mã giảm giá, 2: Mã miễn phí vận chuyển.');
+            $table->smallInteger('operator')->nullable()
+                ->comment('Toán tử. 1: bigger_than, 2: less_than, 3: equal, 4: not_equal, 5: greater_than_or_equal, 6: less_than_or_equal');
             $table->integer('sort_order')->nullable()->comment('Thứ tự sắp xếp.');
 
             $table->timestamps();
