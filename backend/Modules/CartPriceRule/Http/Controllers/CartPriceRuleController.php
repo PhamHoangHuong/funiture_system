@@ -2,15 +2,12 @@
 
 namespace Modules\CartPriceRule\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\CartPriceRule\Http\Requests\StoreCartPriceRuleRequest;
 use Modules\CartPriceRule\Http\Requests\UpdateCartPriceRuleRequest;
-use Modules\CartPriceRule\Repositories\CartPriceRuleConditionRepositoryInterface;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
-use Modules\CartPriceRule\Transformers\CartPriceRuleResource;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
+use Modules\CartPriceRule\Transformers\CartPriceRulesResource;
 use Modules\Traits\ResponseTrait;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,17 +19,19 @@ class CartPriceRuleController extends Controller
     protected $cartPriceRuleRepository;
     protected $cartPriceRuleConditionRepository;
 
-    public function __construct(CartPriceRuleRepositoryInterface          $cartPriceRuleRepository,
-                                CartPriceRuleConditionRepositoryInterface $cartPriceRuleConditionRepository)
+    public function __construct(CartPriceRulesRepositoryInterface $cartPriceRuleRepository)
     {
         $this->cartPriceRuleRepository = $cartPriceRuleRepository;
-        $this->cartPriceRuleConditionRepository = $cartPriceRuleConditionRepository;
     }
 
 
     public function index()
     {
-       return CartPriceRuleResource::collection($this->cartPriceRuleRepository->getAll());
+            $salesRules = $this->cartPriceRuleRepository->getAll();
+            if($salesRules->isEmpty()){
+                return $this->toResponseBad('Không có dữ liệu', Response::HTTP_NO_CONTENT);
+            }
+            return $this->toResponseSuccess(CartPriceRulesResource::collection($salesRules), 'Danh sách chương trình khuyến mãi', Response::HTTP_OK);
     }
 
     public function show($id)
@@ -46,13 +45,13 @@ class CartPriceRuleController extends Controller
     {
         DB::beginTransaction();
         try {
+            // Kiểm tra xem coupon đã tồn tại chưa
+            if ($this->cartPriceRuleRepository->existsByCoupon($request->coupon)) {
+                return $this->toResponseBad('Mã giảm giá đã tồn tại!', Response::HTTP_BAD_REQUEST);
+            }
             // Lưu thông tin chương trình khuyến mãi
             $cartPriceRule = $this->cartPriceRuleRepository->create($request->validated());
 
-            // Lưu điều kiện liên quan đến chương trình khuyến mãi (chỉ có một điều kiện)
-            if ($request->has('condition')) {
-                $cartPriceRule->condition()->create($request->input('condition'));
-            }
             DB::commit();
             return $this->toResponseSuccess(null,
                 'Chương trình khuyến mãi đã được tạo thành công',
@@ -72,30 +71,26 @@ class CartPriceRuleController extends Controller
             // Tìm quy tắc giá giỏ hàng cần cập nhật
             $cartPriceRule = $this->cartPriceRuleRepository->find($id);
 
+            //Kiểm tra xem quy tắc giá giỏ hàng có tồn tại không
             if (!$cartPriceRule) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu!', Response::HTTP_NOT_FOUND);
+            }
+
+            // Kiểm tra xem mã giảm giá đã tồn tại chưa
+            if ($this->cartPriceRuleRepository->existsByCoupon($request->coupon, $id)) {
+                return $this->toResponseBad('Mã giảm giá đã tồn tại!', Response::HTTP_BAD_REQUEST);
             }
 
             // Cập nhật thông tin của quy tắc
             $cartPriceRule->update($request->validated());
 
-            // Xử lý cập nhật conditions
-            if ($request->has('condition')) {
-                $conditionData = $request->input('condition');
-                $cartPriceRule->condition()->update($conditionData);
-            }
-
-            // Load lại relation conditions
-
             DB::commit();
-
-            return $this->toResponseSuccess(null,'Cart Price Rule updated successfully', Response::HTTP_OK);
+            return $this->toResponseSuccess(null, 'Cart Price Rule updated successfully', Response::HTTP_OK);
         } catch (\Throwable $e) {
             DB::rollBack();
             return $this->handleException($e);
         }
     }
-
 
 
     public function destroy($id)
@@ -109,12 +104,10 @@ class CartPriceRuleController extends Controller
                 return $this->toResponseBad('Không tìm thấy dữ liệu!', Response::HTTP_NOT_FOUND);
             }
 
-            // Xóa chương trình khuyến mãi và điều kiện liên quan
-            $cartPriceRule->condition()->delete();
             $cartPriceRule->delete();
 
             DB::commit();
-            return $this->toResponseSuccess( null, 'Chương trình khuyến mãi đã được xóa thành công', Response::HTTP_OK);
+            return $this->toResponseSuccess(null, 'Chương trình khuyến mãi đã được xóa thành công', Response::HTTP_OK);
         } catch (\Throwable $e) {
             DB::rollBack(); // Rollback giao dịch khi có lỗi
             return $this->handleException($e);

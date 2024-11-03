@@ -11,12 +11,12 @@ use Modules\Cart\Repositories\CartItemRepository;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepository;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-use Modules\CartPriceRule\Repositories\CartPriceRuleConditionRepository;
-use Modules\CartPriceRule\Repositories\CartPriceRuleConditionRepositoryInterface;
+
 use Modules\CartPriceRule\Repositories\CartPriceRuleRepository;
 use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
 use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepository;
 use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepositoryInterface;
+
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;
@@ -103,13 +103,8 @@ class AppServiceProvider extends ServiceProvider
 
         //CartPriceRule
         $this->app->singleton(
-            CartPriceRuleRepositoryInterface::class,
-            CartPriceRuleRepository::class
-        );
-        //CartPriceRuleCondition
-        $this->app->singleton(
-            CartPriceRuleConditionRepositoryInterface::class,
-            CartPriceRuleConditionRepository::class
+            CartPriceRulesRepositoryInterface::class,
+            CartPriceRulesRepository::class
         );
         //Topic
         $this->app->singleton(
