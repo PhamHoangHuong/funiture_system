@@ -54,7 +54,6 @@ export interface Product {
     price: number
     start_new_time: string | null
     end_new_time: string | null
-    advanced_price_id: number | null
     parent_id: number | null
     sku: string | null
     stock_quantity: number
