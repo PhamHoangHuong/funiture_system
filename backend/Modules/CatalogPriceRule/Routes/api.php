@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Modules\CatalogPriceRule\Http\Controllers\CatalogPriceRuleController;
 
 /*
@@ -17,4 +16,10 @@ use Modules\CatalogPriceRule\Http\Controllers\CatalogPriceRuleController;
 //Route::middleware('auth:api')->get('/catalogpricerule', function (Request $request) {
 //    return $request->user();
 //});
-Route::apiResource('catalogrules', CatalogPriceRuleController::class);
+Route::group(['prefix' => 'catalogrules'], function () {
+    Route::get('', [CatalogPriceRuleController::class, 'index']);
+    Route::post('', [CatalogPriceRuleController::class, 'store']);
+    Route::get('/{ruleId}', [CatalogPriceRuleController::class, 'show']);
+    Route::put('/{ruleId}', [CatalogPriceRuleController::class, 'update']);
+    Route::delete('/{ruleId}', [CatalogPriceRuleController::class, 'destroy']);
+});
