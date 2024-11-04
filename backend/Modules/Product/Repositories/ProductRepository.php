@@ -95,7 +95,6 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
                 'price' => $attribute['price'] ?? $product->price,
                 'start_new_time' => $attribute['start_new_time'] ?? $product->start_new_time,
                 'end_new_time' => $attribute['end_new_time'] ?? $product->end_new_time,
-                'advanced_price_id' => $attribute['advanced_price_id'] ?? $product->advanced_price_id,
                 'parent_id' => $product->id,
                 'seo_title' => $attribute['seo_title'] ?? $product->seo_title,
                 'seo_description' => $attribute['seo_description'] ?? $product->seo_description,

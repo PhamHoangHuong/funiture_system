@@ -39,7 +39,7 @@ const ProductCreate: React.FC = () => {
     const [product, setProduct] = React.useState<ProductWithArrays>({
         id: 0, name: "", slug: "", description: "", content: "", image: "",
         status: 1, weight: 0, price: 0, start_new_time: null,
-        end_new_time: null, advanced_price_id: 0, parent_id: 0,
+        end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
         category_id: 0, sources: [], attributes: [], advanced_prices: []
     });

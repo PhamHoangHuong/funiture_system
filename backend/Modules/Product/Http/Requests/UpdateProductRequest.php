@@ -31,7 +31,6 @@ class UpdateProductRequest extends FormRequest
             'price' => 'sometimes|required|numeric|min:0',
             'start_new_time' => 'nullable|date',
             'end_new_time' => 'nullable|date|after:start_new_time',
-            'advanced_price_id' => 'nullable|exists:advanced_prices,id',
             'parent_id' => [
                 'nullable',
                 'exists:products,id',
