@@ -22,8 +22,13 @@ class CatalogPriceRule extends Model
         'condition_value',
         'discount_amount',
         'operator',
+        'simple_action',
         'priority',
         'sort_order',
     ];
 
+    protected $casts = [
+        'group_customer_ids' => 'array',
+        'condition_value' => 'array',
+    ];
 }

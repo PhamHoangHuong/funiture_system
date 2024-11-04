@@ -26,6 +26,7 @@ class CatalogPriceRuleResource extends JsonResource
             'condition_value' => $this->condition_value,
             'discount_amount' => $this->discount_amount,
             'operator' => $this->operator,
+            'simple_action' => $this->simple_action,
             'priority' => $this->priority,
             'sort_order' => $this->sort_order,
         ];
