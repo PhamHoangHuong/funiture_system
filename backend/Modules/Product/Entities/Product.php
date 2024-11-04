@@ -27,7 +27,6 @@ class Product extends Model
         'price',
         'start_new_time',
         'end_new_time',
-        'advanced_price_id',
         'parent_id',
         'sku',
         'seo_title',
