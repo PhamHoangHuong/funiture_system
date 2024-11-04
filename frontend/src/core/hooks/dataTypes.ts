@@ -64,7 +64,6 @@ export interface Product {
     category_id: number | null
     sources: SourceProduct[];
     attributes: ProductAttribute[];
-    variants: Product[];
     advanced_prices: AdvancedPrice[];
 }
 
