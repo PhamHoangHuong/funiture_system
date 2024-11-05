@@ -25,7 +25,6 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->comment('Giá gốc sản phẩm');
             $table->dateTime('start_new_time')->nullable()->comment('Thời gian bắt đầu sản phẩm mới');
             $table->dateTime('end_new_time')->nullable()->comment('Thời gian kết thúc sản phẩm mới');
-            $table->unsignedBigInteger('advanced_price_id')->nullable()->comment('Liên kết với bảng Advanced_price');
             $table->unsignedBigInteger('parent_id')->nullable()->comment('Liên kết sản phẩm chính/phụ');
             $table->string('sku')->nullable()->comment('Mã sản phẩm');
             $table->string('seo_title')->nullable()->comment('Tiêu đề SEO');
