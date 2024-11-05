@@ -29,6 +29,12 @@ class CartPriceRule extends Model
         'used',
         'coupon_type',
         'operator',
+        'simple_action',
+        'priority',
         'sort_order',
+    ];
+
+    protected $casts = [
+        'group_customer_ids' => 'array',
     ];
 }

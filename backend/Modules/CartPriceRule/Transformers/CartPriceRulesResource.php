@@ -27,6 +27,8 @@ class CartPriceRulesResource extends JsonResource
             'used' => $this->used,
             'coupon_type' => $this->coupon_type,
             'operator' => $this->operator,
+            'simple_action' => $this->simple_action,
+            'priority' => $this->priority,
             'sort_order' => $this->sort_order,
         ];
     }
