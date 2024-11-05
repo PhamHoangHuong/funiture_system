@@ -18,4 +18,12 @@ use Modules\CartPriceRule\Http\Controllers\CartPriceRuleController;
 //    return $request->user();
 //});
 
-Route::apiResource('salesrules', CartPriceRuleController::class);
+//Route::apiResource('salesrules', CartPriceRuleController::class);
+
+Route::group(['prefix' => 'salesrules'], function () {
+    Route::get('/', [CartPriceRuleController::class, 'index']);
+    Route::get('/{ruleId}', [CartPriceRuleController::class, 'show']);
+    Route::post('/', [CartPriceRuleController::class, 'store']);
+    Route::put('/{ruleId}', [CartPriceRuleController::class, 'update']);
+    Route::delete('/{ruleId}', [CartPriceRuleController::class, 'destroy']);
+});

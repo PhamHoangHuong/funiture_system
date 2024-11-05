@@ -38,17 +38,18 @@ class CartPriceRuleController extends Controller
     public function show($id)
     {
        try{
-            $cartPriceRule = $this->cartPriceRuleRepository->find($id);
+           $salesRules = $this->cartPriceRuleRepository->find($id);
 
-            if (!$cartPriceRule) {
+            if (!$salesRules) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu!', Response::HTTP_NOT_FOUND);
             }
 
-            return $this->toResponseSuccess(new CartPriceRulesResource($cartPriceRule), 'Chi tiết chương trình khuyến mãi', Response::HTTP_OK);
+            return $this->toResponseSuccess(new CartPriceRulesResource($salesRules), 'Chi tiết chương trình khuyến mãi', Response::HTTP_OK);
         } catch (\Throwable $e) {
             return $this->handleException($e);
        }
     }
+
 
 
     public function store(StoreCartPriceRuleRequest $request)
@@ -60,7 +61,7 @@ class CartPriceRuleController extends Controller
                 return $this->toResponseBad('Mã giảm giá đã tồn tại!', Response::HTTP_BAD_REQUEST);
             }
             // Lưu thông tin chương trình khuyến mãi
-            $cartPriceRule = $this->cartPriceRuleRepository->create($request->validated());
+            $salesRules = $this->cartPriceRuleRepository->create($request->validated());
 
             DB::commit();
             return $this->toResponseSuccess(null,
@@ -113,7 +114,7 @@ class CartPriceRuleController extends Controller
             if (!$cartPriceRule) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu!', Response::HTTP_NOT_FOUND);
             }
-
+            $this->cartPriceRuleRepository->update($id, ['is_active' => 0]);
             $cartPriceRule->delete();
 
             DB::commit();
