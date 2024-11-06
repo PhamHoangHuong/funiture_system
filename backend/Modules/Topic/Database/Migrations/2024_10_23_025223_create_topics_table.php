@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('image')->nullable()->comment('Ảnh chủ đề');
             $table->string('description')->nullable()->comment('Mô tả chủ đề');
             $table->integer('sort_order')->nullable()->comment('Thứ tự sắp xếp');
+            $table->string('seo_title')->nullable()->comment('SEO Title');
+            $table->text('seo_description')->nullable()->comment('SEO Description');
             $table->tinyInteger('status')->default(1)->comment('Trạng thái: 1 - Kích hoạt, 0 - Không kích hoạt');
             $table->timestamps();
             $table->softDeletes();
