@@ -24,6 +24,8 @@ return new class extends Migration
             $table->text('content')->nullable()->comment('Nội dung bài viết');
             $table->string('description')->nullable()->comment('Mô tả bài viết');
             $table->string('image')->nullable()->comment('Ảnh đại diện');
+            $table->string('seo_title')->nullable()->comment('SEO Title');
+            $table->text('seo_description')->nullable()->comment('SEO Description');
             $table->tinyInteger('status')->default(1)->comment('Trạng thái bài viết: 1: Xuất bản, 0: Ẩn, 2: Bản nháp');
 
             $table->timestamps();
