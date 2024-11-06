@@ -22,15 +22,12 @@ class ProductResource extends JsonResource
             'price' => $this->price,
             'start_new_time' => $this->start_new_time,
             'end_new_time' => $this->end_new_time,
-            'advanced_price_id' => $this->advanced_price_id,
             'parent_id' => $this->parent_id,
             'sku' => $this->sku,
             'stock_quantity' => $this->stock_quantity,
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
-            'category_id' => $this->category_id,
-
             // Quan hệ với sản phẩm chính
             'parent' => new ProductResource($this->whenLoaded('parent')), //trả về sản phẩm chính nếu có
             // Quan hệ với sản phẩm phụ (biến thể)

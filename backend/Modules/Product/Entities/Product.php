@@ -27,7 +27,6 @@ class Product extends Model
         'price',
         'start_new_time',
         'end_new_time',
-        'advanced_price_id',
         'parent_id',
         'sku',
         'seo_title',
@@ -61,21 +60,21 @@ class Product extends Model
     public function attributes()
     {
         return $this->belongsToMany(Attribute::class, 'product_attributes')
-                    ->withPivot('attribute_value_id')
-                    ->withTimestamps();
+            ->withPivot('attribute_value_id')
+            ->withTimestamps();
     }
 
     public function attributeValues()
     {
         return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'attribute_value_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function sources()
     {
         return $this->belongsToMany(Source::class, 'source_products')
-                    ->withPivot('quantity')
-                    ->withTimestamps();
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 
     public function sourceProducts()
@@ -83,9 +82,14 @@ class Product extends Model
         return $this->hasMany(SourceProduct::class);
     }
 
+    public function productAttributes()
+    {
+        return $this->hasMany(ProductAttribute::class);
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 }

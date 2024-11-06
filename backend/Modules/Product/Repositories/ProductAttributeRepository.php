@@ -11,4 +11,9 @@ class ProductAttributeRepository extends BaseRepository implements ProductAttrib
     {
         return ProductAttribute::class;
     }
+
+    public function deleteByProductId(int $productId)
+    {
+        return $this->model->where('product_id', $productId)->delete();
+    }
 }

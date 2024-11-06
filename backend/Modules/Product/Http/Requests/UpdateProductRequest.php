@@ -31,7 +31,6 @@ class UpdateProductRequest extends FormRequest
             'price' => 'sometimes|required|numeric|min:0',
             'start_new_time' => 'nullable|date',
             'end_new_time' => 'nullable|date|after:start_new_time',
-            'advanced_price_id' => 'nullable|exists:advanced_prices,id',
             'parent_id' => [
                 'nullable',
                 'exists:products,id',
@@ -46,7 +45,7 @@ class UpdateProductRequest extends FormRequest
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
             'video_link' => 'nullable|string|url',
-            'category_ids' => 'sometimes|required|array',
+            'category_ids' => 'required|array',
             'category_ids.*' => 'exists:categories,id',
             'attributes' => 'nullable|array',
             'attributes.*.attribute_id' => 'required|exists:attributes,id',
