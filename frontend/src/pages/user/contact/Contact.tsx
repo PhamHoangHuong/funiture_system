@@ -12,28 +12,8 @@ const Contact: React.FC = () => {
         </div>
       </div>
 
-      {/* Address section */}
-      <section className="address-section pt-140 overflow-hidden">
-        <div className="container-1700">
-          <div className="row g-5">
-            {['Berlin', 'Tokyo', 'Paris', 'Dieburg'].map((city) => (
-              <div key={city} className="col-xl-3 col-lg-4 col-sm-6">
-                <div className="address-single">
-                  <h5 className="mb-50 fw-normal hm2-font-family">{city}</h5>
-                  <div className="footer-address">
-                    <a href="tel:256-31556.2369">+256-31556.2369</a><br />
-                    <a href="mailto:hello@Venturifur.com" className="mail">hello@Venturifur.com</a>
-                    <p className="mt-32">219 Geom Street. UYS Office 215 Frankfurt-Germany</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Contact form section */}
-      <section className="contact-form-section pt-120 pb-140 overflow-hidden">
+      <section className="contact-form-section pt-20 pb-20 overflow-hidden">
         <div className="container-1700">
           <div className="row align-items-center g-5">
             <div className="col-xl-7 col-md-6">
