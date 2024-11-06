@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress, Checkbox, ListItemText, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress, Checkbox, ListItemText, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Switch } from "@mui/material";
 import { Accordion, AccordionSummary, AccordionDetails } from '../../../components/shared/StyledAccordion';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import AddIcon from '@mui/icons-material/Add';
@@ -10,8 +10,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
 import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
-import { generateSlug } from '../../../core/hooks/format';
+import { generateSlug, generateVariantName } from '../../../core/hooks/format';
 import axios from 'axios';
+import { SelectChangeEvent } from '@mui/material';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -41,18 +42,20 @@ const ProductCreate: React.FC = () => {
         status: 1, weight: 0, price: 0, start_new_time: null,
         end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
-        category_id: 0, sources: [], attributes: [], advanced_prices: []
+        category_id: categories.length > 0 ? categories[0].id : null,
+        sources: [], attributes: [], advanced_prices: []
     });
     const { createAdvancedPrice } = useAdvancedPrice();
-    const [advancedPrices, setAdvancedPrices] = React.useState<Partial<AdvancedPrice>[]>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number }>>({});
+    const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
 
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
 
-    const handleAttributeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const handleAttributeChange = (event: SelectChangeEvent<number[]>) => {
         const value = event.target.value as number[];
         setSelectedAttributes(value);
     };
@@ -65,7 +68,7 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    const handleProductChange = (field: keyof Product, value: any, index?: number) => {
+    const handleProductChange = (field: keyof Product | 'sources', value: any, index?: number) => {
         setProduct((prev) => {
             let updatedProduct = { ...prev };
             if (field === 'sources' || field === 'attributes' || field === 'advanced_prices') {
@@ -121,13 +124,6 @@ const ProductCreate: React.FC = () => {
                 formData.set('weight', Number(product.weight).toString());
             }
 
-            const newProduct = await createProduct(formData as any);
-
-            if (newProduct.id) {
-                await Promise.all(
-                    advancedPrices.map(price => createAdvancedPrice({ ...price, product_id: newProduct.id }))
-                );
-            }
 
             console.log('Product created successfully');
         } catch (error) {
@@ -136,88 +132,14 @@ const ProductCreate: React.FC = () => {
                 if (error.response.status === 422) {
                     const validationErrors = error.response.data.errors;
                     Object.entries(validationErrors).forEach(([field, messages]) => {
-                        console.error(`${field}: ${messages.join(', ')}`);
+                        const messageArray = messages as string[];
+                        console.error(`${field}: ${messageArray.join(', ')}`);
                     });
                 }
             } else {
                 console.error('Error creating product:', error);
             }
         }
-    };
-
-    const generateVariantNames = (baseName: string, attributes: any[], attributeValues: any) => {
-        const combinations: string[] = [];
-
-        const generateCombinations = (currentCombination: string[], index: number) => {
-            if (index === attributes.length) {
-                combinations.push(currentCombination.join(' '));
-                return;
-            }
-
-            const attributeId = attributes[index];
-            const values = attributeValues[attributeId] || [];
-
-            values.forEach((value: string) => {
-                generateCombinations([...currentCombination, `${attributes[index].name}: ${value}`], index + 1);
-            });
-        };
-
-        generateCombinations([baseName], 0);
-        console.log("Generated Combinations:", combinations);
-        return combinations;
-    };
-
-    const handleGenerateVariants = () => {
-        const variantNames = generateVariantNames(product.name, selectedAttributes, selectedAttributeValues);
-
-        const newVariants = variantNames.map(name => {
-            const variantAttributes = selectedAttributes.map(attrId => ({
-                attribute_id: attrId,
-                values: selectedAttributeValues[attrId] || []
-            }));
-
-            console.log(`Variant Name: ${name}, Attributes:`, variantAttributes);
-
-            return {
-                name,
-                sku: '',
-                price: product.price,
-                weight: product.weight,
-                status: product.status,
-                attributes: variantAttributes,
-                parent_id: product.id
-            };
-        });
-
-    };
-
-    const handleAddAdvancedPrice = () => {
-        const initialPrice = {
-            type: '',
-            amount: 0,
-            start_time: null,
-            end_time: null,
-            attributes: selectedAttributes.map(attrId => ({
-                attribute_id: attrId,
-                values: selectedAttributeValues[attrId] || []
-            }))
-        };
-        setAdvancedPrices([...advancedPrices, initialPrice]);
-    };
-
-    const handleRemoveVariant = (index: number) => {
-        setProduct((prev) => ({
-            ...prev,
-            variants: prev.variants.filter((_, i) => i !== index)
-        }));
-    };
-
-    const handleEditVariant = (index: number) => {
-        // Implement edit logic here
-    };
-
-    const removeAdvancedPrice = (index: number) => {
-        setAdvancedPrices(prev => prev.filter((_, i) => i !== index));
     };
 
     const removeAttribute = (attributeId: number) => {
@@ -227,6 +149,55 @@ const ProductCreate: React.FC = () => {
             delete updatedValues[attributeId];
             return updatedValues;
         });
+    };
+
+    const generateVariants = () => {
+        if (selectedAttributes.length === 0) return [];
+
+        return selectedAttributes.reduce((acc, attributeId) => {
+            const attributeValuesForAttribute = selectedAttributeValues[attributeId] || [];
+            if (acc.length === 0) {
+                return attributeValuesForAttribute.map(valueId => [valueId]);
+            }
+            return acc.flatMap(existingCombination =>
+                attributeValuesForAttribute.map(valueId => [...existingCombination, valueId])
+            );
+        }, [] as number[][]).map((combination) => {
+            const variantName = generateVariantName(
+                product.name,
+                combination.map(valueId => {
+                    const value = attributeValues.find(v => v.id === valueId);
+                    return value ? { attribute_id: value.attribute_id, values: [value.value] } : { attribute_id: 0, values: [] };
+                })
+            );
+
+            const sku = generateSlug(variantName.join(' '));
+
+            return { variantName, sku, combination };
+        });
+    };
+
+    const variants = generateVariants();
+
+    const handleVariantChange = (index: number, field: 'price' | 'weight' | 'status' | 'variantName' | 'sku', value: number | string) => {
+        setVariantDetails(prev => ({
+            ...prev,
+            [index]: {
+                ...prev[index],
+                [field]: value,
+            },
+        }));
+    };
+
+    const handleVariantImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const imageUrl = URL.createObjectURL(file);
+            setVariantImages(prev => ({
+                ...prev,
+                [index]: imageUrl,
+            }));
+        }
     };
 
     return (
@@ -460,7 +431,7 @@ const ProductCreate: React.FC = () => {
                                                                     <Select
                                                                         multiple
                                                                         value={selectedAttributeValues[attributeId] || []}
-                                                                        onChange={(e) => handleAttributeValueChange(attributeId, e)}
+                                                                        onChange={(e) => handleAttributeValueChange(attributeId, e as React.ChangeEvent<{ value: unknown }>)}
                                                                         renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
                                                                         MenuProps={MenuProps}
                                                                     >
@@ -502,75 +473,85 @@ const ProductCreate: React.FC = () => {
                                                 <TableCell>Hình ảnh</TableCell>
                                                 <TableCell>Tên</TableCell>
                                                 <TableCell>SKU</TableCell>
-                                                <TableCell>Giá</TableCell>
-                                                <TableCell>Cân nặng</TableCell>
+                                                <TableCell sx={{ width: '100px' }}>Giá</TableCell>
+                                                <TableCell sx={{ width: '100px' }}>Cân nặng</TableCell>
                                                 <TableCell>Trạng thái</TableCell>
                                                 <TableCell>Thuộc tính</TableCell>
                                                 <TableCell>Hành động</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            sản phẩm biến thể
+                                            {variants.map((variant, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>
+                                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                            {variantImages[index] ? (
+                                                                <img src={variantImages[index]} alt="Variant Preview" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                                                            ) : (
+                                                                <label htmlFor={`variant-image-upload-${index}`}>
+                                                                    <Box sx={{ width: '50px', height: '50px', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                                                        <AddIcon color="action" />
+                                                                    </Box>
+                                                                </label>
+                                                            )}
+                                                            <input
+                                                                accept="image/*"
+                                                                style={{ display: 'none' }}
+                                                                id={`variant-image-upload-${index}`}
+                                                                type="file"
+                                                                onChange={(e) => handleVariantImageChange(index, e)}
+                                                            />
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.variantName}
+                                                            onChange={(e) => handleVariantChange(index, 'variantName', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            value={variant.sku}
+                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell sx={{ width: '100px' }}>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variantDetails[index]?.price || product.price}
+                                                            onChange={(e) => handleVariantChange(index, 'price', Number(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell sx={{ width: '100px' }}>
+                                                        <TextField
+                                                            type="number"
+                                                            value={variantDetails[index]?.weight || product.weight}
+                                                            onChange={(e) => handleVariantChange(index, 'weight', Number(e.target.value))}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Switch
+                                                            checked={variantDetails[index]?.status === 1}
+                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.checked ? 1 : 0)}
+                                                            color="primary"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {variant.combination.map(valueId => {
+                                                            const value = attributeValues.find(v => v.id === valueId);
+                                                            return value ? value.value : '';
+                                                        }).join(', ')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton>
+                                                            <DeleteIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                            </AccordionDetails>
-                        </Accordion>
-
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Giá nâng cao</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                {advancedPrices.map((price, index) => (
-                                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-                                        <Grid container spacing={2}>
-                                            <Grid item md={2}>
-                                                <FormControl fullWidth>
-                                                    <InputLabel>Loại</InputLabel>
-                                                    <Select
-                                                        value={price.type}
-                                                        onChange={(e) => handleAdvancedPriceChange(index, 'type', e.target.value)}
-                                                    >
-                                                        <MenuItem value="discount">Giảm giá</MenuItem>
-                                                        <MenuItem value="special">Đặc biệt</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Số tiền"
-                                                    type="number"
-                                                    value={price.amount}
-                                                    onChange={(e) => handleAdvancedPriceChange(index, 'amount', parseFloat(e.target.value))}
-                                                />
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <DatePicker
-                                                    label="Thời gian bắt đầu"
-                                                    value={price.start_time ? dayjs(price.start_time) : null}
-                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'start_time', newValue?.toISOString())}
-                                                />
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <DatePicker
-                                                    label="Thời gian kết thúc"
-                                                    value={price.end_time ? dayjs(price.end_time) : null}
-                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'end_time', newValue?.toISOString())}
-                                                />
-                                            </Grid>
-                                            <Grid item md={1}>
-                                                <IconButton onClick={() => removeAdvancedPrice(index)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Grid>
-                                        </Grid>
-                                    </Box>
-                                ))}
-                                <Button startIcon={<AddIcon />} onClick={handleAddAdvancedPrice}>
-                                    Thêm giá
-                                </Button>
                             </AccordionDetails>
                         </Accordion>
 
@@ -603,7 +584,7 @@ const ProductCreate: React.FC = () => {
                                                     label="Số lượng"
                                                     type="number"
                                                     value={source.quantity}
-                                                    onChange={(e) => handleProductChange(`sources[${index}].quantity`, e.target.value)}
+                                                    onChange={(e) => handleProductChange('sources', { quantity: e.target.value }, index)}
                                                 />
                                             </Grid>
                                             <Grid item xs={12} md={2}>
