@@ -10,7 +10,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
 import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
-import { generateSlug, mapAttribute } from '../../../core/hooks/format';
+import { generateSlug } from '../../../core/hooks/format';
 import axios from 'axios';
 
 const ITEM_HEIGHT = 48;
@@ -24,11 +24,9 @@ const MenuProps = {
     },
 };
 
-// Định nghĩa kiểu dữ liệu cho sản phẩm với các mảng
 type ProductWithArrays = Product & {
     sources: any[];
     attributes: any[];
-    variants: any[];
 };
 
 const ProductCreate: React.FC = () => {
@@ -36,32 +34,29 @@ const ProductCreate: React.FC = () => {
     const { categories, fetchCategories } = useCategory();
     const { sources, fetchSources } = useSource();
     const { attributes, attributeValues, loading, error } = useAttribute();
-    const [selectedAttributes, setSelectedAttributes] = React.useState([]);
-    const [selectedAttributeValues, setSelectedAttributeValues] = React.useState({});
+    const [selectedAttributes, setSelectedAttributes] = React.useState<number[]>([]);
+    const [selectedAttributeValues, setSelectedAttributeValues] = React.useState<Record<number, number[]>>({});
     const [product, setProduct] = React.useState<ProductWithArrays>({
         id: 0, name: "", slug: "", description: "", content: "", image: "",
         status: 1, weight: 0, price: 0, start_new_time: null,
-        end_new_time: null, advanced_price_id: 0, parent_id: 0,
+        end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
-        category_id: 0, sources: [], attributes: [], variants: [], advanced_prices: []
+        category_id: 0, sources: [], attributes: [], advanced_prices: []
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [advancedPrices, setAdvancedPrices] = React.useState<Partial<AdvancedPrice>[]>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 
-    // Sử dụng useEffect để lấy danh mục và nguồn hàng khi component được mount
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
 
-    // Hàm xử lý khi thay đổi thuộc tính
     const handleAttributeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         const value = event.target.value as number[];
-        setSelectedAttributes(value as never[]);
+        setSelectedAttributes(value);
     };
 
-    // Hàm xử lý khi thay đổi giá trị thuộc tính
     const handleAttributeValueChange = (attributeId: number, event: React.ChangeEvent<{ value: unknown }>) => {
         const value = event.target.value as number[];
         setSelectedAttributeValues(prev => ({
@@ -70,11 +65,10 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    // Hàm xử lý khi thay đổi thông tin sản phẩm
     const handleProductChange = (field: keyof Product, value: any, index?: number) => {
         setProduct((prev) => {
             let updatedProduct = { ...prev };
-            if (field === 'sources' || field === 'attributes' || field === 'variants' || field === 'advanced_prices') {
+            if (field === 'sources' || field === 'attributes' || field === 'advanced_prices') {
                 const newArray = [...(prev[field] as any[])];
                 if (index !== undefined) {
                     newArray[index] = { ...newArray[index], ...value };
@@ -86,7 +80,6 @@ const ProductCreate: React.FC = () => {
                 updatedProduct[field] = value as never;
             }
 
-            // Tạo slug khi tên thay đổi
             if (field === 'name') {
                 updatedProduct.slug = generateSlug(value);
             }
@@ -95,7 +88,6 @@ const ProductCreate: React.FC = () => {
         });
     };
 
-    // Hàm xóa một mục trong mảng
     const removeItem = (field: keyof typeof product, index: number) => {
         setProduct((prev) => ({
             ...prev,
@@ -103,16 +95,14 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    // Hàm xử lý khi thay đổi hình ảnh  
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             setProduct((prev: any) => ({ ...prev, image: file }));
-            setImagePreview(URL.createObjectURL(file)); // Tạo URL cho xem trước hình ảnh
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
-    // Hàm xử lý khi submit form
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -127,15 +117,12 @@ const ProductCreate: React.FC = () => {
                 }
             });
 
-            // Đảm bảo cân nặng là số
             if (product.weight) {
                 formData.set('weight', Number(product.weight).toString());
             }
 
-            // Tạo sản phẩm
             const newProduct = await createProduct(formData as any);
 
-            // Nếu tạo sản phẩm thành công, tạo giá nâng cao
             if (newProduct.id) {
                 await Promise.all(
                     advancedPrices.map(price => createAdvancedPrice({ ...price, product_id: newProduct.id }))
@@ -143,17 +130,13 @@ const ProductCreate: React.FC = () => {
             }
 
             console.log('Product created successfully');
-            // Có thể chuyển hướng hoặc hiển thị thông báo thành công ở đây
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 console.error('Error creating product:', error.response.data);
-                // Xử lý lỗi xác thực
                 if (error.response.status === 422) {
                     const validationErrors = error.response.data.errors;
-                    // Hiển thị lỗi xác thực cho người dùng
                     Object.entries(validationErrors).forEach(([field, messages]) => {
                         console.error(`${field}: ${messages.join(', ')}`);
-                        // Có thể đặt các lỗi này vào state và hiển thị chúng trong giao diện người dùng
                     });
                 }
             } else {
@@ -162,52 +145,52 @@ const ProductCreate: React.FC = () => {
         }
     };
 
+    const generateVariantNames = (baseName: string, attributes: any[], attributeValues: any) => {
+        const combinations: string[] = [];
 
-    // Hàm tạo các biến thể sản phẩm
-    const generateVariants = () => {
-        const selectedAttributes = product.attributes.filter((attr: any) => attr.attribute_id && attr.value_id);
-        console.log("Selected Attributes:", selectedAttributes);
-
-        if (selectedAttributes.length === 0) return;
-
-        const generateCombinations = (attrs: any[], index: number = 0, current: any[] = []): any[][] => {
-            if (index === attrs.length) {
-                return [current];
+        const generateCombinations = (currentCombination: string[], index: number) => {
+            if (index === attributes.length) {
+                combinations.push(currentCombination.join(' '));
+                return;
             }
-            const attribute = attrs[index];
-            const combinations: any[][] = [];
-            combinations.push(...generateCombinations(attrs, index + 1, [...current, attribute]));
-            return combinations;
+
+            const attributeId = attributes[index];
+            const values = attributeValues[attributeId] || [];
+
+            values.forEach((value: string) => {
+                generateCombinations([...currentCombination, `${attributes[index].name}: ${value}`], index + 1);
+            });
         };
 
-        const combinations = generateCombinations(selectedAttributes);
+        generateCombinations([baseName], 0);
         console.log("Generated Combinations:", combinations);
-
-        const newVariants = combinations.map(combination => ({
-            name: `${product.name} - ${combination.map(attr => attr.value).join(' - ')}`,
-            price: product.price,
-            sku: '',
-            image: '',
-            weight: product.weight,
-            status: product.status,
-            attributes: combination.map(attr => mapAttribute(product, attr))
-        }));
-
-        console.log("New Variants:", newVariants);
-
-        setProduct((prev: any) => ({ ...prev, variants: newVariants }));
+        return combinations;
     };
 
-    // Hàm xử lý khi thay đổi biến thể
-    const handleVariantChange = (index: number, field: string, value: any) => {
-        setProduct((prev) => {
-            const updatedVariants = [...prev.variants];
-            updatedVariants[index] = { ...updatedVariants[index], [field]: value };
-            return { ...prev, variants: updatedVariants };
+    const handleGenerateVariants = () => {
+        const variantNames = generateVariantNames(product.name, selectedAttributes, selectedAttributeValues);
+
+        const newVariants = variantNames.map(name => {
+            const variantAttributes = selectedAttributes.map(attrId => ({
+                attribute_id: attrId,
+                values: selectedAttributeValues[attrId] || []
+            }));
+
+            console.log(`Variant Name: ${name}, Attributes:`, variantAttributes);
+
+            return {
+                name,
+                sku: '',
+                price: product.price,
+                weight: product.weight,
+                status: product.status,
+                attributes: variantAttributes,
+                parent_id: product.id
+            };
         });
+
     };
 
-    // Hàm thêm giá nâng cao
     const handleAddAdvancedPrice = () => {
         const initialPrice = {
             type: '',
@@ -220,10 +203,8 @@ const ProductCreate: React.FC = () => {
             }))
         };
         setAdvancedPrices([...advancedPrices, initialPrice]);
-        // console.log("map thuộc tính", selectedAttributeValues);
     };
 
-    // Hàm xóa biến thể
     const handleRemoveVariant = (index: number) => {
         setProduct((prev) => ({
             ...prev,
@@ -231,22 +212,19 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    // Hàm chỉnh sửa biến thể (có thể triển khai logic theo nhu cầu)
     const handleEditVariant = (index: number) => {
-        // Triển khai logic chỉnh sửa ở đây
+        // Implement edit logic here
     };
 
-    // Hàm xóa giá nâng cao
     const removeAdvancedPrice = (index: number) => {
         setAdvancedPrices(prev => prev.filter((_, i) => i !== index));
     };
 
-    // Hàm xóa thuộc tính
     const removeAttribute = (attributeId: number) => {
         setSelectedAttributes(prev => prev.filter(id => id !== attributeId));
         setSelectedAttributeValues(prev => {
             const updatedValues = { ...prev };
-            // delete updatedValues[attributeId];
+            delete updatedValues[attributeId];
             return updatedValues;
         });
     };
@@ -268,21 +246,18 @@ const ProductCreate: React.FC = () => {
                         </Grid>
                         <Divider sx={{ my: 4 }} />
 
-                        {/* sản phẩm cơ bản (Chính) */}
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thông tin cơ bản</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Grid container spacing={3}>
-
                                     <Grid item md={10}>
                                         <Grid container spacing={3}>
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
                                                     label="Tên sản phẩm"
-                                                    defaultValue={product.name}
                                                     value={product.name}
                                                     onChange={(e) => handleProductChange('name', e.target.value)}
                                                     required
@@ -413,7 +388,6 @@ const ProductCreate: React.FC = () => {
                                     </Grid>
 
                                     <Grid item md={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
                                         <Box mt={2} sx={{ width: '100%', height: '200px', border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {imagePreview ? (
                                                 <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
@@ -438,7 +412,6 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Thuộc tính */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thuộc tính</Typography>
@@ -458,7 +431,7 @@ const ProductCreate: React.FC = () => {
                                     >
                                         {attributes.map((attribute) => (
                                             <MenuItem key={attribute.id} value={attribute.id}>
-                                                <Checkbox checked={selectedAttributes.includes(attribute.id as never)} />
+                                                <Checkbox checked={selectedAttributes.includes(attribute.id)} />
                                                 <ListItemText primary={attribute.name} />
                                             </MenuItem>
                                         ))}
@@ -517,7 +490,6 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Bảng sản phẩm biến thể */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Sản phẩm biến thể</Typography>
@@ -538,74 +510,13 @@ const ProductCreate: React.FC = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {product.variants.map((variant: any, index: number) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        {variant.image ? (
-                                                            <img src={variant.image} alt="Variant" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
-                                                        ) : (
-                                                            <Typography variant="body2" color="textSecondary">Không có hình ảnh</Typography>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.name}
-                                                            onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.sku}
-                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.price}
-                                                            onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.weight}
-                                                            onChange={(e) => handleVariantChange(index, 'weight', parseFloat(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={variant.status}
-                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.value)}
-                                                        >
-                                                            <MenuItem value={1}>Hoạt động</MenuItem>
-                                                            <MenuItem value={0}>Không hoạt động</MenuItem>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {variant.attributes.map((attr: any, attrIndex: number) => (
-                                                            <Typography key={attrIndex} variant="body2">
-                                                                {attr.name}: {attr.value}
-                                                            </Typography>
-                                                        ))}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <IconButton onClick={() => handleEditVariant(index)}>
-                                                            <EditIcon />
-                                                        </IconButton>
-                                                        <IconButton onClick={() => handleRemoveVariant(index)}>
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            sản phẩm biến thể
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Giá nâng cao */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Giá nâng cao</Typography>
@@ -663,7 +574,6 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Nguồn hàng */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Nguồn hàng</Typography>
@@ -713,7 +623,7 @@ const ProductCreate: React.FC = () => {
                     </Paper>
                 </Container>
             </form>
-        </LocalizationProvider >
+        </LocalizationProvider>
     );
 };
 

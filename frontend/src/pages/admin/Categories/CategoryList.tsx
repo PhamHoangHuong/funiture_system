@@ -185,7 +185,7 @@ const CategoryList: React.FC = () => {
           </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              Showing {start}-{end} of {total}
+              Hiển thị {start}-{end} của {total}
             </Typography>
             <Pagination
               count={Math.ceil(total / rowsPerPage)}

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Modules\Cart\Http\Requests\CartRequest;
 use Modules\Cart\Repositories\CartItemRepositoryInterface;
 use Modules\Cart\Repositories\CartRepositoryInterface;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 
@@ -46,11 +46,11 @@ class CartController extends Controller
      * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
-        ProductRepositoryInterface       $productRepository,
-        CartItemRepositoryInterface      $cartItemRepository,
-        CartRepositoryInterface          $cartRepository,
-        SourceRepositoryInterface        $sourceRepository,
-        CartPriceRuleRepositoryInterface $cartPriceRule
+        ProductRepositoryInterface  $productRepository,
+        CartItemRepositoryInterface $cartItemRepository,
+        CartRepositoryInterface     $cartRepository,
+        SourceRepositoryInterface   $sourceRepository,
+        CartPriceRulesRepositoryInterface $cartPriceRule
     )
     {
         $this->productRepository = $productRepository;

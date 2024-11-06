@@ -4,9 +4,8 @@ namespace Modules\CartPriceRule\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepository;
-use Modules\CartPriceRule\Repositories\CartPriceRuleRepositoryInterface;
-
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepository;
+use Modules\CartPriceRule\Repositories\CartPriceRulesRepositoryInterface;
 class CartPriceRuleServiceProvider extends ServiceProvider
 {
     /**
@@ -40,7 +39,7 @@ class CartPriceRuleServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->app->bind(CartPriceRuleRepositoryInterface::class, CartPriceRuleRepository::class);
+        $this->app->bind(CartPriceRulesRepositoryInterface::class, CartPriceRulesRepository::class);
     }
 
     /**
