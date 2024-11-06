@@ -27,6 +27,8 @@ use Modules\Post\Repositories\PostRepository;
 use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
+use Modules\Review\Repositories\ReviewRepository;
+use Modules\Review\Repositories\ReviewRepositoryInterface;
 use Modules\Slider\Repositories\SliderImageRepository;
 use Modules\Slider\Repositories\SliderImageRepositoryInterface;
 use Modules\Slider\Repositories\SliderRepository;
@@ -139,6 +141,13 @@ class AppServiceProvider extends ServiceProvider
             ContactRepositoryInterface::class,
             ContactRepository::class
         );
+
+        //Review
+        $this->app->singleton(
+            ReviewRepositoryInterface::class,
+            ReviewRepository::class
+        );
+
     }
 
     /**
