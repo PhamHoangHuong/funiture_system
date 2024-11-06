@@ -17,6 +17,8 @@ use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepository;
 use Modules\CatalogPriceRule\Repositories\CatalogPriceRuleRepositoryInterface;
 use Modules\Category\Repositories\CategoriesRepository;
 use Modules\Category\Repositories\CategoriesRepositoryInterface;
+use Modules\Contact\Repositories\ContactRepository;
+use Modules\Contact\Repositories\ContactRepositoryInterface;
 use Modules\Customer\Repositories\CustomerRepository;
 use Modules\Customer\Repositories\CustomerRepositoryInterface;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepository;
@@ -130,6 +132,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             CatalogPriceRuleRepositoryInterface::class,
             CatalogPriceRuleRepository::class
+        );
+
+        //Contact
+        $this->app->singleton(
+            ContactRepositoryInterface::class,
+            ContactRepository::class
         );
     }
 

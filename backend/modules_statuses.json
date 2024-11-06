@@ -13,5 +13,6 @@
     "Topic": true,
     "Slider": true,
     "Post": true,
-    "CatalogPriceRule": true
+    "CatalogPriceRule": true,
+    "Contact": true
 }
