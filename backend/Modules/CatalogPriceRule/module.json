@@ -1,0 +1,11 @@
+{
+    "name": "CatalogPriceRule",
+    "alias": "catalogpricerule",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CatalogPriceRule\\Providers\\CatalogPriceRuleServiceProvider"
+    ],
+    "files": []
+}

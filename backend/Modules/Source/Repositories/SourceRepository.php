@@ -11,4 +11,16 @@ class SourceRepository extends BaseRepository implements SourceRepositoryInterfa
     {
         return Source::class;
     }
+    public function getProductSources($productId)
+    {
+        return $this->model->whereHas('products', function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        })->get();
+    }
+
+    public function getFullAddressSource($sourceId)
+    {
+        $source = $this->model->find($sourceId);
+        return $source->address . ',' . $source->ward->name . ',' . $source->district->name . ',' . $source->province->name;
+    }
 }

@@ -54,7 +54,6 @@ export interface Product {
     price: number
     start_new_time: string | null
     end_new_time: string | null
-    advanced_price_id: number | null
     parent_id: number | null
     sku: string | null
     stock_quantity: number
@@ -64,9 +63,17 @@ export interface Product {
     category_id: number | null
     sources: SourceProduct[];
     attributes: ProductAttribute[];
-    variants: Product[];
     advanced_prices: AdvancedPrice[];
 }
+
+// cart 
+export interface Cart {
+    id: number;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
 
 // Auth context type
 export interface AuthContextType {

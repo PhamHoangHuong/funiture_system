@@ -15,16 +15,9 @@ class StoreSliderRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'type' => 'required|string|in:1,2',
+            'type' => 'required|integer|in:1,2',
             'position' => 'required|string|unique:sliders',
-            'status' => 'required|boolean',
-            'images' => 'required|array',
-            'images.*.image' => 'required|image|max:2048',
-            'images.*.link' => 'required|url',
-            'images.*.name' => 'required|string|max:255',
-            'images.*.description' => 'nullable|string',
-            'images.*.sort_order' => 'required|integer',
-            'images.*.active' => 'required|boolean',
+            'status' => 'required|integer|in:0,1',
         ];
     }
 

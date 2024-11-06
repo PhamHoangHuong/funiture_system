@@ -14,7 +14,13 @@ class UpdateSliderImageRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'slider_id' => 'sometimes|exists:sliders,id',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'title' => 'nullable|string|max:255',
+            'link' => 'nullable|string',
+            'description' => 'nullable|string',
+            'sort_order' => 'nullable|integer',
+            'status' => 'nullable|integer',
         ];
     }
 

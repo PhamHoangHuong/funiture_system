@@ -35,7 +35,9 @@ export const generateSlug = (str: string): string => {
         .replace(/\s+/g, '-'); // Thay thế khoảng trắng bằng dấu gạch ngang
 };
 
+
 // Chuyển đổi chuỗi ngày DD/MM/YYYY thành đối tượng Dayjs
 export const parseDateFromDisplay = (dateString: string): dayjs.Dayjs | null => {
     return dateString ? dayjs(dateString, 'DD/MM/YYYY') : null;
 };
+

@@ -15,11 +15,13 @@ use Modules\Cart\Http\Controllers\CartController;
 |
 */
 //
-Route::group(['prefix' => '/cart', 'middleware' => 'jwt'], function () {
+Route::group(['prefix' => '/cart'], function () {
     Route::get('', [CartController::class, 'index']);
     Route::get('/mini', [CartController::class, 'miniCart']);
     Route::post('', [CartController::class, 'store']);
     Route::put('/{itemId}', [CartController::class, 'update']);
     Route::delete('/{itemId}', [CartController::class, 'destroy']);
     Route::delete('', [CartController::class, 'clear']);
+    Route::get('/getTotal', [CartController::class, 'getTotalCart']);
 });
+

@@ -43,6 +43,7 @@ class SliderServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
         $this->app->bind(SliderRepositoryInterface::class,SliderRepository::class);
+        $this->app->bind(SliderImageRepositoryInterface::class,SliderImageRepository::class);
     }
 
     /**

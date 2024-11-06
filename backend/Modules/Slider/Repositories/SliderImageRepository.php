@@ -12,18 +12,8 @@ class SliderImageRepository extends BaseRepository implements SliderImageReposit
         return SliderImage::class;
     }
 
-    public function update($id, array $data)
+    public function getBySliderId($sliderId)
     {
-        $image = $this->find($id);
-        if ($image) {
-            $image->update($data);
-            return $image;
-        }
-        return null;
-    }
-
-    public function create(array $data)
-    {
-        return SliderImage::create($data);
+        return $this->model->where('slider_id', $sliderId)->get();
     }
 }

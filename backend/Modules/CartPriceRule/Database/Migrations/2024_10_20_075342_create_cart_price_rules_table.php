@@ -14,20 +14,29 @@ return new class extends Migration {
     {
         Schema::create('cart_price_rules', function (Blueprint $table) {
             $table->id();
-
             $table->string('name')->nullable()->comment('Tên chương trình khuyến mãi.');
-            $table->string('label')->nullable()->comment('Nhãn.');
             $table->text('description')->nullable()->comment('Mô tả.');
-            $table->string('coupon')->nullable()->comment('Mã giảm giá.');
-            $table->tinyInteger('type')->nullable()->comment('Loại giảm giá. 1: Giảm giá theo phần trăm, 2: Giảm giá theo số tiền.');
-            $table->integer('amount')->nullable()->comment('Số tiền giảm giá hoặc phần trăm giảm giá.');
-            $table->integer('quantity')->nullable()->comment('Số lượng áp dụng.');
             $table->dateTime('start_time')->nullable()->comment('Thời gian bắt đầu.');
             $table->dateTime('end_time')->nullable()->comment('Thời gian kết thúc.');
-            $table->integer('priority')->nullable()->comment('Thứ tự ưu tiên.');
-            $table->tinyInteger('status')->default(1)->comment('Trạng thái.');
-            $table->enum('applicable_to', ['all', 'specific_products', 'specific_categories'])->default('all')->comment('Áp dụng cho: tất cả, sản phẩm cụ thể, hoặc danh mục cụ thể.');
+            $table->tinyInteger('is_active')->default(0)->comment('Trạng thái. 0: Không kích hoạt, 1: Kích hoạt.');
+            $table->json('group_customer_ids')->nullable()->comment('Mã nhóm khách hàng');
+            $table->enum('condition_apply',['subtotal','total_qty','total_weight'])->nullable()->comment('Điều kiện áp dụng: subtotal, total_qty, total_weight');
+            $table->integer('condition_value')->nullable()->comment('Giá trị điều kiện.');
+            $table->string('coupon')->nullable()->comment('Mã giảm giá.');
+            $table->decimal('discount_amount', 12, 4)->nullable()->comment('Số tiền giảm giá.');
+            $table->tinyInteger('discount_qty')->nullable()->comment('Số lượng giảm giá.');
+            $table->tinyInteger('discount_step')->nullable()->comment('Bước giảm giá.');
+            $table->integer('usage_limit')->nullable()->comment('Giới hạn sử dụng.');
+            $table->integer('used')->default(0)->comment('Số lần đã sử dụng.');
+            $table->tinyInteger('coupon_type')->nullable()->default(1)->comment('Loại mã giảm giá. 1: Mã giảm giá, 2: Mã miễn phí vận chuyển.');
+            $table->smallInteger('operator')->nullable()
+                ->comment('Toán tử. 1: bigger_than, 2: less_than, 3: equal, 4: not_equal, 5: greater_than_or_equal, 6: less_than_or_equal');
+            $table->enum('simple_action', ['by_percent', 'by_fixed', 'cart_fixed'])->nullable()->comment('Hành động: by_percent, by_fixed, cart_fixed');
+            $table->integer('priority')->nullable()->comment('Ưu tiên.');
+            $table->integer('sort_order')->nullable()->comment('Thứ tự sắp xếp.');
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
