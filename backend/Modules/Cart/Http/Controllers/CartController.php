@@ -2,6 +2,7 @@
 
 namespace Modules\Cart\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -45,10 +46,10 @@ class CartController extends Controller
      * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
-        ProductRepositoryInterface  $productRepository,
-        CartItemRepositoryInterface $cartItemRepository,
-        CartRepositoryInterface     $cartRepository,
-        SourceRepositoryInterface   $sourceRepository,
+        ProductRepositoryInterface       $productRepository,
+        CartItemRepositoryInterface      $cartItemRepository,
+        CartRepositoryInterface          $cartRepository,
+        SourceRepositoryInterface        $sourceRepository,
         CartPriceRuleRepositoryInterface $cartPriceRule
     )
     {
@@ -73,7 +74,7 @@ class CartController extends Controller
                 $cart = Session::get('cart', []);
                 foreach ($cart as $key => $item) {
                     $id_product = (int)$item['product_id'];
-                    $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
+                    $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image', 'weight']);
                 }
             }
 
@@ -249,26 +250,39 @@ class CartController extends Controller
     public function getTotalCart()
     {
         $cartPriceRules = $this->cartPriceRule->getAll();
-        foreach ($cartPriceRules as $rule) {
-           $dataRule = $rule->getAttributes();
-           $condition = $rule->load('condition');
-        }
+
         $cart = $this->getCartSession();
         $subtotal = 0;
-        $total = 0;
+        $weight = 0;
+        $quantity = 0;
         foreach ($cart as $item) {
             $product = $this->getProduct($item['product_id'], ['id', 'price']);
             $subtotal += $product->price * $item['quantity'];
+            $weight += $product->weight * $item['quantity'];
+            $quantity += $item['quantity'];
         }
+
+        $coupon = [];
+        foreach ($cartPriceRules as $rule) {
+            $dataRule = $rule->getAttributes();
+            $check = $this->checkRule($dataRule);
+            if ($check['check'] && $dataRule['coupon_type'] == 2) {
+                if($this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
+                    $coupon[] = $dataRule['coupon_value'];
+
+                }
+            }
+        }
+
 
         $info_cart = [
             'subtotal' => $subtotal,
+            'coupon' => $coupon,
             'total' => $subtotal
         ];
 
         $results = [
             'info_cart' => $info_cart,
-            'coupon' => []
         ];
 
         return $results;
@@ -301,5 +315,70 @@ class CartController extends Controller
     public function getProduct($product_id, $columns = ['*'])
     {
         return $this->productRepository->find($product_id, $columns);
+    }
+
+    public function checkRule($dataRule)
+    {
+        $check = true;
+        $message = '';
+        $groupCustomerIds = json_decode($dataRule['group_customer_ids'], true);
+        if ($dataRule['is_active'] !== 1) {
+            $check = false;
+            $message = __('Mã giảm giá không tồn tại');
+        } elseif (!Carbon::now()->between($dataRule['start_time'], $dataRule['end_time'])) {
+            $check = false;
+            $message = __('Mã giảm giá đã hết hạn');
+        } elseif ($dataRule['usage_limit'] <= $dataRule['used']) {
+            $check = false;
+            $message = __('Mã giảm giá hết lượt sử dụng');
+        }
+        if (auth('customer')->check()) {
+            $customer = auth('customer')->user();
+            if (!in_array($customer->group_customer_id, $groupCustomerIds)) {
+                $check = false;
+                $message = __('Mã giảm giá không áp dụng cho nhóm khách hàng của bạn');
+            }
+        } else {
+            if (!in_array(1, $groupCustomerIds)) {
+                $check = false;
+                $message = __('Mã giảm giá không áp dụng cho nhóm khách hàng của bạn');
+            }
+        }
+        return [
+            'check' => $check,
+            'message' => $message
+        ];
+    }
+
+    public function checkCondition($dataRule, $subTotal, $totalWeight, $quantity)
+    {
+        switch ($dataRule['condition_apply']) {
+            case 'subtotal':
+                $condition = $subTotal;
+                break;
+            case 'total_weight':
+                $condition = $totalWeight;
+                break;
+            case 'total_qty':
+                $condition = $quantity;
+                break;
+            default:
+                return false;
+        }
+
+        switch ($dataRule['operator']) {
+            case 'greater_than':
+                return $condition > $dataRule['condition_value'];
+            case 'greater_than_or_equal':
+                return $condition >= $dataRule['condition_value'];
+            case 'equal':
+                return $condition == $dataRule['condition_value'];
+            case 'less_than':
+                return $condition < $dataRule['condition_value'];
+            case 'less_than_or_equal':
+                return $condition <= $dataRule['condition_value'];
+            default:
+                return false;
+        }
     }
 }
