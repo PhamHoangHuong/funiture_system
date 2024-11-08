@@ -9,10 +9,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
-import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
+import { Product, AdvancedPrice, Variant, ProductAttribute } from '../../../core/hooks/dataTypes';
 import { generateSlug, generateVariantName } from '../../../core/hooks/format';
-import axios from 'axios';
 import { SelectChangeEvent } from '@mui/material';
+import { createProductFormData } from '../../../core/hooks/formDataUtils';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -28,6 +28,9 @@ const MenuProps = {
 type ProductWithArrays = Product & {
     sources: any[];
     attributes: any[];
+    category_ids: number[];
+    advanced_prices: AdvancedPrice[];
+    variants: Variant[];
 };
 
 const ProductCreate: React.FC = () => {
@@ -38,12 +41,12 @@ const ProductCreate: React.FC = () => {
     const [selectedAttributes, setSelectedAttributes] = React.useState<number[]>([]);
     const [selectedAttributeValues, setSelectedAttributeValues] = React.useState<Record<number, number[]>>({});
     const [product, setProduct] = React.useState<ProductWithArrays>({
-        id: 0, name: "", slug: "", description: "", content: "", image: "",
+        id: 0, name: "", slug: "", description: "", content: "", image: null,
         status: 1, weight: 0, price: 0, start_new_time: null,
         end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
-        category_id: categories.length > 0 ? categories[0].id : null,
-        sources: [], attributes: [], advanced_prices: []
+        category_ids: categories.length > 0 ? [categories[0].id] : [],
+        sources: [], attributes: [], advanced_prices: [], variants: []
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -108,37 +111,44 @@ const ProductCreate: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const mappedAttributes: ProductAttribute[] = selectedAttributes.flatMap(attributeId => {
+            const valueIds = selectedAttributeValues[attributeId] || [];
+            return valueIds.map(valueId => ({
+                attribute_id: attributeId,
+                value_id: valueId
+            }));
+        });
+
+        const validAttributes = mappedAttributes.filter(attr => attr.value_id !== undefined);
+
+        const generatedVariants = generateVariants();
+
+        const updatedProduct = {
+            ...product,
+            attributes: validAttributes,
+            category_ids: Array.isArray(product.category_ids) ? product.category_ids : [product.category_ids],
+            sources: product.sources.map(source => ({
+                source_id: source.source_id,
+                quantity: source.quantity
+            })),
+            variants: generatedVariants.map((variant, index) => ({
+                ...variant,
+                attributes: variant.attributes.map(attr => ({
+                    attribute_id: attr.attribute_id,
+                    value_id: attr.value_id
+                }))
+            }))
+        };
+
+        console.log('Updated Product Data:', updatedProduct);
+
         try {
-            const formData = new FormData();
-            Object.entries(product).forEach(([key, value]) => {
-                if (key === 'image' && value instanceof File) {
-                    formData.append(key, value);
-                } else if (Array.isArray(value)) {
-                    formData.append(key, JSON.stringify(value));
-                } else if (value !== null) {
-                    formData.append(key, value.toString());
-                }
-            });
-
-            if (product.weight) {
-                formData.set('weight', Number(product.weight).toString());
-            }
-
-
-            console.log('Product created successfully');
+            const formData = createProductFormData(updatedProduct as unknown as Product);
+            const newProduct = await createProduct(formData);
+            console.log('Product created successfully:', newProduct);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                console.error('Error creating product:', error.response.data);
-                if (error.response.status === 422) {
-                    const validationErrors = error.response.data.errors;
-                    Object.entries(validationErrors).forEach(([field, messages]) => {
-                        const messageArray = messages as string[];
-                        console.error(`${field}: ${messageArray.join(', ')}`);
-                    });
-                }
-            } else {
-                console.error('Error creating product:', error);
-            }
+            console.error('Error creating product:', error);
         }
     };
 
@@ -173,11 +183,17 @@ const ProductCreate: React.FC = () => {
 
             const sku = generateSlug(variantName.join(' '));
 
-            return { variantName, sku, combination };
+            return {
+                variantName, sku, combination, attributes: combination.map(valueId => ({
+                    attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
+                    value_id: valueId
+                }))
+            };
         });
     };
 
     const variants = generateVariants();
+
 
     const handleVariantChange = (index: number, field: 'price' | 'weight' | 'status' | 'variantName' | 'sku', value: number | string) => {
         setVariantDetails(prev => ({
@@ -228,7 +244,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Tên sản phẩm"
+                                                    label="Tên sn phẩm"
                                                     value={product.name}
                                                     onChange={(e) => handleProductChange('name', e.target.value)}
                                                     required
@@ -286,9 +302,9 @@ const ProductCreate: React.FC = () => {
                                                 <FormControl fullWidth required>
                                                     <InputLabel>Danh mục</InputLabel>
                                                     <Select
-                                                        value={product.category_id}
+                                                        value={product.category_ids}
                                                         label="Danh mục"
-                                                        onChange={(e) => handleProductChange('category_id', e.target.value)}
+                                                        onChange={(e) => handleProductChange('category_ids', e.target.value)}
                                                     >
                                                         {categories.map((category) => (
                                                             <MenuItem key={category.id} value={category.id}>

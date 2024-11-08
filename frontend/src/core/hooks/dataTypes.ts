@@ -48,7 +48,7 @@ export interface Product {
     slug: string | null
     description: string | null
     content: string | null
-    image: string
+    image: File | null
     status: number
     weight: number | null
     price: number
@@ -60,10 +60,15 @@ export interface Product {
     seo_title: string | null
     seo_description: string | null
     video_link: string | null
-    category_id: number | null
+    category_ids: number[]
     sources: SourceProduct[];
     attributes: ProductAttribute[];
     advanced_prices: AdvancedPrice[];
+    variants: Variant[];
+}
+
+export interface Variant extends Omit<Product, 'variants' | 'sources' | 'advanced_prices'> {
+    attributes: ProductAttribute[];
 }
 
 // cart 

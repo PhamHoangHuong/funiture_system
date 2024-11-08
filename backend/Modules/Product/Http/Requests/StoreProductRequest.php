@@ -3,6 +3,7 @@
 namespace Modules\Product\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -13,27 +14,42 @@ class StoreProductRequest extends FormRequest
 
     public function rules()
     {
+        $productId = $this->route('product');
         return [
-            'name' => 'required|string|max:255',
-            'slug' => 'required|unique:products,slug',
+            'name' => 'sometimes|required|string|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('products')->ignore($productId),
+            ],
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|image',
             'status' => 'boolean',
             'weight' => 'nullable|numeric',
-            'price' => 'required|numeric|min:0',
+            'price' => 'sometimes|required|numeric|min:0',
             'start_new_time' => 'nullable|date',
             'end_new_time' => 'nullable|date|after:start_new_time',
-            'parent_id' => 'nullable|exists:products,id',
-            'sku' => 'nullable|string|max:255|unique:products,sku',
+            'parent_id' => [
+                'nullable',
+                'exists:products,id',
+                Rule::notIn([$productId]),
+            ],
+            'sku' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('products')->ignore($productId),
+            ],
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
             'video_link' => 'nullable|string|url',
             'category_ids' => 'required|array',
             'category_ids.*' => 'exists:categories,id',
             'attributes' => 'nullable|array',
-            'attributes.*.attribute_id' => 'nullable|exists:attributes,id',
-            'attributes.*.attribute_value_id' => 'nullable|exists:attribute_values,id',
+            'attributes.*.attribute_id' => 'required|exists:attributes,id',
+            'attributes.*.attribute_value_id' => 'required|exists:attribute_values,id',
             'sources' => 'nullable|array',
             'sources.*.source_id' => 'required|exists:sources,id',
             'sources.*.quantity' => 'required|integer|min:0',

@@ -18,8 +18,8 @@ export const ProductService = {
     },
 
     // Tạo sản phẩm mới
-    create: async (productData: Partial<Product>): Promise<Product> => {
-        const response = await axios.post<SuccessResponse<Product>>(API_URL, productData);
+    create: async (formData: FormData): Promise<Product> => {
+        const response = await axios.post<SuccessResponse<Product>>(API_URL, formData);
         return response.data.data;
     },
 
