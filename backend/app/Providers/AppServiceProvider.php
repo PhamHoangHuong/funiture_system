@@ -37,6 +37,8 @@ use Modules\Source\Repositories\SourceRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 use Modules\Topic\Repositories\TopicRepository;
 use Modules\Topic\Repositories\TopicRepositoryInterface;
+use Modules\Wishlist\Repositories\WishlistRepository;
+use Modules\Wishlist\Repositories\WishlistRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -148,6 +150,11 @@ class AppServiceProvider extends ServiceProvider
             ReviewRepository::class
         );
 
+        //wishlist
+        $this->app->singleton(
+            WishlistRepositoryInterface::class,
+            WishlistRepository::class
+        );
     }
 
     /**
