@@ -15,7 +15,7 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
     }
 
     public function getCartByUserId(){
-        $cart = $this->model->select('user_id', 'id')->where('user_id', Auth::guard('customer')->id())->with('items', function ($query){
+        $cart = $this->model->select('customer_id', 'id')->where('customer_id', Auth::guard('customer')->id())->with('items', function ($query){
             $query->select('cart_id', 'product_id', 'quantity');
         })->first();
         $cart->items->map(function($item){
@@ -27,7 +27,7 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
 
     public function addToCart($product_id, $quantity){
         $cart = $this->model->firstOrCreate([
-            'user_id' => auth('customer')->id(),
+            'customer_id' => auth('customer')->id(),
         ]);
 
         $cartItem = $cart->items()->where('product_id', $product_id)->first();

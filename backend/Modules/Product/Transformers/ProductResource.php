@@ -3,9 +3,10 @@
 namespace Modules\Product\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Attributes\Transformers\AttributeValueResource;
 use Modules\AdvancedPrice\Transformers\AdvancedPriceResource;
-// use Modules\Source\Transformers\SourceProductResource;
+use Modules\Category\Transformers\CategoryResource;
+use Modules\Source\Transformers\SourceProductResource;
+
 class ProductResource extends JsonResource
 {
     public function toArray($request)
@@ -28,11 +29,8 @@ class ProductResource extends JsonResource
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
-            // Quan hệ với sản phẩm chính
-            'parent' => new ProductResource($this->whenLoaded('parent')), //trả về sản phẩm chính nếu có
-            // Quan hệ với sản phẩm phụ (biến thể)
-            'variants' => ProductResource::collection($this->whenLoaded('variants')), //trả về danh sách sản phẩm phụ nếu có
-            // Attributes
+            'parent' => new ProductResource($this->whenLoaded('parent')),
+            'variants' => ProductResource::collection($this->whenLoaded('variants')),
             'attributes' => $this->whenLoaded('productAttributes', function () {
                 return $this->productAttributes->map(function ($productAttribute) {
                     return [
@@ -44,10 +42,9 @@ class ProductResource extends JsonResource
                     ];
                 });
             }),
-            // Advanced Prices
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
-            // SourceProduct
-            // 'source_products' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'sourceProducts' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
         ];
     }
 }

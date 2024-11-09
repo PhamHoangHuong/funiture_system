@@ -14,19 +14,34 @@ class StoreProductRequest extends FormRequest
 
     public function rules()
     {
+        $productId = $this->route('product');
         return [
-            'name' => 'required|string|max:255',
-            'slug' => 'required|unique:products,slug',
+            'name' => 'sometimes|required|string|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('products')->ignore($productId),
+            ],
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|image',
             'status' => 'boolean',
             'weight' => 'nullable|numeric',
-            'price' => 'required|numeric|min:0',
+            'price' => 'sometimes|required|numeric|min:0',
             'start_new_time' => 'nullable|date',
             'end_new_time' => 'nullable|date|after:start_new_time',
-            'parent_id' => 'nullable|exists:products,id',
-            'sku' => 'nullable|string|max:255|unique:products,sku',
+            'parent_id' => [
+                'nullable',
+                'exists:products,id',
+                Rule::notIn([$productId]),
+            ],
+            'sku' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('products')->ignore($productId),
+            ],
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
             'video_link' => 'nullable|string|url',

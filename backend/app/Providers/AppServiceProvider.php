@@ -27,6 +27,8 @@ use Modules\Post\Repositories\PostRepository;
 use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Product\Repositories\ProductRepository;
+use Modules\Review\Repositories\ReviewRepository;
+use Modules\Review\Repositories\ReviewRepositoryInterface;
 use Modules\Slider\Repositories\SliderImageRepository;
 use Modules\Slider\Repositories\SliderImageRepositoryInterface;
 use Modules\Slider\Repositories\SliderRepository;
@@ -35,6 +37,8 @@ use Modules\Source\Repositories\SourceRepository;
 use Modules\Source\Repositories\SourceRepositoryInterface;
 use Modules\Topic\Repositories\TopicRepository;
 use Modules\Topic\Repositories\TopicRepositoryInterface;
+use Modules\Wishlist\Repositories\WishlistRepository;
+use Modules\Wishlist\Repositories\WishlistRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -138,6 +142,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             ContactRepositoryInterface::class,
             ContactRepository::class
+        );
+
+        //Review
+        $this->app->singleton(
+            ReviewRepositoryInterface::class,
+            ReviewRepository::class
+        );
+
+        //wishlist
+        $this->app->singleton(
+            WishlistRepositoryInterface::class,
+            WishlistRepository::class
         );
     }
 

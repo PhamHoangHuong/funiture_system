@@ -14,6 +14,6 @@ interface ProductRepositoryInterface extends RepositoryInterface
     public function createProduct(array $data);
     public function updateProduct($id, array $data);
     public function deleteProduct($id);
-    public function createVariants($product, array $attributes);
     public function prepareProductData(Request $request, $id = null);
+    public function updateProductSources($product, array $sources);
 }

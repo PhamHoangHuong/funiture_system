@@ -14,5 +14,8 @@
     "Slider": true,
     "Post": true,
     "CatalogPriceRule": true,
-    "Contact": true
+    "Contact": true,
+    "Subscribe": true,
+    "Review": true,
+    "Wishlist": true
 }
