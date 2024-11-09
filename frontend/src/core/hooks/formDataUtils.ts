@@ -1,4 +1,4 @@
-import { Product } from './dataTypes';
+import { Product, Variant } from './dataTypes';
 
 export const createProductFormData = (product: Product): FormData => {
     const formData = new FormData();
@@ -27,13 +27,13 @@ export const createProductFormData = (product: Product): FormData => {
     });
 
     // Append variants as individual form entries
-    (product.variants || []).forEach((variant, index) => {
+    (product.variants || []).forEach((variant: Variant, index) => {
         formData.append(`variants[${index}][name]`, variant.name || '');
         formData.append(`variants[${index}][slug]`, variant.slug || '');
         formData.append(`variants[${index}][price]`, (variant.price ?? 0).toString());
         formData.append(`variants[${index}][sku]`, variant.sku || '');
         formData.append(`variants[${index}][weight]`, (variant.weight ?? product.weight ?? 0).toString());
-        formData.append(`variants[${index}][status]`, (variant.status ?? product.status ?? 0).toString());
+        formData.append(`variants[${index}][status]`, (variant.status ? '1' : '0'));
         formData.append(`variants[${index}][description]`, variant.description || '');
         formData.append(`variants[${index}][content]`, variant.content || '');
         formData.append(`variants[${index}][seo_title]`, variant.seo_title || '');

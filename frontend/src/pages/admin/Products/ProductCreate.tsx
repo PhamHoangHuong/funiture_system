@@ -50,7 +50,7 @@ const ProductCreate: React.FC = () => {
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number }>>({});
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string }>>({});
     const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
 
     React.useEffect(() => {
@@ -132,13 +132,7 @@ const ProductCreate: React.FC = () => {
                 source_id: source.source_id,
                 quantity: source.quantity
             })),
-            variants: generatedVariants.map((variant, index) => ({
-                ...variant,
-                attributes: variant.attributes.map(attr => ({
-                    attribute_id: attr.attribute_id,
-                    value_id: attr.value_id
-                }))
-            }))
+            variants: generatedVariants
         };
 
         console.log('Updated Product Data:', updatedProduct);
@@ -172,7 +166,7 @@ const ProductCreate: React.FC = () => {
             return acc.flatMap(existingCombination =>
                 attributeValuesForAttribute.map(valueId => [...existingCombination, valueId])
             );
-        }, [] as number[][]).map((combination) => {
+        }, [] as number[][]).map((combination, index) => {
             const variantName = generateVariantName(
                 product.name,
                 combination.map(valueId => {
@@ -184,7 +178,20 @@ const ProductCreate: React.FC = () => {
             const sku = generateSlug(variantName.join(' '));
 
             return {
-                variantName, sku, combination, attributes: combination.map(valueId => ({
+                name: variantName.join(' '),
+                slug: sku,
+                description: product.description,
+                content: product.content,
+                status: variantDetails[index]?.status === 1,
+                weight: variantDetails[index]?.weight || product.weight,
+                start_new_time: product.start_new_time,
+                end_new_time: product.end_new_time,
+                seo_title: product.seo_title,
+                seo_description: product.seo_description,
+                video_link: product.video_link,
+                price: variantDetails[index]?.price || product.price,
+                sku: variantDetails[index]?.sku || `SPC001-V${index + 1}`,
+                attributes: combination.map(valueId => ({
                     attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
                     value_id: valueId
                 }))
@@ -521,7 +528,7 @@ const ProductCreate: React.FC = () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         <TextField
-                                                            value={variant.variantName}
+                                                            value={variant.name}
                                                             onChange={(e) => handleVariantChange(index, 'variantName', e.target.value)}
                                                         />
                                                     </TableCell>
@@ -534,27 +541,27 @@ const ProductCreate: React.FC = () => {
                                                     <TableCell sx={{ width: '100px' }}>
                                                         <TextField
                                                             type="number"
-                                                            value={variantDetails[index]?.price || product.price}
+                                                            value={variant.price}
                                                             onChange={(e) => handleVariantChange(index, 'price', Number(e.target.value))}
                                                         />
                                                     </TableCell>
                                                     <TableCell sx={{ width: '100px' }}>
                                                         <TextField
                                                             type="number"
-                                                            value={variantDetails[index]?.weight || product.weight}
+                                                            value={variant.weight}
                                                             onChange={(e) => handleVariantChange(index, 'weight', Number(e.target.value))}
                                                         />
                                                     </TableCell>
                                                     <TableCell>
                                                         <Switch
-                                                            checked={variantDetails[index]?.status === 1}
+                                                            checked={variant.status}
                                                             onChange={(e) => handleVariantChange(index, 'status', e.target.checked ? 1 : 0)}
                                                             color="primary"
                                                         />
                                                     </TableCell>
                                                     <TableCell>
-                                                        {variant.combination.map(valueId => {
-                                                            const value = attributeValues.find(v => v.id === valueId);
+                                                        {variant.attributes.map(attr => {
+                                                            const value = attributeValues.find(v => v.id === attr.attribute_value_id);
                                                             return value ? value.value : '';
                                                         }).join(', ')}
                                                     </TableCell>
