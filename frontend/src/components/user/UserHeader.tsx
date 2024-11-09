@@ -21,13 +21,13 @@ export default function UserHeader() {
                                         src="/assets/user/images/logo-white.png" 
                                         className="img-fluid" 
                                         alt="logo" 
-                                        style={{ height: '70px' }}
+                                        style={{ height: '90px' }}
                                     />
                                 </Link>
                             </div>
                         </div>
-                        <div className="col-xl-6 d-none d-xl-block">
-                            <nav className="header-navigation text-center text-xl-start vr5-header-navigation" style={{ marginTop: '15px' }}>
+                        <div className="col-xl-6 d-none d-xl-block nn">
+                            <nav className="header-navigation vr5-header-navigation nn">
                                 <ul>
                                     <li><Link to="/">Home</Link></li>
                                     <li><Link to="/products">Products</Link></li>

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import CartBreadcrumb from './CartBreadcrumb';
 
 const CartContent: React.FC = () => {
 
 
     return (
         <>
+            <CartBreadcrumb />
             <div className="ptb-120 bg-white">
                 <div className="container">
                     <div className="cart-table-wrapper table-responsive">
@@ -30,7 +32,7 @@ const CartContent: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <span className="fw-medium text-main-color">$550.00</span>
+                                        <span className="fw-medium text-main-color">350.000 VND</span>
                                     </td>
                                     <td>
                                         <div className="quantity d-flex align-items-center">
@@ -42,7 +44,7 @@ const CartContent: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <span className="text-main-color fw-medium d-block text-end">$550</span>
+                                        <span className="text-main-color fw-medium d-block text-end">350.000 VND</span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -59,7 +61,7 @@ const CartContent: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <span className="fw-medium text-main-color">$100.00</span>
+                                        <span className="fw-medium text-main-color">550.000 VND</span>
                                     </td>
                                     <td>
                                         <div className="quantity d-flex align-items-center">
@@ -71,7 +73,7 @@ const CartContent: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <span className="text-main-color fw-medium d-block text-end">$100</span>
+                                        <span className="text-main-color fw-medium d-block text-end">550.000 VND</span>
                                     </td>
                                 </tr>
                                 <tr>
