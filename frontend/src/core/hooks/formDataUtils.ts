@@ -17,23 +17,21 @@ export const createProductFormData = (product: Product): FormData => {
     formData.append('seo_description', product.seo_description || '');
     formData.append('video_link', product.video_link || '');
 
-    // Append category_ids as individual form entries
     (product.category_ids || []).forEach(id => formData.append('category_ids[]', id.toString()));
 
-    // Append attributes as individual form entries
     (product.attributes || []).forEach((attr, index) => {
         formData.append(`attributes[${index}][attribute_id]`, attr.attribute_id.toString());
         formData.append(`attributes[${index}][attribute_value_id]`, attr.value_id.toString());
     });
 
-    // Append variants as individual form entries
     (product.variants || []).forEach((variant: Variant, index) => {
+        console.log(`Appending variant ${index}:`, variant);
         formData.append(`variants[${index}][name]`, variant.name || '');
         formData.append(`variants[${index}][slug]`, variant.slug || '');
         formData.append(`variants[${index}][price]`, (variant.price ?? 0).toString());
         formData.append(`variants[${index}][sku]`, variant.sku || '');
         formData.append(`variants[${index}][weight]`, (variant.weight ?? product.weight ?? 0).toString());
-        formData.append(`variants[${index}][status]`, (variant.status ? '1' : '0'));
+        formData.append(`variants[${index}][status]`, variant.status ? '1' : '0');
         formData.append(`variants[${index}][description]`, variant.description || '');
         formData.append(`variants[${index}][content]`, variant.content || '');
         formData.append(`variants[${index}][seo_title]`, variant.seo_title || '');
@@ -44,15 +42,17 @@ export const createProductFormData = (product: Product): FormData => {
             formData.append(`variants[${index}][attributes][${attrIndex}][attribute_id]`, attr.attribute_id.toString());
             formData.append(`variants[${index}][attributes][${attrIndex}][value_id]`, attr.value_id.toString());
         });
+
+        if (variant.image && typeof variant.image === 'object' && variant.image instanceof File) {
+            formData.append(`variants[${index}][image]`, variant.image);
+        }
     });
 
-    // Append sources as individual form entries
     (product.sources || []).forEach((source, index) => {
         formData.append(`sources[${index}][source_id]`, source.source_id.toString());
         formData.append(`sources[${index}][quantity]`, source.quantity.toString());
     });
 
-    // Append advanced_prices as individual form entries
     (product.advanced_prices || []).forEach((price, index) => {
         formData.append(`advanced_prices[${index}][type]`, price.type || '');
         formData.append(`advanced_prices[${index}][start_time]`, price.start_time || '');
@@ -64,5 +64,13 @@ export const createProductFormData = (product: Product): FormData => {
         formData.append('image', product.image);
     }
 
+    logFormData(formData);
+
     return formData;
 };
+
+function logFormData(formData: FormData) {
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+}
