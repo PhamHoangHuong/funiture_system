@@ -25,6 +25,7 @@ import { AttributeProvider } from "../core/contexts/AttributeContext"
 import { AdvancedPriceProvider } from "../core/contexts/AdvancedPriceContext"
 import { SourceProvider } from "../core/contexts/SourceContext"
 import AttributesList from "../pages/admin/Attributes/AttributesList"
+import AttributeValuesList from "../pages/admin/Attributes/AttributeValuesList"
 const AdminRoutes: React.FC = () => {
     return (
         <ProductProvider>
@@ -46,6 +47,7 @@ const AdminRoutes: React.FC = () => {
                                     </Route>
                                     <Route path="attributes">
                                         <Route index element={<AttributesList />} />
+                                        <Route path="values" element={<AttributeValuesList />} />
                                     </Route>
                                     <Route path="inventory">
                                         <Route path="warehouse" element={<Warehouse />} />

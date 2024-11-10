@@ -15,11 +15,13 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import 
+import { AttributeService, useAttribute } from '../../../core/hooks/contexts';
+import { Attribute } from '../../../core/hooks/dataTypes';
+import { formatDate } from '../../../core/hooks/format';
 
-const AttributeList: React.FC = () => {
+const AttributesList: React.FC = () => {
   const { attributes, fetchAttributes } = useAttribute();
-  const [filteredCategories, setFilteredCategories] = useState<Attribute[]>([]);
+  const [filteredAttributes, setFilteredAttributes] = useState<Attribute[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedAttributeId, setSelectedAttributeId] = useState<number | null>(null);
@@ -27,33 +29,34 @@ const AttributeList: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    const filtered = categories.filter(Attribute =>
+    const filtered = attributes.filter(attribute =>
       Object.entries(filters).every(([key, value]) =>
-        Attribute[key as keyof Attribute]?.toString().toLowerCase().includes(value.toLowerCase())
+        attribute[key as keyof Attribute]?.toString().toLowerCase().includes(value.toLowerCase())
       )
     );
-    setFilteredCategories(filtered);
-  }, [categories, filters]);
+    setFilteredAttributes(filtered);
+  }, [attributes, filters]);
 
   const handleSearch = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  // const handleDelete = async (id: number) => {
-  //   if (window.confirm('Are you sure you want to delete this Attribute?')) {
-  //     try {
-  //       await AttributeService.delete(id);
-  //       fetchCategories();
-  //     } catch (error) {
-  //       console.error('Error deleting Attribute:', error);
-  //     }
-  //   }
-  // };
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this attribute?')) {
+      try {
+        await AttributeService.deleteAttribute(id);
+        console.log('Attribute deleted successfully');
+        fetchAttributes();
+      } catch (error) {
+        console.error('Error deleting attribute:', error);
+      }
+    }
+  };
 
-  // const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, AttributeId: number) => {
-  //   setAnchorEl(event.currentTarget);
-  //   setSelectedAttributeId(AttributeId);
-  // };
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, attributeId: number) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedAttributeId(attributeId);
+  };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
@@ -81,11 +84,8 @@ const AttributeList: React.FC = () => {
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Tên danh mục', width: 200 },
-    { field: 'slug', headerName: 'Slug', width: 150 },
-    { field: 'parent_id', headerName: 'Danh mục cha', width: 150 },
     { field: 'description', headerName: 'Mô tả', width: 250 },
-    { field: 'status', headerName: 'Trạng thái', width: 120 },
-    { field: 'created_at', headerName: 'Ngày tạo', width: 180 },
+    { field: 'created_at', headerName: 'Ngày tạo', width: 180, renderCell: (params) => formatDate(params.row.created_at) },
     {
       field: 'actions',
       headerName: 'Thao tác',
@@ -103,7 +103,7 @@ const AttributeList: React.FC = () => {
             open={Boolean(anchorEl) && selectedAttributeId === params.row.id}
             onClose={handleMenuClose}
           >
-            <MenuItem component={Link} to={`/admin/categories/edit/${params.row.id}`}>
+            <MenuItem component={Link} to={`/admin/attributes/edit/${params.row.id}`}>
               <EditIcon fontSize="small" /> Sửa
             </MenuItem>
             <MenuItem onClick={() => handleDelete(params.row.id)}>
@@ -117,13 +117,13 @@ const AttributeList: React.FC = () => {
 
   // Calculate the range of items being displayed
   const start = (page - 1) * rowsPerPage + 1;
-  const end = Math.min(page * rowsPerPage, filteredCategories.length);
-  const total = filteredCategories.length;
+  const end = Math.min(page * rowsPerPage, filteredAttributes.length);
+  const total = filteredAttributes.length;
 
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Quản Lý Danh Mục
+        Quản Lý Thuộc Tính
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <TextField
@@ -152,18 +152,18 @@ const AttributeList: React.FC = () => {
           </FormControl>
           <Button
             component={Link}
-            to="/admin/categories/create"
+            to="/admin/attributes/create"
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
           >
-            Thêm Sản Phẩm
+            Thêm Thuộc Tính
           </Button>
         </Box>
       </Box>
       <Box sx={{ height: 600, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <DataGrid
-          rows={filteredCategories.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+          rows={filteredAttributes.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
           columns={columns}
           pageSize={rowsPerPage}
           pagination={false} // Ensure pagination is set to false
@@ -199,4 +199,4 @@ const AttributeList: React.FC = () => {
   );
 };
 
-export default AttributeList;
+export default AttributesList;
