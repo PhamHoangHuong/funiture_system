@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import UserLayout from "../layouts/user/UserLayout"
 import Home from "../pages/user/Home/Home"
 import UserProductLayout from "../pages/user/product/UserProductLayout"
-import UserCartLayout from "../pages/user/Cart/UserCartLayout"
 import CartContent from "../pages/user/Cart/CartContent"
 import Checkout from "../pages/user/Checkout/Checkout"
 import Payment from "../pages/user/Payment/Payment"
@@ -23,6 +22,7 @@ import { CartProvider } from "../core/contexts/CartContext"
 import { AuthProvider } from "../core/contexts/AuthContextUser"
 import { useAuth } from "../core/contexts/AuthContext"
 import { Snackbar, Alert } from "@mui/material";
+import Wishlist from "../pages/user/wishlist/Wishlist"
 
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
 
@@ -47,12 +47,12 @@ const UserRoutes: React.FC = () => {
                                 <Route path=":id" element={<BlogDetails />} />
                             </Route>
                             <Route path="contact" element={<Contact />} />
+                            <Route path="cart" element={<CartContent />} />
                             <Route path="signup" element={<Signup />} />
                             <Route path="login" element={<Login />} />
+                            <Route path="wishlist" element={<Wishlist />} />
                         </Route>
-                        <Route path="cart" element={<UserCartLayout />}>
-                            <Route index element={<CartContent />} />
-                        </Route>
+
                         <Route path="checkout" element={<PrivateRoute element={<Checkout />} />} />
                         <Route path="payment" element={<Payment />} />
                         <Route path="payment/success" element={<PaymentSuccess />} />
