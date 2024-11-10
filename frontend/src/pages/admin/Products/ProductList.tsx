@@ -12,6 +12,7 @@ import {
     Select,
     FormControl,
     Pagination,
+    Modal,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -19,6 +20,7 @@ import { useProductContext } from "../../../core/contexts/ProductContext";
 import { Product } from "../../../core/hooks/dataTypes";
 import { useTranslation } from "react-i18next";
 import { formatCurrency } from "../../../core/hooks/format";
+import ProductEdit from './ProductEdit';
 
 const ProductList: React.FC = () => {
     const { t } = useTranslation();
@@ -29,6 +31,7 @@ const ProductList: React.FC = () => {
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
         const filtered = productList.filter(product =>
@@ -72,6 +75,16 @@ const ProductList: React.FC = () => {
         setPage(1); // Reset to first page
     };
 
+    const handleEditClick = (productId: number) => {
+        setSelectedProductId(productId);
+        setEditModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setEditModalOpen(false);
+        fetchProducts(); // Refresh the product list after closing the modal
+    };
+
     const columns: GridColDef[] = [
         { field: 'id', headerName: t("product.id"), width: 70 },
         { field: 'name', headerName: t("product.name"), width: 200 },
@@ -85,6 +98,9 @@ const ProductList: React.FC = () => {
             sortable: false,
             renderCell: (params) => (
                 <>
+                    <IconButton onClick={() => handleEditClick(params.row.id)}>
+                        <EditIcon />
+                    </IconButton>
                     <IconButton onClick={(event) => handleMenuOpen(event, params.row.id)}>
                         <MoreVertIcon />
                     </IconButton>
@@ -93,9 +109,6 @@ const ProductList: React.FC = () => {
                         open={Boolean(anchorEl) && selectedProductId === params.row.id}
                         onClose={handleMenuClose}
                     >
-                        <MenuItem component={Link} to={`/admin/products/edit/${params.row.id}`}>
-                            <EditIcon fontSize="small" /> {t("product.edit")}
-                        </MenuItem>
                         <MenuItem onClick={() => handleDelete(params.row.id)}>
                             <DeleteIcon fontSize="small" /> {t("product.delete")}
                         </MenuItem>
@@ -173,6 +186,19 @@ const ProductList: React.FC = () => {
                     </Box>
                 </Box>
             </Box>
+            <Modal
+                open={editModalOpen}
+                onClose={handleModalClose}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Box sx={{ width: '100%', maxWidth: 1440, maxHeight: '80vh', bgcolor: 'background.paper', boxShadow: 24, overflowY: 'auto' }}>
+                    <ProductEdit productId={selectedProductId!} onClose={handleModalClose} />
+                </Box>
+            </Modal>
         </Box>
     );
 };

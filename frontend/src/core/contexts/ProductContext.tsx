@@ -11,6 +11,7 @@ interface ProductContextType {
     fetchProducts: () => Promise<void>;
     fetchProductById: (id: number) => Promise<Product | undefined>;
     createProduct: (formData: FormData) => Promise<Product>;
+    updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
     variants: Variant[];
     updateVariant: (index: number, data: Partial<Variant>) => void;
 }
@@ -60,6 +61,16 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    const updateProduct = async (id: number, product: Partial<Product>) => {
+        try {
+            const updatedProduct = await ProductService.update(id, product);
+            setProducts(prevProducts => prevProducts.map(p => p.id === id ? updatedProduct : p));
+        } catch (err) {
+            console.error('Error updating product:', err);
+            throw err;
+        }
+    };
+
     const updateVariant = useCallback((index: number, data: Partial<Variant>) => {
         setVariants(prev => {
             const newVariants = [...prev];
@@ -73,7 +84,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, []);
 
     return (
-        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById, createProduct, variants, updateVariant }}>
+        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById, createProduct, updateProduct, variants, updateVariant }}>
             {children}
         </ProductContext.Provider>
     );

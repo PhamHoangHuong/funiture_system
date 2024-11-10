@@ -25,7 +25,7 @@ export const ProductService = {
 
     // Cập nhật sản phẩm
     update: async (id: number, product: Partial<Product>) => {
-        const response = await axios.put<{ data: Product }>(`${API_URL}/${id}`, product);
+        const response = await axios.put<SuccessResponse<Product>>(`${API_URL}/${id}`, product);
         return response.data.data;
     },
 
