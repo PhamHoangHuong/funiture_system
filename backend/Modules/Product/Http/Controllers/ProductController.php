@@ -15,6 +15,7 @@ use Modules\Product\Repositories\ProductRepositoryInterface;
 use Modules\Source\Repositories\SourceProductRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Http\UploadedFile;
 
 class ProductController extends Controller
 {
@@ -55,6 +56,7 @@ class ProductController extends Controller
                 $variantData['name'] = $variant['name'] ?? $product->name . ' ' . $variant['attribute_value_id'];
                 $variantData['slug'] = $variant['slug'] ?? Str::slug($variantData['name']);
                 $variantData['price'] = $variant['price'] ?? $product->price;
+                $variantData['weight'] = $variant['weight'] ?? $product->weight;
                 $variantData['sku'] = $variant['sku'] ?? $product->sku;
                 $variantData['attribute_id'] = $variant['attributes'][0]['attribute_id'] ?? null;
                 $variantData['attribute_value_id'] = $variant['attributes'][0]['attribute_value_id'] ?? null;
@@ -64,6 +66,12 @@ class ProductController extends Controller
                 $variantData['seo_description'] = $variant['seo_description'] ?? $product->seo_description;
                 $variantData['video_link'] = $variant['video_link'] ?? $product->video_link;
                 $variantData['categories'] = $product->categories->pluck('id');
+
+                if (isset($variant['image']) && $variant['image'] instanceof UploadedFile) {
+                    $variantData['image'] = $this->uploadImage($request, 'image', 'products');
+                } else {
+                    $variantData['image'] = null;
+                }
 
                 if (!empty($variantData['attribute_id']) && !empty($variantData['attribute_value_id'])) {
                     $variantProduct = $this->productRepository->createProduct($variantData);

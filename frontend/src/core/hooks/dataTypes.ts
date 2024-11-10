@@ -144,7 +144,7 @@ export interface AdvancedPriceContextType {
 
 export interface ProductAttribute {
     attribute_id: number;
-    value_id: number;
+    attribute_value_id: number;
 }
 
 export interface Source {

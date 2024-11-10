@@ -20,8 +20,10 @@ export const createProductFormData = (product: Product): FormData => {
     (product.category_ids || []).forEach(id => formData.append('category_ids[]', id.toString()));
 
     (product.attributes || []).forEach((attr, index) => {
-        formData.append(`attributes[${index}][attribute_id]`, attr.attribute_id.toString());
-        formData.append(`attributes[${index}][attribute_value_id]`, attr.value_id.toString());
+        if (attr.attribute_id && attr.attribute_value_id) {
+            formData.append(`attributes[${index}][attribute_id]`, attr.attribute_id.toString());
+            formData.append(`attributes[${index}][attribute_value_id]`, attr.attribute_value_id.toString());
+        }
     });
 
     (product.variants || []).forEach((variant: Variant, index) => {
@@ -37,11 +39,16 @@ export const createProductFormData = (product: Product): FormData => {
         formData.append(`variants[${index}][seo_title]`, variant.seo_title || '');
         formData.append(`variants[${index}][seo_description]`, variant.seo_description || '');
         formData.append(`variants[${index}][video_link]`, variant.video_link || '');
+        formData.append(`variants[${index}][start_new_time]`, variant.start_new_time || '');
+        formData.append(`variants[${index}][end_new_time]`, variant.end_new_time || '');
 
-        (variant.attributes || []).forEach((attr, attrIndex) => {
-            formData.append(`variants[${index}][attributes][${attrIndex}][attribute_id]`, attr.attribute_id.toString());
-            formData.append(`variants[${index}][attributes][${attrIndex}][value_id]`, attr.value_id.toString());
-        });
+        if (variant.attributes && variant.attributes.length > 0) {
+            const attr = variant.attributes[0];
+            if (attr.attribute_id && attr.attribute_value_id) {
+                formData.append(`variants[${index}][attributes][0][attribute_id]`, attr.attribute_id.toString());
+                formData.append(`variants[${index}][attributes][0][attribute_value_id]`, attr.attribute_value_id.toString());
+            }
+        }
 
         if (variant.image && typeof variant.image === 'object' && variant.image instanceof File) {
             formData.append(`variants[${index}][image]`, variant.image);
@@ -64,13 +71,5 @@ export const createProductFormData = (product: Product): FormData => {
         formData.append('image', product.image);
     }
 
-    logFormData(formData);
-
     return formData;
 };
-
-function logFormData(formData: FormData) {
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
-}

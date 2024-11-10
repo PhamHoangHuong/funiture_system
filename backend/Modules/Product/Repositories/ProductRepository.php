@@ -74,7 +74,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         $productData = $request->validated();
         if ($request->hasFile('image')) {
-            $productData['image'] = $this->uploadImage($request, 'image', 'assets/images/product');
+            $productData['image'] = $this->uploadImage($request, 'image', 'products');
         }
         $productData['slug'] = Str::slug($request->name);
 

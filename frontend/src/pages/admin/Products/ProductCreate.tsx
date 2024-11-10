@@ -51,14 +51,18 @@ const ProductCreate: React.FC = () => {
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string }>>({});
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string; image: File | null }>>({});
     const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
+    const [variants, setVariants] = React.useState<Variant[]>([]);
 
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
-        setVariantDetails(prev => ({ ...prev, variants: generateVariants() }));
     }, []);
+
+    React.useEffect(() => {
+        setVariants(generateVariants());
+    }, [selectedAttributes, selectedAttributeValues, product]);
 
     const handleAttributeChange = (event: SelectChangeEvent<number[]>) => {
         const value = event.target.value as number[];
@@ -118,14 +122,11 @@ const ProductCreate: React.FC = () => {
             const valueIds = selectedAttributeValues[attributeId] || [];
             return valueIds.map(valueId => ({
                 attribute_id: attributeId,
-                value_id: valueId
+                attribute_value_id: valueId
             }));
         });
 
-        const validAttributes = mappedAttributes.filter(attr => attr.value_id !== undefined);
-
-        const generatedVariants = generateVariants();
-        console.log('Generated Variants:', generatedVariants);
+        const validAttributes = mappedAttributes.filter(attr => attr.attribute_value_id !== undefined);
 
         const updatedProduct = {
             ...product,
@@ -135,7 +136,7 @@ const ProductCreate: React.FC = () => {
                 source_id: source.source_id,
                 quantity: source.quantity
             })),
-            variants: generatedVariants
+            variants: variants
         };
 
         console.log('Updated Product Data:', updatedProduct);
@@ -186,7 +187,7 @@ const ProductCreate: React.FC = () => {
                 slug: sku,
                 description: product.description,
                 content: product.content,
-                status: variantDetails[index]?.status === 1,
+                status: 1,
                 weight: variantDetails[index]?.weight || product.weight,
                 start_new_time: product.start_new_time,
                 end_new_time: product.end_new_time,
@@ -197,22 +198,25 @@ const ProductCreate: React.FC = () => {
                 sku: variantDetails[index]?.sku || `SPC001-V${index + 1}`,
                 attributes: combination.map(valueId => ({
                     attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
-                    value_id: valueId
-                }))
+                    attribute_value_id: valueId
+                })),
+                image: variantDetails[index]?.image || null,
+                id: 0,
+                parent_id: product.id,
+                stock_quantity: 0,
+                category_ids: product.category_ids
             };
         });
     };
 
-    const variants = generateVariants();
-
     const handleVariantChange = (index: number, field: keyof Variant, value: any) => {
-        setProduct((prev) => {
-            const updatedVariants = [...prev.variants];
+        setVariants((prevVariants) => {
+            const updatedVariants = [...prevVariants];
             updatedVariants[index] = {
                 ...updatedVariants[index],
                 [field]: value,
             };
-            return { ...prev, variants: updatedVariants };
+            return updatedVariants;
         });
     };
 
@@ -502,10 +506,10 @@ const ProductCreate: React.FC = () => {
                             <AccordionDetails>
                                 <VariantMapping
                                     variants={variants}
-                                    variantImages={variantImages}
+                                    variantImages={Object.values(variantImages) as string[]}
                                     attributeValues={attributeValues}
                                     handleVariantImageChange={handleVariantImageChange}
-                                    handleVariantChange={handleVariantChange}
+                                    onVariantChange={handleVariantChange}
                                 />
                             </AccordionDetails>
                         </Accordion>

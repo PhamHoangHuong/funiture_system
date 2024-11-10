@@ -1,17 +1,36 @@
-import React from 'react';
-import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Box, TextField, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material';
+import React, { useState } from 'react';
+import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Box, TextField, FormControl, InputLabel, Select, MenuItem, IconButton, Switch } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useProductContext } from '../../../core/contexts/ProductContext';
 
 interface VariantMappingProps {
     variants: any[];
     variantImages: string[];
     attributeValues: any[];
     handleVariantImageChange: (index: number, event: React.ChangeEvent<HTMLInputElement>) => void;
-    handleVariantChange: (index: number, field: string, value: any) => void;
+    onVariantChange: (index: number, field: string, value: any) => void;
 }
 
-const VariantMapping: React.FC<VariantMappingProps> = ({ variants, variantImages, attributeValues, handleVariantImageChange, handleVariantChange }) => {
+const VariantMapping: React.FC<VariantMappingProps> = ({ variants, variantImages, attributeValues, handleVariantImageChange, onVariantChange }) => {
+    const { updateVariant } = useProductContext();
+    const [variantState, setVariantState] = useState(variants);
+
+    const handleVariantChange = (index: number, field: keyof typeof variants[0], value: any) => {
+        setVariantState((prevVariants) => {
+            const updatedVariants = [...prevVariants];
+            updatedVariants[index] = {
+                ...updatedVariants[index],
+                [field]: value,
+            };
+            console.log(`Variant at index ${index} updated:`, updatedVariants[index]);
+
+            onVariantChange(index, field as string, value);
+
+            return updatedVariants;
+        });
+    };
+
     return (
         <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
@@ -24,7 +43,6 @@ const VariantMapping: React.FC<VariantMappingProps> = ({ variants, variantImages
                         <TableCell sx={{ width: '100px' }}>Cân nặng</TableCell>
                         <TableCell>Trạng thái</TableCell>
                         <TableCell>Thuộc tính</TableCell>
-                        <TableCell>Hành động</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -32,15 +50,30 @@ const VariantMapping: React.FC<VariantMappingProps> = ({ variants, variantImages
                         <TableRow key={index}>
                             <TableCell>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    {variantImages[index] ? (
-                                        <img src={variantImages[index]} alt="Variant Preview" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
-                                    ) : (
-                                        <label htmlFor={`variant-image-upload-${index}`}>
-                                            <Box sx={{ width: '50px', height: '50px', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                    <label htmlFor={`variant-image-upload-${index}`}>
+                                        <Box
+                                            sx={{
+                                                width: '50px',
+                                                height: '50px',
+                                                border: variantImages[index] ? 'none' : '1px dashed #ccc',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {variantImages[index] ? (
+                                                <img
+                                                    src={variantImages[index]}
+                                                    alt="Variant Preview"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                            ) : (
                                                 <AddIcon color="action" />
-                                            </Box>
-                                        </label>
-                                    )}
+                                            )}
+                                        </Box>
+                                    </label>
                                     <input
                                         accept="image/*"
                                         style={{ display: 'none' }}
@@ -78,28 +111,18 @@ const VariantMapping: React.FC<VariantMappingProps> = ({ variants, variantImages
                                 />
                             </TableCell>
                             <TableCell>
-                                <FormControl fullWidth>
-                                    <InputLabel>Trạng thái</InputLabel>
-                                    <Select
-                                        value={variant.status || 1}
-                                        onChange={(e) => handleVariantChange(index, 'status', e.target.value)}
-                                        label="Trạng thái"
-                                    >
-                                        <MenuItem value={1}>Hoạt động</MenuItem>
-                                        <MenuItem value={0}>Không hoạt động</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <Switch
+                                    checked={variant.status === 1}
+                                    onChange={(e) => handleVariantChange(index, 'status', e.target.checked ? 1 : 0)}
+                                    color="primary"
+                                    inputProps={{ 'aria-label': 'controlled' }}
+                                />
                             </TableCell>
                             <TableCell>
                                 {variant.attributes.map((attr: any) => {
                                     const value = attributeValues.find(v => v.id === attr.value_id);
                                     return value ? value.value : '';
                                 }).join(', ')}
-                            </TableCell>
-                            <TableCell>
-                                <IconButton>
-                                    <DeleteIcon />
-                                </IconButton>
                             </TableCell>
                         </TableRow>
                     ))}
