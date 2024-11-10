@@ -114,6 +114,11 @@ class ProductController extends Controller
         DB::beginTransaction();
         try {
             $productData = $request->validated();
+
+            if ($request->hasFile('image')) {
+                $productData['image'] = $this->updateImage($request, 'image', 'products', $productData['image'] ?? null);
+            }
+
             $product = $this->productRepository->updateProduct($id, $productData);
 
             $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
