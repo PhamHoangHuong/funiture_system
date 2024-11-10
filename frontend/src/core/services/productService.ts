@@ -33,7 +33,7 @@ export const ProductService = {
     delete: async (id: number) => {
         await axios.delete(`${API_URL}/${id}`);
     },
-
+    
 
     // Lưu nguồn và số lượng cho sản phẩm
     storeSourceAndQuantity: async (productId: number, sourceProducts: Partial<SourceProduct>[]): Promise<SourceProduct[]> => {

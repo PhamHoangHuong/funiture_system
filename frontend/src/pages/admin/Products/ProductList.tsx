@@ -24,7 +24,7 @@ import ProductEdit from './ProductEdit';
 
 const ProductList: React.FC = () => {
     const { t } = useTranslation();
-    const { products: productList, loading, error, fetchProducts } = useProductContext();
+    const { products: productList, loading, error, fetchProducts, deleteProduct } = useProductContext();
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [filters, setFilters] = useState<Record<string, string>>({});
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -49,7 +49,8 @@ const ProductList: React.FC = () => {
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                await fetchProducts(); // Assuming fetchProducts updates the product list
+                await deleteProduct(id);
+                fetchProducts();
             } catch (error) {
                 console.error('Error deleting product:', error);
             }
@@ -82,7 +83,7 @@ const ProductList: React.FC = () => {
 
     const handleModalClose = () => {
         setEditModalOpen(false);
-        fetchProducts(); // Refresh the product list after closing the modal
+        fetchProducts();
     };
 
     const columns: GridColDef[] = [
