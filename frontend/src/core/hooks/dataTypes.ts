@@ -189,4 +189,35 @@ export interface SourceContextType {
     deleteSource: (id: number) => Promise<void>;
 }
 
+export interface topics {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    parent_id: number | null;
+    image: string | null;
+    sort_order: number;
+    status: number;
+    seo_title: string | null;
+    seo_description: string | null;
+    created_at: string;
+    updated_at: string;
+}
+export interface Posts {
+    id: number;
+    topic_id: number;
+    user_id: number;
+    title: string;
+    slug: string;
+    type: string;
+    content: string | null;
+    description: string | null;
+    image: string | null;
+    seo_title: string | null;
+    seo_description: string | null;
+    status: number;
+    created_at: string;
+    updated_at: string;
+}
+
 
