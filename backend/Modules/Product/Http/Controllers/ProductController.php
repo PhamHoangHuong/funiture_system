@@ -101,7 +101,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $product = $this->productRepository->find($id, ['parent', 'variants', 'productAttributes', 'sourceProducts']);
+            $product = $this->productRepository->findProduct($id, ['parent', 'variants', 'productAttributes', 'sourceProducts']);
             return new ProductResource($product);
         } catch (\Exception $e) {
             return $this->handleException($e);

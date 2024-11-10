@@ -85,7 +85,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         return $productData;
     }
 
-    public function find($id, $relations = [])
+    public function findProduct($id, $relations = [])
     {
         return $this->model->with($relations)->findOrFail($id);
     }
