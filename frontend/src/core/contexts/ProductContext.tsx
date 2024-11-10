@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ProductService } from '../services/productService';
 import { Product } from '../hooks/dataTypes';
+import { Variant } from '../hooks/dataTypes';
 
 // Định nghĩa kiểu dữ liệu cho context
 interface ProductContextType {
@@ -10,6 +11,10 @@ interface ProductContextType {
     fetchProducts: () => Promise<void>;
     fetchProductById: (id: number) => Promise<Product | undefined>;
     createProduct: (formData: FormData) => Promise<Product>;
+    updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
+    deleteProduct: (id: number) => Promise<void>;
+    variants: Variant[];
+    updateVariant: (index: number, data: Partial<Variant>) => void;
 }
 
 // Tạo context
@@ -20,6 +25,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [variants, setVariants] = useState<Variant[]>([]);
 
     const fetchProducts = async () => {
         try {
@@ -56,12 +62,40 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    const updateProduct = async (id: number, product: Partial<Product>) => {
+        try {
+            const updatedProduct = await ProductService.update(id, product);
+            setProducts(prevProducts => prevProducts.map(p => p.id === id ? updatedProduct : p));
+        } catch (err) {
+            console.error('Error updating product:', err);
+            throw err;
+        }
+    };
+
+    const deleteProduct = async (id: number) => {
+        try {
+            await ProductService.delete(id);
+            setProducts(prevProducts => prevProducts.filter(p => p.id !== id));
+        } catch (err) {
+            console.error('Error deleting product:', err);
+            throw err;
+        }
+    };
+
+    const updateVariant = useCallback((index: number, data: Partial<Variant>) => {
+        setVariants(prev => {
+            const newVariants = [...prev];
+            newVariants[index] = { ...newVariants[index], ...data };
+            return newVariants;
+        });
+    }, []);
+
     useEffect(() => {
         fetchProducts();
     }, []);
 
     return (
-        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById, createProduct }}>
+        <ProductContext.Provider value={{ products, loading, error, fetchProducts, fetchProductById, createProduct, updateProduct, deleteProduct, variants, updateVariant }}>
             {children}
         </ProductContext.Provider>
     );

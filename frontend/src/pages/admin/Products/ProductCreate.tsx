@@ -13,6 +13,7 @@ import { Product, AdvancedPrice, Variant, ProductAttribute } from '../../../core
 import { generateSlug, generateVariantName } from '../../../core/hooks/format';
 import { SelectChangeEvent } from '@mui/material';
 import { createProductFormData } from '../../../core/hooks/formDataUtils';
+import VariantMapping from './VariantMapping';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -50,13 +51,18 @@ const ProductCreate: React.FC = () => {
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string }>>({});
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string; image: File | null }>>({});
     const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
+    const [variants, setVariants] = React.useState<Variant[]>([]);
 
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
+
+    React.useEffect(() => {
+        setVariants(generateVariants());
+    }, [selectedAttributes, selectedAttributeValues, product]);
 
     const handleAttributeChange = (event: SelectChangeEvent<number[]>) => {
         const value = event.target.value as number[];
@@ -116,13 +122,11 @@ const ProductCreate: React.FC = () => {
             const valueIds = selectedAttributeValues[attributeId] || [];
             return valueIds.map(valueId => ({
                 attribute_id: attributeId,
-                value_id: valueId
+                attribute_value_id: valueId
             }));
         });
 
-        const validAttributes = mappedAttributes.filter(attr => attr.value_id !== undefined);
-
-        const generatedVariants = generateVariants();
+        const validAttributes = mappedAttributes.filter(attr => attr.attribute_value_id !== undefined);
 
         const updatedProduct = {
             ...product,
@@ -132,13 +136,14 @@ const ProductCreate: React.FC = () => {
                 source_id: source.source_id,
                 quantity: source.quantity
             })),
-            variants: generatedVariants
+            variants: variants
         };
 
         console.log('Updated Product Data:', updatedProduct);
 
         try {
             const formData = createProductFormData(updatedProduct as unknown as Product);
+            console.log('FormData to be submitted:', formData);
             const newProduct = await createProduct(formData);
             console.log('Product created successfully:', newProduct);
         } catch (error) {
@@ -182,7 +187,7 @@ const ProductCreate: React.FC = () => {
                 slug: sku,
                 description: product.description,
                 content: product.content,
-                status: variantDetails[index]?.status === 1,
+                status: 1,
                 weight: variantDetails[index]?.weight || product.weight,
                 start_new_time: product.start_new_time,
                 end_new_time: product.end_new_time,
@@ -193,23 +198,26 @@ const ProductCreate: React.FC = () => {
                 sku: variantDetails[index]?.sku || `SPC001-V${index + 1}`,
                 attributes: combination.map(valueId => ({
                     attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
-                    value_id: valueId
-                }))
+                    attribute_value_id: valueId
+                })),
+                image: variantDetails[index]?.image || null,
+                id: 0,
+                parent_id: product.id,
+                stock_quantity: 0,
+                category_ids: product.category_ids
             };
         });
     };
 
-    const variants = generateVariants();
-
-
-    const handleVariantChange = (index: number, field: 'price' | 'weight' | 'status' | 'variantName' | 'sku', value: number | string) => {
-        setVariantDetails(prev => ({
-            ...prev,
-            [index]: {
-                ...prev[index],
+    const handleVariantChange = (index: number, field: keyof Variant, value: any) => {
+        setVariants((prevVariants) => {
+            const updatedVariants = [...prevVariants];
+            updatedVariants[index] = {
+                ...updatedVariants[index],
                 [field]: value,
-            },
-        }));
+            };
+            return updatedVariants;
+        });
     };
 
     const handleVariantImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,6 +227,13 @@ const ProductCreate: React.FC = () => {
             setVariantImages(prev => ({
                 ...prev,
                 [index]: imageUrl,
+            }));
+            setVariantDetails(prev => ({
+                ...prev,
+                [index]: {
+                    ...prev[index],
+                    image: file,
+                },
             }));
         }
     };
@@ -489,92 +504,13 @@ const ProductCreate: React.FC = () => {
                                 <Typography variant="h6">Sản phẩm biến thể</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Hình ảnh</TableCell>
-                                                <TableCell>Tên</TableCell>
-                                                <TableCell>SKU</TableCell>
-                                                <TableCell sx={{ width: '100px' }}>Giá</TableCell>
-                                                <TableCell sx={{ width: '100px' }}>Cân nặng</TableCell>
-                                                <TableCell>Trạng thái</TableCell>
-                                                <TableCell>Thuộc tính</TableCell>
-                                                <TableCell>Hành động</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {variants.map((variant, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                            {variantImages[index] ? (
-                                                                <img src={variantImages[index]} alt="Variant Preview" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
-                                                            ) : (
-                                                                <label htmlFor={`variant-image-upload-${index}`}>
-                                                                    <Box sx={{ width: '50px', height: '50px', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                                                        <AddIcon color="action" />
-                                                                    </Box>
-                                                                </label>
-                                                            )}
-                                                            <input
-                                                                accept="image/*"
-                                                                style={{ display: 'none' }}
-                                                                id={`variant-image-upload-${index}`}
-                                                                type="file"
-                                                                onChange={(e) => handleVariantImageChange(index, e)}
-                                                            />
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.name}
-                                                            onChange={(e) => handleVariantChange(index, 'variantName', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.sku}
-                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell sx={{ width: '100px' }}>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.price}
-                                                            onChange={(e) => handleVariantChange(index, 'price', Number(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell sx={{ width: '100px' }}>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.weight}
-                                                            onChange={(e) => handleVariantChange(index, 'weight', Number(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Switch
-                                                            checked={variant.status}
-                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.checked ? 1 : 0)}
-                                                            color="primary"
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {variant.attributes.map(attr => {
-                                                            const value = attributeValues.find(v => v.id === attr.attribute_value_id);
-                                                            return value ? value.value : '';
-                                                        }).join(', ')}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <IconButton>
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                <VariantMapping
+                                    variants={variants}
+                                    variantImages={Object.values(variantImages) as string[]}
+                                    attributeValues={attributeValues}
+                                    handleVariantImageChange={handleVariantImageChange}
+                                    onVariantChange={handleVariantChange}
+                                />
                             </AccordionDetails>
                         </Accordion>
 
