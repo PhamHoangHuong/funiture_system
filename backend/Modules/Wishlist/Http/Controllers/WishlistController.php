@@ -21,7 +21,7 @@ class WishlistController extends Controller
     public function __construct(WishlistRepositoryInterface $wishlistRepository)
     {
         $this->wishlistRepository = $wishlistRepository;
-        $this->guard = "auth";
+        $this->guard = 'customer';
     }
 
     public function index()
