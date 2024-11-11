@@ -23,6 +23,8 @@ use Modules\Customer\Repositories\CustomerRepository;
 use Modules\Customer\Repositories\CustomerRepositoryInterface;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepository;
 use Modules\GroupCustomer\Repositories\GroupCustomerRepositoryInterface;
+use Modules\Menu\Repositories\MenuRepository;
+use Modules\Menu\Repositories\MenuRepositoryInterface;
 use Modules\Post\Repositories\PostRepository;
 use Modules\Post\Repositories\PostRepositoryInterface;
 use Modules\Product\Repositories\ProductRepositoryInterface;
@@ -154,6 +156,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             WishlistRepositoryInterface::class,
             WishlistRepository::class
+        );
+
+        //Menu
+        $this->app->singleton(
+            MenuRepositoryInterface::class,
+            MenuRepository::class
         );
     }
 
