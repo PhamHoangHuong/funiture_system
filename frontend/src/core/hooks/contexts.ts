@@ -5,6 +5,8 @@ export { useSource } from '../contexts/SourceContext';
 export { useAttribute } from '../contexts/AttributeContext';
 export { useAdvancedPrice } from '../contexts/AdvancedPriceContext';
 export { useAuth } from '../contexts/AuthContextUser'; 
+export { useCart } from '../contexts/CartContext'; 
+
 
 // Export các services
 export { ProductService } from '../services/productService';
@@ -12,4 +14,5 @@ export { categoryService } from '../services/categoryService';
 export { SourceService } from '../services/sourceService';
 export { AttributeService } from '../services/attributeService';
 export { advancedPriceService } from '../services/advancedPriceService';
+
 

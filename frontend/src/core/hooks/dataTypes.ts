@@ -76,6 +76,26 @@ export interface Cart {
     updated_at: string;
 }
 
+interface ProductCart {
+    id: number;
+    name: string;
+    price: string;
+    image: string | null;
+}
+
+export interface Item {
+    product_id: number;
+    quantity: number;
+    product: Product;
+}
+
+export interface CartMini {
+    items: Record<string, Item>;
+    quantity: number;
+    subtotal: number;
+}
+
+
 
 // Auth context type
 export interface AuthContextType {
