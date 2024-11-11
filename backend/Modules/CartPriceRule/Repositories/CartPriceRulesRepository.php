@@ -43,4 +43,8 @@ class CartPriceRulesRepository extends BaseRepository implements CartPriceRulesR
 
         return ['success' => true];
     }
+
+    public function getRuleByCouponCode($couponCode){
+        return $this->model->where('coupon', $couponCode)->first();
+    }
 }

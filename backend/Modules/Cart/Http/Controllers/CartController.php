@@ -32,18 +32,21 @@ class CartController extends Controller
      * @var CartRepositoryInterface
      */
     protected $cartRepository;
-
     /**
      * @var SourceRepositoryInterface
      */
     protected $sourceRepository;
-
+    /**
+     * @var CartPriceRulesRepositoryInterface
+     */
     protected $cartPriceRule;
 
     /**
      * @param ProductRepositoryInterface $productRepository
      * @param CartItemRepositoryInterface $cartItemRepository
      * @param CartRepositoryInterface $cartRepository
+     * @param SourceRepositoryInterface $sourceRepository
+     * @param CartPriceRulesRepositoryInterface $cartPriceRule
      */
     public function __construct(
         ProductRepositoryInterface  $productRepository,
@@ -61,12 +64,10 @@ class CartController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     * @return Renderable
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
         try {
             if (auth('customer')->check()) {
                 $cart = $this->cartRepository->getCartByUserId();
@@ -78,14 +79,10 @@ class CartController extends Controller
                 }
             }
 
-            $results = [
-                'items' => !empty($cart) ? $cart : 'Cart is empty',
-            ];
+            return response()->json(['items' => $cart ?: 'Cart is empty'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        return response()->json($results, 200);
     }
 
     /**
@@ -93,45 +90,39 @@ class CartController extends Controller
      */
     public function miniCart()
     {
-        // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
         try {
             if (auth('customer')->check()) {
-                $cart = Cart::where('user_id', auth('customer')->id())->with('items.product')->first();
+                $cart = $this->cartRepository->getCartByUserId();
                 if (!$cart) {
                     return response()->json(['message' => 'Cart is empty'], 404);
                 }
-                return response()->json($cart);
+            } else {
+                $cart = Session::get('cart', []);
+                $subtotal = 0;
+                foreach ($cart as $key => $item) {
+                    $id_product = (int)$item['product_id'];
+                    $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
+                    $subtotal += $cart[$key]['product']->price * $item['quantity'];
+                }
             }
+
+            $quantity = $this->getQuantityCart();
+
+            return response()->json([
+                'items' => !empty($cart) ? $cart : 'Cart is empty',
+                'total_quantity' => $quantity,
+                'subtotal' => $subtotal ?? 0
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        // Nếu chưa đăng nhập, lấy giỏ hàng từ session
-        $cart = Session::get('cart', []);
-        $subtotal = 0;
-        foreach ($cart as $key => $item) {
-            $id_product = (int)$item['product_id'];
-            $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
-            $subtotal += $cart[$key]['product']->price * $item['quantity'];
-        }
-
-        $quantity = $this->getQuantityCart();
-
-        $results = [
-            'items' => !empty($cart) ? $cart : 'Cart is empty',
-            'quantity' => $quantity,
-            'subtotal' => $subtotal
-        ];
-
-        return response()->json($results, 200);
     }
 
     /**
-     * Store a newly created resource in storage.
-     * @param Request $request
+     * @param CartRequest $request
      * @return Renderable
      */
-    public function store(CartRequest $request)
+    public function store(CartRequest $request): Renderable
     {
         $product_id = (int)$request->product_id;
         $quantity = (int)$request->quantity;
@@ -144,9 +135,7 @@ class CartController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
-        // Nếu chưa đăng nhập, lưu trữ giỏ hàng trong session
         $cart = $this->getCartSession();
-
         if (isset($cart[$product_id])) {
             $cart[$product_id]['quantity'] += $quantity;
         } else {
@@ -160,29 +149,22 @@ class CartController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
      * @param Request $request
-     * @param int $id
+     * @param $productId
      * @return Renderable
      */
-    public function update(Request $request, $productId)
+    public function update(Request $request, $productId): Renderable
     {
-        $validated = $request->validate([
-            'quantity' => 'required|integer|min:1',
-        ]);
-
-        // Nếu người dùng đã đăng nhập
+        $validated = $request->validate(['quantity' => 'required|integer|min:1']);
         try {
             if (Auth::check()) {
                 $cartItem = $this->cartItemRepository->updateCartItem($productId, (int)$validated['quantity']);
-
                 return response()->json($cartItem);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
-        // Nếu chưa đăng nhập, cập nhật giỏ hàng trong session
         $cart = $this->getCartSession();
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity'] = (int)$validated['quantity'];
@@ -194,32 +176,21 @@ class CartController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     * @param int $id
+     * @param $productId
      * @return Renderable
      */
-    public function destroy($productId)
+    public function destroy($productId): Renderable
     {
-        // Nếu người dùng đã đăng nhập
         try {
             if (auth('customer')->check()) {
                 $delete = $this->cartItemRepository->deleteCartItem($productId);
-                if ($delete) {
-                    $message = 'Item removed';
-                    $status = 200;
-                } else {
-                    $message = 'Remove item failed';
-                    $status = 500;
-                }
-                return response()->json(['message' => $message], $status);
+                return response()->json(['message' => $delete ? 'Item removed' : 'Remove item failed'], $delete ? 200 : 500);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
-        // Nếu chưa đăng nhập, xóa sản phẩm trong session
         $cart = $this->getCartSession();
-
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
             $this->putCartSession($cart);
@@ -230,72 +201,75 @@ class CartController extends Controller
     }
 
     /**
-     * @return void
+     * @param Request $request
+     * @return Renderable
      */
-    public function getQuantityCart()
+    public function applyCoupon(Request $request): Renderable
     {
-        $cart = $this->getCartSession();
-        $quantity = 0;
-        foreach ($cart as $item) {
-            $quantity += $item['quantity'];
-        }
-        return $quantity;
-    }
-
-    /**
-     * @return array
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     */
-    public function getTotalCart()
-    {
-        $cartPriceRules = $this->cartPriceRule->getAll();
-
-        $cart = $this->getCartSession();
-        $subtotal = 0;
-        $weight = 0;
-        $quantity = 0;
-        foreach ($cart as $item) {
-            $product = $this->getProduct($item['product_id'], ['id', 'price']);
-            $subtotal += $product->price * $item['quantity'];
-            $weight += $product->weight * $item['quantity'];
-            $quantity += $item['quantity'];
-        }
-
-        $coupon = [];
-        foreach ($cartPriceRules as $rule) {
-            $dataRule = $rule->getAttributes();
-            $check = $this->checkRule($dataRule);
-            if ($check['check'] && $dataRule['coupon_type'] == 2) {
-                if($this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
-                    $coupon[] = $dataRule['coupon_value'];
-
-                }
+        $validated = $request->validate(['coupon_code' => 'required|string']);
+        try {
+            $cartPriceRule = $this->cartPriceRule->getRuleByCouponCode($validated['coupon_code']);
+            if (!$cartPriceRule) {
+                return response()->json(['message' => 'Invalid coupon code'], 404);
             }
+
+            $ruleData = $cartPriceRule->getAttributes();
+            $checkRule = $this->checkRule($ruleData);
+            if (!$checkRule['check']) {
+                return response()->json(['message' => $checkRule['message']], 400);
+            }
+
+            Session::put('coupon', [
+                'code' => $validated['coupon_code'],
+                'discount' => $ruleData['coupon_value'],
+                'type' => $ruleData['coupon_type'],
+            ]);
+
+            return $this->getTotalCart();
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-
-        $info_cart = [
-            'subtotal' => $subtotal,
-            'coupon' => $coupon,
-            'total' => $subtotal
-        ];
-
-        $results = [
-            'info_cart' => $info_cart,
-        ];
-
-        return $results;
     }
 
     /**
-     * @return \Closure|mixed|object|null
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @return int
+     */
+    public function getQuantityCart(): int
+    {
+        $cart = $this->getCartSession();
+        return array_sum(array_column($cart, 'quantity'));
+    }
+
+    /**
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTotalCart(): \Illuminate\Http\JsonResponse
+    {
+        $cart = $this->getCartSession();
+        $subtotal = array_reduce($cart, function ($carry, $item) {
+            $product = $this->getProduct($item['product_id'], ['id', 'price']);
+            return $carry + ($product->price * $item['quantity']);
+        }, 0);
+
+        $coupon = Session::get('coupon', []);
+        $discount = $coupon ? ($coupon['type'] === 1 ? $coupon['discount'] : $subtotal * ($coupon['discount'] / 100)) : 0;
+        $total = $subtotal - $discount;
+
+        return response()->json([
+            'info_cart' => [
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $total,
+            ]
+        ], 200);
+    }
+
+    /**
+     * @return mixed
      */
     public function getCartSession()
     {
-        return session()->get('cart', []);
+        return Session::get('cart', []);
     }
 
     /**
@@ -304,7 +278,7 @@ class CartController extends Controller
      */
     public function putCartSession($cart)
     {
-        session()->put('cart', $cart);
+        Session::put('cart', $cart);
     }
 
     /**
@@ -315,70 +289,5 @@ class CartController extends Controller
     public function getProduct($product_id, $columns = ['*'])
     {
         return $this->productRepository->find($product_id, $columns);
-    }
-
-    public function checkRule($dataRule)
-    {
-        $check = true;
-        $message = '';
-        $groupCustomerIds = json_decode($dataRule['group_customer_ids'], true);
-        if ($dataRule['is_active'] !== 1) {
-            $check = false;
-            $message = __('Mã giảm giá không tồn tại');
-        } elseif (!Carbon::now()->between($dataRule['start_time'], $dataRule['end_time'])) {
-            $check = false;
-            $message = __('Mã giảm giá đã hết hạn');
-        } elseif ($dataRule['usage_limit'] <= $dataRule['used']) {
-            $check = false;
-            $message = __('Mã giảm giá hết lượt sử dụng');
-        }
-        if (auth('customer')->check()) {
-            $customer = auth('customer')->user();
-            if (!in_array($customer->group_customer_id, $groupCustomerIds)) {
-                $check = false;
-                $message = __('Mã giảm giá không áp dụng cho nhóm khách hàng của bạn');
-            }
-        } else {
-            if (!in_array(1, $groupCustomerIds)) {
-                $check = false;
-                $message = __('Mã giảm giá không áp dụng cho nhóm khách hàng của bạn');
-            }
-        }
-        return [
-            'check' => $check,
-            'message' => $message
-        ];
-    }
-
-    public function checkCondition($dataRule, $subTotal, $totalWeight, $quantity)
-    {
-        switch ($dataRule['condition_apply']) {
-            case 'subtotal':
-                $condition = $subTotal;
-                break;
-            case 'total_weight':
-                $condition = $totalWeight;
-                break;
-            case 'total_qty':
-                $condition = $quantity;
-                break;
-            default:
-                return false;
-        }
-
-        switch ($dataRule['operator']) {
-            case 'greater_than':
-                return $condition > $dataRule['condition_value'];
-            case 'greater_than_or_equal':
-                return $condition >= $dataRule['condition_value'];
-            case 'equal':
-                return $condition == $dataRule['condition_value'];
-            case 'less_than':
-                return $condition < $dataRule['condition_value'];
-            case 'less_than_or_equal':
-                return $condition <= $dataRule['condition_value'];
-            default:
-                return false;
-        }
     }
 }

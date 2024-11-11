@@ -19,6 +19,7 @@ Route::group(['prefix' => '/cart'], function () {
     Route::get('', [CartController::class, 'index']);
     Route::get('/mini', [CartController::class, 'miniCart']);
     Route::post('', [CartController::class, 'store']);
+    Route::post('/applyCoupon', [CartController::class, 'applyCoupon']);
     Route::put('/{itemId}', [CartController::class, 'update']);
     Route::delete('/{itemId}', [CartController::class, 'destroy']);
     Route::delete('', [CartController::class, 'clear']);
