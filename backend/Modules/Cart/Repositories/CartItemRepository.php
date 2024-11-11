@@ -16,7 +16,7 @@ class CartItemRepository extends BaseRepository implements CartItemRepositoryInt
     public function updateCartItem($productId, $quantity){
         $cartItem = $this->model->where('product_id', $productId)
                     ->whereHas('cart', function ($query) {
-                        $query->where('user_id', Auth::id());
+                        $query->where('customer_id', auth('customer')->id());
                     })
                     ->firstOrFail();
 
@@ -27,7 +27,7 @@ class CartItemRepository extends BaseRepository implements CartItemRepositoryInt
     public function deleteCartItem($productId){
         $cartItem = $this->model->where('product_id', $productId)
             ->whereHas('cart', function ($query) {
-                $query->where('user_id', auth('customer')->id());
+                $query->where('customer_id', auth('customer')->id());
             })
             ->firstOrFail();
 

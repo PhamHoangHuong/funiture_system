@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress, Checkbox, ListItemText, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Button, Container, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Divider, IconButton, CircularProgress, Checkbox, ListItemText, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Switch } from "@mui/material";
 import { Accordion, AccordionSummary, AccordionDetails } from '../../../components/shared/StyledAccordion';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import AddIcon from '@mui/icons-material/Add';
@@ -9,9 +9,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
-import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
-import { generateSlug, mapAttribute } from '../../../core/hooks/format';
-import axios from 'axios';
+import { Product, AdvancedPrice, Variant, ProductAttribute } from '../../../core/hooks/dataTypes';
+import { generateSlug, generateVariantName } from '../../../core/hooks/format';
+import { SelectChangeEvent } from '@mui/material';
+import { createProductFormData } from '../../../core/hooks/formDataUtils';
+import VariantMapping from './VariantMapping';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -24,11 +26,12 @@ const MenuProps = {
     },
 };
 
-// Định nghĩa kiểu dữ liệu cho sản phẩm với các mảng
 type ProductWithArrays = Product & {
     sources: any[];
     attributes: any[];
-    variants: any[];
+    category_ids: number[];
+    advanced_prices: AdvancedPrice[];
+    variants: Variant[];
 };
 
 const ProductCreate: React.FC = () => {
@@ -36,32 +39,36 @@ const ProductCreate: React.FC = () => {
     const { categories, fetchCategories } = useCategory();
     const { sources, fetchSources } = useSource();
     const { attributes, attributeValues, loading, error } = useAttribute();
-    const [selectedAttributes, setSelectedAttributes] = React.useState([]);
-    const [selectedAttributeValues, setSelectedAttributeValues] = React.useState({});
+    const [selectedAttributes, setSelectedAttributes] = React.useState<number[]>([]);
+    const [selectedAttributeValues, setSelectedAttributeValues] = React.useState<Record<number, number[]>>({});
     const [product, setProduct] = React.useState<ProductWithArrays>({
-        id: 0, name: "", slug: "", description: "", content: "", image: "",
+        id: 0, name: "", slug: "", description: "", content: "", image: null,
         status: 1, weight: 0, price: 0, start_new_time: null,
-        end_new_time: null, advanced_price_id: 0, parent_id: 0,
+        end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
-        category_id: 0, sources: [], attributes: [], variants: [], advanced_prices: []
+        category_ids: categories.length > 0 ? [categories[0].id] : [],
+        sources: [], attributes: [], advanced_prices: [], variants: []
     });
     const { createAdvancedPrice } = useAdvancedPrice();
-    const [advancedPrices, setAdvancedPrices] = React.useState<Partial<AdvancedPrice>[]>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string; image: File | null }>>({});
+    const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
+    const [variants, setVariants] = React.useState<Variant[]>([]);
 
-    // Sử dụng useEffect để lấy danh mục và nguồn hàng khi component được mount
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
 
-    // Hàm xử lý khi thay đổi thuộc tính
-    const handleAttributeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    React.useEffect(() => {
+        setVariants(generateVariants());
+    }, [selectedAttributes, selectedAttributeValues, product]);
+
+    const handleAttributeChange = (event: SelectChangeEvent<number[]>) => {
         const value = event.target.value as number[];
-        setSelectedAttributes(value as never[]);
+        setSelectedAttributes(value);
     };
 
-    // Hàm xử lý khi thay đổi giá trị thuộc tính
     const handleAttributeValueChange = (attributeId: number, event: React.ChangeEvent<{ value: unknown }>) => {
         const value = event.target.value as number[];
         setSelectedAttributeValues(prev => ({
@@ -70,11 +77,10 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    // Hàm xử lý khi thay đổi thông tin sản phẩm
-    const handleProductChange = (field: keyof Product, value: any, index?: number) => {
+    const handleProductChange = (field: keyof Product | 'sources', value: any, index?: number) => {
         setProduct((prev) => {
             let updatedProduct = { ...prev };
-            if (field === 'sources' || field === 'attributes' || field === 'variants' || field === 'advanced_prices') {
+            if (field === 'sources' || field === 'attributes' || field === 'advanced_prices') {
                 const newArray = [...(prev[field] as any[])];
                 if (index !== undefined) {
                     newArray[index] = { ...newArray[index], ...value };
@@ -86,7 +92,6 @@ const ProductCreate: React.FC = () => {
                 updatedProduct[field] = value as never;
             }
 
-            // Tạo slug khi tên thay đổi
             if (field === 'name') {
                 updatedProduct.slug = generateSlug(value);
             }
@@ -95,7 +100,6 @@ const ProductCreate: React.FC = () => {
         });
     };
 
-    // Hàm xóa một mục trong mảng
     const removeItem = (field: keyof typeof product, index: number) => {
         setProduct((prev) => ({
             ...prev,
@@ -103,152 +107,135 @@ const ProductCreate: React.FC = () => {
         }));
     };
 
-    // Hàm xử lý khi thay đổi hình ảnh  
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             setProduct((prev: any) => ({ ...prev, image: file }));
-            setImagePreview(URL.createObjectURL(file)); // Tạo URL cho xem trước hình ảnh
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
-    // Hàm xử lý khi submit form
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const mappedAttributes: ProductAttribute[] = selectedAttributes.flatMap(attributeId => {
+            const valueIds = selectedAttributeValues[attributeId] || [];
+            return valueIds.map(valueId => ({
+                attribute_id: attributeId,
+                attribute_value_id: valueId
+            }));
+        });
+
+        const validAttributes = mappedAttributes.filter(attr => attr.attribute_value_id !== undefined);
+
+        const updatedProduct = {
+            ...product,
+            attributes: validAttributes,
+            category_ids: Array.isArray(product.category_ids) ? product.category_ids : [product.category_ids],
+            sources: product.sources.map(source => ({
+                source_id: source.source_id,
+                quantity: source.quantity
+            })),
+            variants: variants
+        };
+
+        console.log('Updated Product Data:', updatedProduct);
+
         try {
-            const formData = new FormData();
-            Object.entries(product).forEach(([key, value]) => {
-                if (key === 'image' && value instanceof File) {
-                    formData.append(key, value);
-                } else if (Array.isArray(value)) {
-                    formData.append(key, JSON.stringify(value));
-                } else if (value !== null) {
-                    formData.append(key, value.toString());
-                }
-            });
-
-            // Đảm bảo cân nặng là số
-            if (product.weight) {
-                formData.set('weight', Number(product.weight).toString());
-            }
-
-            // Tạo sản phẩm
-            const newProduct = await createProduct(formData as any);
-
-            // Nếu tạo sản phẩm thành công, tạo giá nâng cao
-            if (newProduct.id) {
-                await Promise.all(
-                    advancedPrices.map(price => createAdvancedPrice({ ...price, product_id: newProduct.id }))
-                );
-            }
-
-            console.log('Product created successfully');
-            // Có thể chuyển hướng hoặc hiển thị thông báo thành công ở đây
+            const formData = createProductFormData(updatedProduct as unknown as Product);
+            console.log('FormData to be submitted:', formData);
+            const newProduct = await createProduct(formData);
+            console.log('Product created successfully:', newProduct);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                console.error('Error creating product:', error.response.data);
-                // Xử lý lỗi xác thực
-                if (error.response.status === 422) {
-                    const validationErrors = error.response.data.errors;
-                    // Hiển thị lỗi xác thực cho người dùng
-                    Object.entries(validationErrors).forEach(([field, messages]) => {
-                        console.error(`${field}: ${messages.join(', ')}`);
-                        // Có thể đặt các lỗi này vào state và hiển thị chúng trong giao diện người dùng
-                    });
-                }
-            } else {
-                console.error('Error creating product:', error);
-            }
+            console.error('Error creating product:', error);
         }
     };
 
-
-    // Hàm tạo các biến thể sản phẩm
-    const generateVariants = () => {
-        const selectedAttributes = product.attributes.filter((attr: any) => attr.attribute_id && attr.value_id);
-        console.log("Selected Attributes:", selectedAttributes);
-
-        if (selectedAttributes.length === 0) return;
-
-        const generateCombinations = (attrs: any[], index: number = 0, current: any[] = []): any[][] => {
-            if (index === attrs.length) {
-                return [current];
-            }
-            const attribute = attrs[index];
-            const combinations: any[][] = [];
-            combinations.push(...generateCombinations(attrs, index + 1, [...current, attribute]));
-            return combinations;
-        };
-
-        const combinations = generateCombinations(selectedAttributes);
-        console.log("Generated Combinations:", combinations);
-
-        const newVariants = combinations.map(combination => ({
-            name: `${product.name} - ${combination.map(attr => attr.value).join(' - ')}`,
-            price: product.price,
-            sku: '',
-            image: '',
-            weight: product.weight,
-            status: product.status,
-            attributes: combination.map(attr => mapAttribute(product, attr))
-        }));
-
-        console.log("New Variants:", newVariants);
-
-        setProduct((prev: any) => ({ ...prev, variants: newVariants }));
-    };
-
-    // Hàm xử lý khi thay đổi biến thể
-    const handleVariantChange = (index: number, field: string, value: any) => {
-        setProduct((prev) => {
-            const updatedVariants = [...prev.variants];
-            updatedVariants[index] = { ...updatedVariants[index], [field]: value };
-            return { ...prev, variants: updatedVariants };
-        });
-    };
-
-    // Hàm thêm giá nâng cao
-    const handleAddAdvancedPrice = () => {
-        const initialPrice = {
-            type: '',
-            amount: 0,
-            start_time: null,
-            end_time: null,
-            attributes: selectedAttributes.map(attrId => ({
-                attribute_id: attrId,
-                values: selectedAttributeValues[attrId] || []
-            }))
-        };
-        setAdvancedPrices([...advancedPrices, initialPrice]);
-        // console.log("map thuộc tính", selectedAttributeValues);
-    };
-
-    // Hàm xóa biến thể
-    const handleRemoveVariant = (index: number) => {
-        setProduct((prev) => ({
-            ...prev,
-            variants: prev.variants.filter((_, i) => i !== index)
-        }));
-    };
-
-    // Hàm chỉnh sửa biến thể (có thể triển khai logic theo nhu cầu)
-    const handleEditVariant = (index: number) => {
-        // Triển khai logic chỉnh sửa ở đây
-    };
-
-    // Hàm xóa giá nâng cao
-    const removeAdvancedPrice = (index: number) => {
-        setAdvancedPrices(prev => prev.filter((_, i) => i !== index));
-    };
-
-    // Hàm xóa thuộc tính
     const removeAttribute = (attributeId: number) => {
         setSelectedAttributes(prev => prev.filter(id => id !== attributeId));
         setSelectedAttributeValues(prev => {
             const updatedValues = { ...prev };
-            // delete updatedValues[attributeId];
+            delete updatedValues[attributeId];
             return updatedValues;
         });
+    };
+
+    const generateVariants = () => {
+        if (selectedAttributes.length === 0) return [];
+
+        return selectedAttributes.reduce((acc, attributeId) => {
+            const attributeValuesForAttribute = selectedAttributeValues[attributeId] || [];
+            if (acc.length === 0) {
+                return attributeValuesForAttribute.map(valueId => [valueId]);
+            }
+            return acc.flatMap(existingCombination =>
+                attributeValuesForAttribute.map(valueId => [...existingCombination, valueId])
+            );
+        }, [] as number[][]).map((combination, index) => {
+            const variantName = generateVariantName(
+                product.name,
+                combination.map(valueId => {
+                    const value = attributeValues.find(v => v.id === valueId);
+                    return value ? { attribute_id: value.attribute_id, values: [value.value] } : { attribute_id: 0, values: [] };
+                })
+            );
+
+            const sku = generateSlug(variantName.join(' '));
+
+            return {
+                name: variantName.join(' '),
+                slug: sku,
+                description: product.description,
+                content: product.content,
+                status: 1,
+                weight: variantDetails[index]?.weight || product.weight,
+                start_new_time: product.start_new_time,
+                end_new_time: product.end_new_time,
+                seo_title: product.seo_title,
+                seo_description: product.seo_description,
+                video_link: product.video_link,
+                price: variantDetails[index]?.price || product.price,
+                sku: variantDetails[index]?.sku || `SPC001-V${index + 1}`,
+                attributes: combination.map(valueId => ({
+                    attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
+                    attribute_value_id: valueId
+                })),
+                image: variantDetails[index]?.image || null,
+                id: 0,
+                parent_id: product.id,
+                stock_quantity: 0,
+                category_ids: product.category_ids
+            };
+        });
+    };
+
+    const handleVariantChange = (index: number, field: keyof Variant, value: any) => {
+        setVariants((prevVariants) => {
+            const updatedVariants = [...prevVariants];
+            updatedVariants[index] = {
+                ...updatedVariants[index],
+                [field]: value,
+            };
+            return updatedVariants;
+        });
+    };
+
+    const handleVariantImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const imageUrl = URL.createObjectURL(file);
+            setVariantImages(prev => ({
+                ...prev,
+                [index]: imageUrl,
+            }));
+            setVariantDetails(prev => ({
+                ...prev,
+                [index]: {
+                    ...prev[index],
+                    image: file,
+                },
+            }));
+        }
     };
 
     return (
@@ -268,21 +255,18 @@ const ProductCreate: React.FC = () => {
                         </Grid>
                         <Divider sx={{ my: 4 }} />
 
-                        {/* sản phẩm cơ bản (Chính) */}
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thông tin cơ bản</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Grid container spacing={3}>
-
                                     <Grid item md={10}>
                                         <Grid container spacing={3}>
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Tên sản phẩm"
-                                                    defaultValue={product.name}
+                                                    label="Tên sn phẩm"
                                                     value={product.name}
                                                     onChange={(e) => handleProductChange('name', e.target.value)}
                                                     required
@@ -340,9 +324,9 @@ const ProductCreate: React.FC = () => {
                                                 <FormControl fullWidth required>
                                                     <InputLabel>Danh mục</InputLabel>
                                                     <Select
-                                                        value={product.category_id}
+                                                        value={product.category_ids}
                                                         label="Danh mục"
-                                                        onChange={(e) => handleProductChange('category_id', e.target.value)}
+                                                        onChange={(e) => handleProductChange('category_ids', e.target.value)}
                                                     >
                                                         {categories.map((category) => (
                                                             <MenuItem key={category.id} value={category.id}>
@@ -413,7 +397,6 @@ const ProductCreate: React.FC = () => {
                                     </Grid>
 
                                     <Grid item md={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
                                         <Box mt={2} sx={{ width: '100%', height: '200px', border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {imagePreview ? (
                                                 <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
@@ -438,7 +421,6 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Thuộc tính */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Thuộc tính</Typography>
@@ -458,7 +440,7 @@ const ProductCreate: React.FC = () => {
                                     >
                                         {attributes.map((attribute) => (
                                             <MenuItem key={attribute.id} value={attribute.id}>
-                                                <Checkbox checked={selectedAttributes.includes(attribute.id as never)} />
+                                                <Checkbox checked={selectedAttributes.includes(attribute.id)} />
                                                 <ListItemText primary={attribute.name} />
                                             </MenuItem>
                                         ))}
@@ -487,7 +469,7 @@ const ProductCreate: React.FC = () => {
                                                                     <Select
                                                                         multiple
                                                                         value={selectedAttributeValues[attributeId] || []}
-                                                                        onChange={(e) => handleAttributeValueChange(attributeId, e)}
+                                                                        onChange={(e) => handleAttributeValueChange(attributeId, e as React.ChangeEvent<{ value: unknown }>)}
                                                                         renderValue={(selected) => (selected as number[]).map(id => attributeValues.find(v => v.id === id)?.value || '').join(', ')}
                                                                         MenuProps={MenuProps}
                                                                     >
@@ -517,153 +499,21 @@ const ProductCreate: React.FC = () => {
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Bảng sản phẩm biến thể */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Sản phẩm biến thể</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Hình ảnh</TableCell>
-                                                <TableCell>Tên</TableCell>
-                                                <TableCell>SKU</TableCell>
-                                                <TableCell>Giá</TableCell>
-                                                <TableCell>Cân nặng</TableCell>
-                                                <TableCell>Trạng thái</TableCell>
-                                                <TableCell>Thuộc tính</TableCell>
-                                                <TableCell>Hành động</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {product.variants.map((variant: any, index: number) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        {variant.image ? (
-                                                            <img src={variant.image} alt="Variant" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
-                                                        ) : (
-                                                            <Typography variant="body2" color="textSecondary">Không có hình ảnh</Typography>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.name}
-                                                            onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.sku}
-                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.price}
-                                                            onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variant.weight}
-                                                            onChange={(e) => handleVariantChange(index, 'weight', parseFloat(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={variant.status}
-                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.value)}
-                                                        >
-                                                            <MenuItem value={1}>Hoạt động</MenuItem>
-                                                            <MenuItem value={0}>Không hoạt động</MenuItem>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {variant.attributes.map((attr: any, attrIndex: number) => (
-                                                            <Typography key={attrIndex} variant="body2">
-                                                                {attr.name}: {attr.value}
-                                                            </Typography>
-                                                        ))}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <IconButton onClick={() => handleEditVariant(index)}>
-                                                            <EditIcon />
-                                                        </IconButton>
-                                                        <IconButton onClick={() => handleRemoveVariant(index)}>
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                <VariantMapping
+                                    variants={variants}
+                                    variantImages={Object.values(variantImages) as string[]}
+                                    attributeValues={attributeValues}
+                                    handleVariantImageChange={handleVariantImageChange}
+                                    onVariantChange={handleVariantChange}
+                                />
                             </AccordionDetails>
                         </Accordion>
 
-                        {/* Giá nâng cao */}
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Giá nâng cao</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                {advancedPrices.map((price, index) => (
-                                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-                                        <Grid container spacing={2}>
-                                            <Grid item md={2}>
-                                                <FormControl fullWidth>
-                                                    <InputLabel>Loại</InputLabel>
-                                                    <Select
-                                                        value={price.type}
-                                                        onChange={(e) => handleAdvancedPriceChange(index, 'type', e.target.value)}
-                                                    >
-                                                        <MenuItem value="discount">Giảm giá</MenuItem>
-                                                        <MenuItem value="special">Đặc biệt</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Số tiền"
-                                                    type="number"
-                                                    value={price.amount}
-                                                    onChange={(e) => handleAdvancedPriceChange(index, 'amount', parseFloat(e.target.value))}
-                                                />
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <DatePicker
-                                                    label="Thời gian bắt đầu"
-                                                    value={price.start_time ? dayjs(price.start_time) : null}
-                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'start_time', newValue?.toISOString())}
-                                                />
-                                            </Grid>
-                                            <Grid item md={3}>
-                                                <DatePicker
-                                                    label="Thời gian kết thúc"
-                                                    value={price.end_time ? dayjs(price.end_time) : null}
-                                                    onChange={(newValue) => handleAdvancedPriceChange(index, 'end_time', newValue?.toISOString())}
-                                                />
-                                            </Grid>
-                                            <Grid item md={1}>
-                                                <IconButton onClick={() => removeAdvancedPrice(index)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Grid>
-                                        </Grid>
-                                    </Box>
-                                ))}
-                                <Button startIcon={<AddIcon />} onClick={handleAddAdvancedPrice}>
-                                    Thêm giá
-                                </Button>
-                            </AccordionDetails>
-                        </Accordion>
-
-                        {/* Nguồn hàng */}
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
                                 <Typography variant="h6">Nguồn hàng</Typography>
@@ -693,7 +543,7 @@ const ProductCreate: React.FC = () => {
                                                     label="Số lượng"
                                                     type="number"
                                                     value={source.quantity}
-                                                    onChange={(e) => handleProductChange(`sources[${index}].quantity`, e.target.value)}
+                                                    onChange={(e) => handleProductChange('sources', { quantity: e.target.value }, index)}
                                                 />
                                             </Grid>
                                             <Grid item xs={12} md={2}>
@@ -713,7 +563,7 @@ const ProductCreate: React.FC = () => {
                     </Paper>
                 </Container>
             </form>
-        </LocalizationProvider >
+        </LocalizationProvider>
     );
 };
 

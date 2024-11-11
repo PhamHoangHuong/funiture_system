@@ -35,13 +35,24 @@ export const generateSlug = (str: string): string => {
         .replace(/\s+/g, '-'); // Thay thế khoảng trắng bằng dấu gạch ngang
 };
 
-// map thuộc tính sản phẩm biến thể = name sản phẩm chính + name giá trị thuộc tính
-export const mapAttribute = (product: any, attribute: any) => {
-    return `${attribute.name}: ${attribute.value}`;
-};
 
 // Chuyển đổi chuỗi ngày DD/MM/YYYY thành đối tượng Dayjs
 export const parseDateFromDisplay = (dateString: string): dayjs.Dayjs | null => {
     return dateString ? dayjs(dateString, 'DD/MM/YYYY') : null;
 };
+// Tạo tên biến thể từ tên sản phẩm và giá trị thuộc tính phải theo công thưc trên nha vd mình có 
+// công thức: S=a^n
+// a: màu sắc, size
+// n: số lượng giá trị thuộc tính
+//vd: có màu là xanh đỏ vàng và size là: L,XL,XXL
+// thì tên biến thể sẽ là: xanhL, đỏL, vàngL, xanhXL, đỏXL, vàngXL, xanhXXL, đỏXXL, vàngXXL
+export const generateVariantName = (productName: string, attributeValues: { attribute_id: number, values: string[] }[]) => {
+    return attributeValues.map(attr => attr.values.map(value => `${productName} ${value}`)).flat();
+};
+
+// Định dạng trạng thái sản phẩm
+export const formatStatus = (status: number, t: (key: string) => string): string => {
+    return status === 1 ? t("inactive") : t("active");
+};
+
 

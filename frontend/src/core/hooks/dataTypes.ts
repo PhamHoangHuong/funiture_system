@@ -48,24 +48,27 @@ export interface Product {
     slug: string | null
     description: string | null
     content: string | null
-    image: string
+    image: File | null
     status: number
     weight: number | null
     price: number
     start_new_time: string | null
     end_new_time: string | null
-    advanced_price_id: number | null
     parent_id: number | null
     sku: string | null
     stock_quantity: number
     seo_title: string | null
     seo_description: string | null
     video_link: string | null
-    category_id: number | null
+    category_ids: number[]
     sources: SourceProduct[];
     attributes: ProductAttribute[];
-    variants: Product[];
     advanced_prices: AdvancedPrice[];
+    variants: Variant[];
+}
+
+export interface Variant extends Omit<Product, 'variants' | 'sources' | 'advanced_prices'> {
+    attributes: ProductAttribute[];
 }
 
 // cart 
@@ -96,6 +99,14 @@ export interface CartMini {
 }
 
 
+// Wishlist
+export interface Wishlist {
+    id: number;
+    user_id: number;
+    product_id: number;
+    created_at: string;
+    updated_at: string;
+}
 
 // Auth context type
 export interface AuthContextType {
@@ -161,7 +172,7 @@ export interface AdvancedPriceContextType {
 
 export interface ProductAttribute {
     attribute_id: number;
-    value_id: number;
+    attribute_value_id: number;
 }
 
 export interface Source {
@@ -197,3 +208,36 @@ export interface SourceContextType {
     updateSource: (id: number, sourceData: Partial<Source>) => Promise<Source>;
     deleteSource: (id: number) => Promise<void>;
 }
+
+export interface topics {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    parent_id: number | null;
+    image: string | null;
+    sort_order: number;
+    status: number;
+    seo_title: string | null;
+    seo_description: string | null;
+    created_at: string;
+    updated_at: string;
+}
+export interface Posts {
+    id: number;
+    topic_id: number;
+    user_id: number;
+    title: string;
+    slug: string;
+    type: string;
+    content: string | null;
+    description: string | null;
+    image: string | null;
+    seo_title: string | null;
+    seo_description: string | null;
+    status: number;
+    created_at: string;
+    updated_at: string;
+}
+
+

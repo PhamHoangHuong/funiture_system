@@ -13,5 +13,10 @@
     "Topic": true,
     "Slider": true,
     "Post": true,
-    "CatalogPriceRule": true
+    "CatalogPriceRule": true,
+    "Contact": true,
+    "Subscribe": true,
+    "Review": true,
+    "Wishlist": true,
+    "Menu": true
 }

@@ -19,9 +19,8 @@ class CartPriceRule extends Model
         'end_time',
         'is_active',
         'group_customer_ids',
-        'condition',
+        'condition_apply',
         'condition_value',
-        'simple_action',
         'coupon',
         'discount_amount',
         'discount_qty',
@@ -29,9 +28,13 @@ class CartPriceRule extends Model
         'usage_limit',
         'used',
         'coupon_type',
+        'operator',
+        'simple_action',
+        'priority',
         'sort_order',
     ];
-    protected $casts=[
-        'group_customer_ids'=>'array'
+
+    protected $casts = [
+        'group_customer_ids' => 'array',
     ];
 }

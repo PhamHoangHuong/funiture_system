@@ -12,6 +12,7 @@ import {
     Select,
     FormControl,
     Pagination,
+    Modal,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -19,16 +20,18 @@ import { useProductContext } from "../../../core/contexts/ProductContext";
 import { Product } from "../../../core/hooks/dataTypes";
 import { useTranslation } from "react-i18next";
 import { formatCurrency } from "../../../core/hooks/format";
+import ProductEdit from './ProductEdit';
 
 const ProductList: React.FC = () => {
     const { t } = useTranslation();
-    const { products: productList, loading, error, fetchProducts } = useProductContext();
+    const { products: productList, loading, error, fetchProducts, deleteProduct } = useProductContext();
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [filters, setFilters] = useState<Record<string, string>>({});
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
         const filtered = productList.filter(product =>
@@ -46,7 +49,8 @@ const ProductList: React.FC = () => {
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                await fetchProducts(); // Assuming fetchProducts updates the product list
+                await deleteProduct(id);
+                fetchProducts();
             } catch (error) {
                 console.error('Error deleting product:', error);
             }
@@ -72,12 +76,26 @@ const ProductList: React.FC = () => {
         setPage(1); // Reset to first page
     };
 
+    const handleEditClick = (productId: number) => {
+        setSelectedProductId(productId);
+        setEditModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setEditModalOpen(false);
+        fetchProducts();
+    };
+
     const columns: GridColDef[] = [
         { field: 'id', headerName: t("product.id"), width: 70 },
+        { field: 'image', headerName: t("product.image"), width: 100, renderCell: (params) => <img src={params.row.image} alt={params.row.name} style={{ width: '100%', height: 'auto' }} /> },
         { field: 'name', headerName: t("product.name"), width: 200 },
+        { field: 'sku', headerName: t("product.sku"), width: 100 },
+        { field: 'parent_id', headerName: t("product.parent_id"), width: 100 },
         { field: 'price', headerName: t("product.price"), width: 150, renderCell: (params) => formatCurrency(params.row.price) },
-        { field: 'status', headerName: t("product.status"), width: 120, renderCell: (params) => params.row.status === 1 ? t("product.inStock") : t("product.outOfStock") },
-        { field: 'stock', headerName: t("product.stock"), width: 100 },
+        { field: 'weight', headerName: t("product.weight"), width: 100 },
+        { field: 'description', headerName: t("product.description"), width: 200 },
+        { field: 'status', headerName: t("product.status"), width: 120, renderCell: (params) => params.row.status === 1 ? t("product.inactive") : t("product.active") },
         {
             field: 'actions',
             headerName: t("product.actions"),
@@ -85,21 +103,12 @@ const ProductList: React.FC = () => {
             sortable: false,
             renderCell: (params) => (
                 <>
-                    <IconButton onClick={(event) => handleMenuOpen(event, params.row.id)}>
-                        <MoreVertIcon />
+                    <IconButton onClick={() => handleEditClick(params.row.id)}>
+                        <EditIcon />
                     </IconButton>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl) && selectedProductId === params.row.id}
-                        onClose={handleMenuClose}
-                    >
-                        <MenuItem component={Link} to={`/admin/products/edit/${params.row.id}`}>
-                            <EditIcon fontSize="small" /> {t("product.edit")}
-                        </MenuItem>
-                        <MenuItem onClick={() => handleDelete(params.row.id)}>
-                            <DeleteIcon fontSize="small" /> {t("product.delete")}
-                        </MenuItem>
-                    </Menu>
+                    <IconButton onClick={() => handleDelete(params.row.id)}>
+                        <DeleteIcon />
+                    </IconButton>
                 </>
             ),
         },
@@ -173,6 +182,19 @@ const ProductList: React.FC = () => {
                     </Box>
                 </Box>
             </Box>
+            <Modal
+                open={editModalOpen}
+                onClose={handleModalClose}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Box sx={{ width: '100%', maxWidth: 1440, maxHeight: '80vh', bgcolor: 'background.paper', boxShadow: 24, overflowY: 'auto' }}>
+                    <ProductEdit productId={selectedProductId!} onClose={handleModalClose} />
+                </Box>
+            </Modal>
         </Box>
     );
 };

@@ -29,7 +29,20 @@
     "totalCount": "Tổng số sản phẩm: {{count}}",
     "add": "Thêm Sản phẩm",
     "searchPlaceholder": "Tìm {{field}}...",
-    "inStock": "Còn hàng",
-    "outOfStock": "Hết hàng"
-  }
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "sku": "SKU",
+    "parent_id": "ID Cha",
+    "description": "Mô tả",
+    "content": "Nội dung",
+    "video_link": "Link Video",
+    "category_ids": "Danh mục",
+    "sources": "Nguồn",
+    "attributes": "Thuộc tính",
+    "advanced_prices": "Giá nâng cao",
+    "variants": "Biến thể",
+    "weight": "Trọng lượng"
+  },
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động"
 }

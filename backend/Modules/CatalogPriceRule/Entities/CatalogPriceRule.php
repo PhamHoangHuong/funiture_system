@@ -17,12 +17,18 @@ class CatalogPriceRule extends Model
         'is_active',
         'start_time',
         'end_time',
-        'conditions_serialized',
-        'simple_action',
+        'group_customer_ids',
+        'condition_apply',
+        'condition_value',
         'discount_amount',
+        'operator',
+        'simple_action',
         'priority',
         'sort_order',
     ];
-    
 
+    protected $casts = [
+        'group_customer_ids' => 'array',
+        'condition_value' => 'array',
+    ];
 }

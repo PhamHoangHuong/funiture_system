@@ -17,9 +17,8 @@ class CartPriceRulesResource extends JsonResource
             'end_time' => $this->end_time,
             'is_active' => $this->is_active,
             'group_customer_ids' => $this->group_customer_ids,
-            'condition' => $this->condition,
+            'condition_apply' => $this->condition_apply,
             'condition_value' => $this->condition_value,
-            'simple_action' => $this->simple_action,
             'coupon' => $this->coupon,
             'discount_amount' => $this->discount_amount,
             'discount_qty' => $this->discount_qty,
@@ -27,6 +26,9 @@ class CartPriceRulesResource extends JsonResource
             'usage_limit' => $this->usage_limit,
             'used' => $this->used,
             'coupon_type' => $this->coupon_type,
+            'operator' => $this->operator,
+            'simple_action' => $this->simple_action,
+            'priority' => $this->priority,
             'sort_order' => $this->sort_order,
         ];
     }

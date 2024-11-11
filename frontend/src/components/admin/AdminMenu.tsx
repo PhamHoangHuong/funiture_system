@@ -85,6 +85,29 @@ const AdminMenu: React.FC = () => {
                             </ul>
                         </div>
                     </li>
+                    {/* attributes */}
+                    <li className="nav-item">
+                        <NavLink
+                            className={`nav-link menu-arrow ${openMenus['sidebarAttributes'] ? 'active' : ''}`}
+                            to="#sidebarAttributes"
+                            onClick={() => toggleMenu('sidebarAttributes')}
+                        >
+                            <span className="nav-icon">
+                                <i className="fas fa-list"></i>
+                            </span>
+                            <span className="nav-text"> Attributes </span>
+                        </NavLink>
+                        <div className={`collapse ${openMenus['sidebarAttributes'] ? 'show' : ''}`} id="sidebarAttributes">
+                            <ul className="nav sub-navbar-nav">
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/attributes">Attribute List</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/attributes/values">Attribute Values List</NavLink>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
                     {/* orders */}
                     <li className="nav-item">
                         <NavLink

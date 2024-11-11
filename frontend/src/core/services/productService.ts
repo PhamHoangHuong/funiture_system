@@ -18,14 +18,14 @@ export const ProductService = {
     },
 
     // Tạo sản phẩm mới
-    create: async (productData: Partial<Product>): Promise<Product> => {
-        const response = await axios.post<SuccessResponse<Product>>(API_URL, productData);
+    create: async (formData: FormData): Promise<Product> => {
+        const response = await axios.post<SuccessResponse<Product>>(API_URL, formData);
         return response.data.data;
     },
 
     // Cập nhật sản phẩm
     update: async (id: number, product: Partial<Product>) => {
-        const response = await axios.put<{ data: Product }>(`${API_URL}/${id}`, product);
+        const response = await axios.put<SuccessResponse<Product>>(`${API_URL}/${id}`, product);
         return response.data.data;
     },
 
@@ -33,7 +33,7 @@ export const ProductService = {
     delete: async (id: number) => {
         await axios.delete(`${API_URL}/${id}`);
     },
-
+    
 
     // Lưu nguồn và số lượng cho sản phẩm
     storeSourceAndQuantity: async (productId: number, sourceProducts: Partial<SourceProduct>[]): Promise<SourceProduct[]> => {

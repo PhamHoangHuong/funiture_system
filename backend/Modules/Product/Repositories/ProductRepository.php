@@ -21,6 +21,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         return $this->model->whereIn('id', $ids)->with('advancedPrices')->get();
     }
+
     public function getSourceContainProduct($product_id)
     {
         $product = $this->model->find($product_id);
@@ -34,7 +35,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function updateProductAttributes($product, array $attributes)
     {
+        // Clear existing attributes for the specific product (main or variant)
         $product->productAttributes()->delete();
+
+        // Add new attributes for the specific product
         foreach ($attributes as $attribute) {
             $product->productAttributes()->create([
                 'attribute_id' => $attribute['attribute_id'],
@@ -66,42 +70,11 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product->delete();
     }
 
-    public function createVariants($product, array $attributes)
-    {
-        $variants = [];
-        foreach ($attributes as $attribute) {
-            $variantName = $product->name . ' - ' . $attribute['attribute_id'] . ':' . $attribute['attribute_value_id'];
-            $variantData = [
-                'name' => $variantName,
-                'slug' => Str::slug($variantName),
-                'description' => $product->description,
-                'content' => $product->content,
-                'status' => $product->status,
-                'weight' => $product->weight,
-                'price' => $product->price,
-                'start_new_time' => $product->start_new_time,
-                'end_new_time' => $product->end_new_time,
-                'advanced_price_id' => $product->advanced_price_id,
-                'parent_id' => $product->id,
-                'seo_title' => $product->seo_title,
-                'seo_description' => $product->seo_description,
-                'video_link' => $product->video_link,
-            ];
-
-            $variant = $this->createProduct($variantData);
-            $this->updateProductAttributes($variant, [$attribute]);
-            $this->updateProductCategories($variant, $product->categories->pluck('id')->toArray());
-            $variants[] = $variant;
-        }
-
-        return $variants;
-    }
-
     public function prepareProductData(Request $request, $id = null)
     {
         $productData = $request->validated();
         if ($request->hasFile('image')) {
-            $productData['image'] = $this->uploadImage($request, 'image', 'assets/images/product');
+            $productData['image'] = $this->uploadImage($request, 'image', 'products');
         }
         $productData['slug'] = Str::slug($request->name);
 
@@ -110,5 +83,19 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         }
 
         return $productData;
+    }
+
+    public function findProduct($id, $relations = [])
+    {
+        return $this->model->with($relations)->findOrFail($id);
+    }
+
+    public function updateProductSources($product, array $sources)
+    {
+        $sourceData = [];
+        foreach ($sources as $source) {
+            $sourceData[$source['source_id']] = ['quantity' => $source['quantity']];
+        }
+        $product->sources()->sync($sourceData);
     }
 }

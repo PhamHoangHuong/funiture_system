@@ -16,12 +16,15 @@ class UpdateCatalogPriceRuleRequest extends FormRequest
         return [
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'nullable|boolean',
+            'is_active' => 'nullable|integer|in:0,1',
             'start_time' => 'nullable|date',
             'end_time' => 'nullable|date|after:start_time',
-            'conditions_serialized' => 'nullable|string',
-            'simple_action' => 'nullable|integer|in:1,2,3,4',
+            'group_customer_ids' => 'nullable|array',
+            'condition_apply' => 'nullable|string|in:all_products,specific_products,categories,attribute_groups',
+            'condition_value' => 'nullable|array',
             'discount_amount' => 'nullable|numeric',
+            'operator' => 'nullable|integer|in:1,2,3,4,5,6',
+            'simple_action' => 'nullable|string|in:by_percent,by_fixed,percent,fixed',
             'priority' => 'nullable|integer',
             'sort_order' => 'nullable|integer',
         ];
