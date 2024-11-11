@@ -88,10 +88,14 @@ const ProductList: React.FC = () => {
 
     const columns: GridColDef[] = [
         { field: 'id', headerName: t("product.id"), width: 70 },
+        { field: 'image', headerName: t("product.image"), width: 100, renderCell: (params) => <img src={params.row.image} alt={params.row.name} style={{ width: '100%', height: 'auto' }} /> },
         { field: 'name', headerName: t("product.name"), width: 200 },
+        { field: 'sku', headerName: t("product.sku"), width: 100 },
+        { field: 'parent_id', headerName: t("product.parent_id"), width: 100 },
         { field: 'price', headerName: t("product.price"), width: 150, renderCell: (params) => formatCurrency(params.row.price) },
-        { field: 'status', headerName: t("product.status"), width: 120, renderCell: (params) => params.row.status === 1 ? t("product.inStock") : t("product.outOfStock") },
-        { field: 'stock', headerName: t("product.stock"), width: 100 },
+        { field: 'weight', headerName: t("product.weight"), width: 100 },
+        { field: 'description', headerName: t("product.description"), width: 200 },
+        { field: 'status', headerName: t("product.status"), width: 120, renderCell: (params) => params.row.status === 1 ? t("product.inactive") : t("product.active") },
         {
             field: 'actions',
             headerName: t("product.actions"),
@@ -102,18 +106,9 @@ const ProductList: React.FC = () => {
                     <IconButton onClick={() => handleEditClick(params.row.id)}>
                         <EditIcon />
                     </IconButton>
-                    <IconButton onClick={(event) => handleMenuOpen(event, params.row.id)}>
-                        <MoreVertIcon />
+                    <IconButton onClick={() => handleDelete(params.row.id)}>
+                        <DeleteIcon />
                     </IconButton>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl) && selectedProductId === params.row.id}
-                        onClose={handleMenuClose}
-                    >
-                        <MenuItem onClick={() => handleDelete(params.row.id)}>
-                            <DeleteIcon fontSize="small" /> {t("product.delete")}
-                        </MenuItem>
-                    </Menu>
                 </>
             ),
         },

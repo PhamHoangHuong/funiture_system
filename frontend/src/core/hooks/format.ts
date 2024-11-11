@@ -50,4 +50,9 @@ export const generateVariantName = (productName: string, attributeValues: { attr
     return attributeValues.map(attr => attr.values.map(value => `${productName} ${value}`)).flat();
 };
 
+// Định dạng trạng thái sản phẩm
+export const formatStatus = (status: number, t: (key: string) => string): string => {
+    return status === 1 ? t("inactive") : t("active");
+};
+
 
