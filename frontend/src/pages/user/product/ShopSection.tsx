@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useProductContext } from "../../../core/contexts/ProductContext";
 import { formatCurrency } from "../../../core/hooks/format";
-import {} from "../../../core/services/cartServices";
 import { useCart } from "../../../core/contexts/CartContext";
 export default function ShopSection() {
 	const { products, loading, error } = useProductContext();
@@ -359,8 +358,11 @@ export default function ShopSection() {
 													<div className="feature-image position-relative h-300">
 														<img
 															src={
-																product.image ||
-																"/assets/user/images/products/chair-md-2.png"
+																typeof product.image === 'string'
+																	? product.image
+																	: product.image instanceof File
+																		? URL.createObjectURL(product.image)
+																		: "/assets/user/images/products/chair-md-2.png"
 															}
 															alt={product.name}
 															className="img-fluid"
@@ -421,8 +423,8 @@ export default function ShopSection() {
 													</div>
 													<div className="product-content">
 														<span className="fw-semibold subtitle text-uppercase">
-															{product.category_id
-																? `Category ${product.category_id}`
+															{product.category_ids
+																? `Category ${product.category_ids}`
 																: "Uncategorized"}
 														</span>
 														<Link to={`/products/${product.id}`}>
