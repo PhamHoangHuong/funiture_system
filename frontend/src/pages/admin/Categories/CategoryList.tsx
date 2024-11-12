@@ -12,13 +12,17 @@ import {
   Select,
   FormControl,
   Pagination,
+  SelectChangeEvent,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { categoryService, useCategory } from '../../../core/hooks/contexts';
 import { Category } from '../../../core/hooks/dataTypes';
+import { formatDate, formatStatus } from '../../../core/hooks/format';
+import { useTranslation } from 'react-i18next';
 
 const CategoryList: React.FC = () => {
+  const { t } = useTranslation();
   const { categories, fetchCategories } = useCategory();
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -61,8 +65,8 @@ const CategoryList: React.FC = () => {
     setSelectedCategoryId(null);
   };
 
-  const handleSelectChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    const action = event.target.value as string;
+  const handleSelectChange = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
+    const action = event.target.value;
     if (action === 'export') {
       console.log('Exporting data...');
     } else if (action === 'import') {
@@ -74,7 +78,7 @@ const CategoryList: React.FC = () => {
     setPage(value);
   };
 
-  const handleRowsPerPageChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
     setRowsPerPage(event.target.value as number);
     setPage(1); // Reset to first page
   };
@@ -85,8 +89,8 @@ const CategoryList: React.FC = () => {
     { field: 'slug', headerName: 'Slug', width: 150 },
     { field: 'parent_id', headerName: 'Danh mục cha', width: 150 },
     { field: 'description', headerName: 'Mô tả', width: 250 },
-    { field: 'status', headerName: 'Trạng thái', width: 120 },
-    { field: 'created_at', headerName: 'Ngày tạo', width: 180 },
+    { field: 'status', headerName: 'Trạng thái', width: 120, renderCell: (params) => formatStatus(params.row.status, t) },
+    { field: 'created_at', headerName: 'Ngày tạo', width: 180, renderCell: (params) => formatDate(params.row.created_at) },
     {
       field: 'actions',
       headerName: 'Thao tác',
@@ -147,8 +151,8 @@ const CategoryList: React.FC = () => {
               defaultValue="export"
               onChange={handleSelectChange}
             >
-              <MenuItem value="export">Export</MenuItem>
-              <MenuItem value="import">Import</MenuItem>
+              <MenuItem value="export">{t('export')}</MenuItem>
+              <MenuItem value="import">{t('import')}</MenuItem>
             </Select>
           </FormControl>
           <Button
@@ -167,8 +171,8 @@ const CategoryList: React.FC = () => {
           rows={filteredCategories.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
           columns={columns}
           pageSize={rowsPerPage}
-          pagination={false} // Ensure pagination is set to false
-          hideFooter // Hide the footer completely
+          pagination={false}
+          hideFooter
           checkboxSelection
           disableSelectionOnClick
         />

@@ -79,21 +79,20 @@ export interface Cart {
     updated_at: string;
 }
 
-interface ProductCart {
-    id: number;
-    name: string;
-    price: string;
-    image: string | null;
-}
-
 export interface Item {
     product_id: number;
     quantity: number;
-    product: Product;
+    product: {
+        id: number;
+        name: string;
+        price: string;
+        image: string | null;
+        weight?: number | null;
+    };
 }
 
 export interface CartMini {
-    items: Record<string, Item>;
+    items: Item[];
     quantity: number;
     subtotal: number;
 }

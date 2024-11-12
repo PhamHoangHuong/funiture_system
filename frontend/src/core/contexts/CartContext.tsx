@@ -1,8 +1,7 @@
-import type React from "react";
-import { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartServices";
-import type { Cart, CartMini } from "../hooks/dataTypes";
-import { c } from "vite/dist/node/types.d-aGj9QkWt";
+import { ProductService } from "../services/productService";
+import type { Cart, CartMini, Item } from "../hooks/dataTypes";
 
 interface CartContextType {
 	cart: Cart[];
@@ -18,70 +17,97 @@ export const CartContext = createContext<CartContextType | undefined>(
 	undefined,
 );
 
-// Get dữ liệu của giỏ hàng
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
 	const [cart, setCart] = useState<Cart[]>([]);
 	const [cartMini, setCartMini] = useState<CartMini>({
-		items: {},
+		items: [],
 		quantity: 0,
 		subtotal: 0,
 	});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	// Fetch dữ liệu của giỏ hàng
+	const isUserLoggedIn = () => {
+		return !!localStorage.getItem("authToken");
+	};
+
 	const fetchCart = async () => {
-		try {
-			setLoading(true);
-			const data = await cartService.getAll();
-			console.log("data", data);
-			setCart(data);
-			setError(null);
-		} catch (err) {
-			console.error("Error fetching cart:", err);
-			setError("Error fetching cart");
-		} finally {
-			setLoading(false);
+		if (isUserLoggedIn()) {
+			try {
+				setLoading(true);
+				const data = await cartService.getAll();
+				setCart(data);
+				setError(null);
+			} catch (err) {
+				console.error("Error fetching cart:", err);
+				setError("Error fetching cart");
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+			setCart(localCart);
 		}
 	};
 
-	//fetchcartmini
 	const fetchCartMini = async () => {
-		try {
-			setLoading(true);
-			const data = await cartService.getCartMini();
-			setCartMini(data);
-			return data;
-		} catch (err) {
-			console.error("Error fetching cart:", err);
-			setError("Error fetching cart");
-		} finally {
-			setLoading(false);
+		if (isUserLoggedIn()) {
+			try {
+				setLoading(true);
+				const data = await cartService.getCartMini();
+				setCartMini(data);
+				setError(null);
+			} catch (err) {
+				console.error("Error fetching mini cart:", err);
+				setError("Error fetching mini cart");
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+			const quantity = localCart.reduce((acc: number, item: Item) => acc + item.quantity, 0);
+			const subtotal = localCart.reduce((acc: number, item: Item) => acc + (Number(item.product.price) * item.quantity), 0);
+			setCartMini({ items: localCart, quantity, subtotal });
 		}
 	};
 
 	const addToCart = async (product_id: number, quantity: number) => {
-		try {
-			setLoading(true);
-			await cartService.addToCart(product_id, quantity);
+		if (isUserLoggedIn()) {
+			try {
+				setLoading(true);
+				await cartService.addToCart(product_id, quantity);
+				await fetchCartMini();
+			} catch (err) {
+				console.error("Error adding to cart:", err);
+				setError("Error adding to cart");
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+			const existingItemIndex = localCart.findIndex((item: Item) => item.product_id === product_id);
+
+			if (existingItemIndex >= 0) {
+				localCart[existingItemIndex].quantity += quantity;
+			} else {
+				const product = await ProductService.getById(product_id);
+				localCart.push({ product_id, quantity, product });
+			}
+
+			localStorage.setItem("cart", JSON.stringify(localCart));
 			await fetchCartMini();
-		} catch (err) {
-			console.error("Error adding to cart:", err);
-			setError("Error adding to cart");
-		} finally {
-			setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-	const fetchData = async () => {
-		await fetchCartMini();
-		await fetchCart();
-	};
-	fetchData();
-}, []);
+		const fetchData = async () => {
+			await fetchCartMini();
+			await fetchCart();
+		};
+		fetchData();
+	}, []);
 
 	return (
 		<CartContext.Provider

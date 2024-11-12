@@ -13,6 +13,7 @@ import {
     FormControl,
     Pagination,
     Modal,
+    SelectChangeEvent,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -71,7 +72,7 @@ const ProductList: React.FC = () => {
         setPage(value);
     };
 
-    const handleRowsPerPageChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
         setRowsPerPage(event.target.value as number);
         setPage(1); // Reset to first page
     };
