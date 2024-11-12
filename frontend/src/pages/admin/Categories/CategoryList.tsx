@@ -170,11 +170,19 @@ const CategoryList: React.FC = () => {
         <DataGrid
           rows={filteredCategories.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
           columns={columns}
-          pageSize={rowsPerPage}
-          pagination={false}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: rowsPerPage,
+                page: page - 1,
+              },
+            },
+          }}
+          paginationMode="server"
+          rowCount={filteredCategories.length}
           hideFooter
           checkboxSelection
-          disableSelectionOnClick
+          disableRowSelectionOnClick
         />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, p: 2, border: '1px solid #ccc', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
           <FormControl variant="outlined" size="small">
