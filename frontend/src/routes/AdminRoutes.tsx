@@ -39,7 +39,7 @@ const AdminRoutes: React.FC = () => {
                                     <Route path="products">
                                         <Route index element={<ProductList />} />
                                         <Route path="create" element={<ProductCreate />} />
-                                        <Route path="edit/:id" element={<ProductEdit />} />
+                                        <Route path="edit/:id" element={<ProductEdit productId={0} onClose={() => {}} />} />
                                     </Route>
                                     <Route path="categories">
                                         <Route index element={<CategoryList />} />
