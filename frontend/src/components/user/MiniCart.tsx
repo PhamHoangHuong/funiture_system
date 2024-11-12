@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../core/contexts/CartContext";
 import "../../../public/assets/user/css/miniCartStyles.css";
@@ -9,9 +9,15 @@ interface MiniCartProps {
 }
 
 const MiniCart: React.FC<MiniCartProps> = ({ isOpen, onClose }) => {
-	const { cartMini } = useCart();
+	const { cartMini, fetchCartMini, updateCartItem, removeCartItem } = useCart();
 
-	if (!isOpen) return null;
+	useEffect(() => {
+		if (isOpen) {
+			fetchCartMini();
+		}
+	}, [isOpen, fetchCartMini]);
+
+	if (!isOpen || !cartMini) return null;
 
 	return (
 		<>
@@ -24,22 +30,35 @@ const MiniCart: React.FC<MiniCartProps> = ({ isOpen, onClose }) => {
 					</button>
 				</div>
 				<div style={{ flex: 1, overflowY: "auto" }}>
-					{cartMini && cartMini.items.length > 0 ? (
+					{cartMini.items.length > 0 ? (
 						cartMini.items.map((item) => (
 							<div key={item.product_id} className="cart-item">
-								<img src={item.product.image} alt={item.product.name} className="image" />
+								<img src={item.product.image || "/assets/user/images/products/chair-md-2.png"} alt={item.product.name} className="image" />
 								<div style={{ flex: 1 }}>
 									<h4 style={{ margin: "0 0 5px" }}>{item.product.name}</h4>
 									<p style={{ margin: "0 0 5px", color: "#666" }}>
 										${item.product.price}
 									</p>
 									<div className="quantity-control">
-										<button className="quantity-button">-</button>
+										<button
+											className="quantity-button"
+											onClick={() => {
+												if (item.quantity > 0) {
+													updateCartItem(item.product_id, item.quantity - 1);
+												}
+											}}
+										>
+											-
+										</button>
 										<span style={{ margin: "0 10px" }}>{item.quantity}</span>
-										<button className="quantity-button">+</button>
+										<button className="quantity-button" onClick={() => updateCartItem(item.product_id, item.quantity + 1)}>+</button>
 									</div>
 								</div>
-								<button className="close-button" style={{ fontSize: "18px" }}>
+								<button
+									className="delete-button"
+									onClick={() => removeCartItem(item.product_id)}
+									style={{ fontSize: "18px" }}
+								>
 									&times;
 								</button>
 							</div>

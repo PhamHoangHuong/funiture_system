@@ -9,7 +9,6 @@ export const cartService = {
 		return response.data;
 	},
 
-	// get cart/mimi
 	getCartMini: async () => {
 		const response = await axios.get<CartMini>(`${API_URL}/mini`);
 		return response.data;
@@ -33,8 +32,8 @@ export const cartService = {
 		return response.data.data;
 	},
 
-	update: async (id: number, cart: Partial<Cart>) => {
-		const response = await axios.put<{ data: Cart }>(`${API_URL}/${id}`, cart);
+	update: async (product_id: number, cart: Partial<Cart>) => {
+		const response = await axios.put<{ data: Cart }>(`${API_URL}/${product_id}`, cart);
 		return response.data.data;
 	},
 

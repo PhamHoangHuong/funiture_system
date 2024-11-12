@@ -11,6 +11,8 @@ interface CartContextType {
 	fetchCartMini: () => Promise<void>;
 	cartMini: CartMini;
 	addToCart: (product_id: number, quantity: number) => Promise<void>;
+	updateCartItem: (product_id: number, quantity: number) => Promise<void>;
+	removeCartItem: (product_id: number) => Promise<void>;
 }
 
 export const CartContext = createContext<CartContextType | undefined>(
@@ -101,6 +103,59 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 		}
 	};
 
+	const updateCartItem = async (product_id: number, quantity: number) => {
+		if (quantity < 0) return; // Ngăn số lượng âm
+		if (isUserLoggedIn()) {
+			try {
+				setLoading(true);
+				if (quantity === 0) {
+					await cartService.delete(product_id); // Xóa sản phẩm nếu số lượng là 0
+				} else {
+					await cartService.update(product_id, { quantity });
+				}
+				await fetchCartMini();
+			} catch (err) {
+				console.error("Error updating cart item:", err);
+				setError("Error updating cart item");
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+			const existingItemIndex = localCart.findIndex((item: Item) => item.product_id === product_id);
+
+			if (existingItemIndex >= 0) {
+				if (quantity === 0) {
+					localCart.splice(existingItemIndex, 1); // Xóa sản phẩm nếu số lượng là 0
+				} else {
+					localCart[existingItemIndex].quantity = quantity;
+				}
+				localStorage.setItem("cart", JSON.stringify(localCart));
+				await fetchCartMini();
+			}
+		}
+	};
+
+	const removeCartItem = async (product_id: number) => {
+		if (isUserLoggedIn()) {
+			try {
+				setLoading(true);
+				await cartService.delete(product_id); // Assuming you have a delete method in cartService
+				await fetchCartMini();
+			} catch (err) {
+				console.error("Error removing cart item:", err);
+				setError("Error removing cart item");
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+			const updatedCart = localCart.filter((item: Item) => item.product_id !== product_id);
+			localStorage.setItem("cart", JSON.stringify(updatedCart));
+			await fetchCartMini();
+		}
+	};
+
 	useEffect(() => {
 		const fetchData = async () => {
 			await fetchCartMini();
@@ -119,6 +174,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 				cartMini,
 				fetchCartMini,
 				addToCart,
+				updateCartItem,
+				removeCartItem,
 			}}
 		>
 			{children}
