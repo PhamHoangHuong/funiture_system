@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\AdvancedPrice\Entities\AdvancedPrice;
 use Modules\Attributes\Entities\Attribute;
 use Modules\Attributes\Entities\AttributeValue;
+use Modules\Collection\Entities\Collection;
 use Modules\Source\Entities\Source;
 use Modules\Source\Entities\SourceProduct;
 use Modules\Category\Entities\Category;
@@ -90,6 +91,12 @@ class Product extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id')
+            ->withTimestamps();
+    }
+
+    public  function  collections()
+    {
+        return $this->belongsToMany(Collection::class, 'product_collections', 'product_id', 'collection_id')
             ->withTimestamps();
     }
 }
