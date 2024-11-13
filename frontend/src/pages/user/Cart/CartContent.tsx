@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../../core/contexts/CartContext";
 
 const CartContent: React.FC = () => {
-	const { cart } = useCart();
+	const { cart, updateCartItem, removeCartItem, fetchCart } = useCart();
+
+	useEffect(() => {
+		fetchCart();
+	}, []);
+
+	const handleUpdateCartItem = async (productId: number, quantity: number) => {
+		await updateCartItem(productId, quantity);
+		fetchCart();
+	};
+
+	const handleRemoveCartItem = async (productId: number) => {
+		await removeCartItem(productId);
+		fetchCart();
+	};
+
 	return (
 		<>
 			<div className="ptb-120 bg-white">
@@ -17,96 +32,68 @@ const CartContent: React.FC = () => {
 									<th>Quantity</th>
 									<th className="text-end">Subtotal</th>
 								</tr>
-								<tr>
-									<td>
-										<div className="d-flex align-items-center gap-4 product-box">
-											<button type="button" className="remove_product">
-												<i className="fas fa-close" />
-											</button>
-											<div className="feature-image light-bg">
-												<img
-													src="/assets/user/images/products/chair-pd.png"
-													className="img-fluid"
-													alt="product"
-												/>
-											</div>
-											<div>
-												<span className="fs-sm text-uppercase secondary-text-color d-block">
-													Chair
-												</span>
-												<a href="#" className="product-title h6 mt-2 d-block">
-													Smart Chair
-												</a>
-											</div>
-										</div>
-									</td>
-									<td>
-										<span className="fw-medium text-main-color">$550.00</span>
-									</td>
-									<td>
-										<div className="quantity d-flex align-items-center">
-											<input type="text" defaultValue={1} />
-											<div className="step-btns">
-												<button className="increment">
-													<i className="fa-solid fa-angle-up" />
+								{cart.map((item) => (
+									<tr key={item.product_id}>
+										<td>
+											<div className="d-flex align-items-center gap-4 product-box">
+												<button 
+													type="button" 
+													className="delete-button"
+													onClick={() => handleRemoveCartItem(item.product_id)}
+													style={{ fontSize: "18px" }}
+												>
+													&times;
 												</button>
-												<button className="decrement">
-													<i className="fa-solid fa-angle-down" />
-												</button>
+												<div className="feature-image light-bg">
+													<img
+														src={item.product.image || "/assets/user/images/products/chair-md-2.png"}
+														className="img-fluid"
+														alt={item.product.name}
+													/>
+												</div>
+												<div>
+													<span className="fs-sm text-uppercase secondary-text-color d-block">
+														{item.product.category}
+													</span>
+													<a href="#" className="product-title h6 mt-2 d-block">
+														{item.product.name}
+													</a>
+												</div>
 											</div>
-										</div>
-									</td>
-									<td>
-										<span className="text-main-color fw-medium d-block text-end">
-											$550
-										</span>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<div className="d-flex align-items-center gap-4 product-box">
-											<button type="button" className="remove_product">
-												<i className="fas fa-close" />
-											</button>
-											<div className="feature-image light-bg">
-												<img
-													src="/assets/user/images/products/table.png"
-													className="img-fluid"
-													alt="product"
-												/>
+										</td>
+										<td>
+											<span className="fw-medium text-main-color">${item.product.price}</span>
+										</td>
+										<td>
+											<div className="quantity d-flex align-items-center">
+												<div className="quantity-control">
+													<button
+														className="quantity-button"
+														onClick={() => {
+															if (item.quantity > 0) {
+																handleUpdateCartItem(item.product_id, item.quantity - 1);
+															}
+														}}
+													>
+														-
+													</button>
+													<span style={{ margin: "0 10px" }}>{item.quantity}</span>
+													<button 
+														className="quantity-button" 
+														onClick={() => handleUpdateCartItem(item.product_id, item.quantity + 1)}
+													>
+														+
+													</button>
+												</div>
 											</div>
-											<div>
-												<span className="fs-sm text-uppercase secondary-text-color d-block">
-													Weardrobe
-												</span>
-												<a href="#" className="product-title h6 mt-2 d-block">
-													Wooden Table
-												</a>
-											</div>
-										</div>
-									</td>
-									<td>
-										<span className="fw-medium text-main-color">$100.00</span>
-									</td>
-									<td>
-										<div className="quantity d-flex align-items-center">
-											<input type="text" defaultValue={1} />
-											<div className="step-btns">
-												<button className="increment">
-													<i className="fa-solid fa-angle-up" />
-												</button>
-												<button className="decrement">
-													<i className="fa-solid fa-angle-down" />
-												</button>
-											</div>
-										</div>
-									</td>
-									<td>
-										<span className="text-main-color fw-medium d-block text-end">
-											$100
-										</span>
-									</td>
-								</tr>
+										</td>
+										<td>
+											<span className="text-main-color fw-medium d-block text-end">
+												${(item.product.price * item.quantity).toFixed(2)}
+											</span>
+										</td>
+									</tr>
+								))}
 								<tr>
 									<td colSpan={4}>
 										<div className="d-flex align-items-center justify-content-between gap-4 flex-wrap">
@@ -123,12 +110,6 @@ const CartContent: React.FC = () => {
 													Apply Coupon
 												</button>
 											</form>
-											<button
-												type="button"
-												className="template-btn primary-btn"
-											>
-												<span>Update Cart</span>
-											</button>
 										</div>
 									</td>
 								</tr>
@@ -149,7 +130,7 @@ const CartContent: React.FC = () => {
 										<tbody>
 											<tr>
 												<td>Subtotal</td>
-												<td>$1100.00</td>
+												<td>${cart.reduce((total, item) => total + item.product.price * item.quantity, 0).toFixed(2)}</td>
 											</tr>
 											<tr>
 												<td>Shipping</td>
@@ -178,11 +159,10 @@ const CartContent: React.FC = () => {
 											</tr>
 											<tr>
 												<td>Total</td>
-												<td>$1100.00</td>
+												<td>${cart.reduce((total, item) => total + item.product.price * item.quantity, 0).toFixed(2)}</td>
 											</tr>
 										</tbody>
 									</table>
-									{/* <button type="submit" className="template-btn primary-btn text-uppercase mt-5"><span>Proceed to checkout</span></button> */}
 									<Link
 										className="template-btn primary-btn text-uppercase mt-5"
 										to="/checkout"
