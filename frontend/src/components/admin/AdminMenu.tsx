@@ -17,12 +17,10 @@ const AdminMenu: React.FC = () => {
             {/* Sidebar Logo */}
             <div className="logo-box">
                 <NavLink to="/admin/dashboard" className="logo-dark">
-                    <img src="/assets/admin/images/logo-sm.png" className="logo-sm" alt="logo sm" />
-                    <img src="/assets/admin/images/logo-dark.png" className="logo-lg" alt="logo dark" />
+                    <img src="/assets/user/images/logo.png" className="logo-lg" alt="logo dark" style={{ width: '180px', height: 'auto' }} />
                 </NavLink>
                 <NavLink to="/admin/dashboard" className="logo-light">
-                    <img src="/assets/admin/images/logo-sm.png" className="logo-sm" alt="logo sm" />
-                    <img src="/assets/admin/images/logo-light.png" className="logo-lg" alt="logo light" />
+                    <img src="/assets/user/images/logo-white.png" className="logo-lg" alt="logo dark" style={{ width: '180px', height: 'auto' }} />
                 </NavLink>
             </div>
             {/* Menu Toggle Button (sm-hover) */}
