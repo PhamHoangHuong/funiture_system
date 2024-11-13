@@ -8,17 +8,17 @@ export interface TableHeader {
 }
 
 export interface SuccessResponse<Data> {
-    data: Data
+    data: Data;
 }
 
 export interface ErrorResponse<Data> {
-    message: string
-    data?: Data
+    message: string;
+    data?: Data;
 }
 
 //  cu phap -? se loai bo key optionnal
 export type NoUndefineField<T> = {
-    [key in keyof T]-?: NoUndefineField<NonNullable<T[key]>>
+    [key in keyof T]-?: NoUndefineField<NonNullable<T[key]>>;
 }
 
 // User related types
@@ -43,24 +43,24 @@ export interface Category {
 }
 
 export interface Product {
-    id: number
-    name: string
-    slug: string | null
-    description: string | null
-    content: string | null
-    image: File | null
-    status: number
-    weight: number | null
-    price: number
-    start_new_time: string | null
-    end_new_time: string | null
-    parent_id: number | null
-    sku: string | null
-    stock_quantity: number
-    seo_title: string | null
-    seo_description: string | null
-    video_link: string | null
-    category_ids: number[]
+    id: number;
+    name: string;
+    slug: string | null;
+    description: string | null;
+    content: string | null;
+    image: File | null;
+    status: number;
+    weight: number | null;
+    price: number;
+    start_new_time: string | null;
+    end_new_time: string | null;
+    parent_id: number | null;
+    sku: string | null;
+    stock_quantity: number;
+    seo_title: string | null;
+    seo_description: string | null;
+    video_link: string | null;
+    category_ids: number[];
     sources: SourceProduct[];
     attributes: ProductAttribute[];
     advanced_prices: AdvancedPrice[];
@@ -71,12 +71,30 @@ export interface Variant extends Omit<Product, 'variants' | 'sources' | 'advance
     attributes: ProductAttribute[];
 }
 
-// cart 
+// Cart related types
 export interface Cart {
     id: number;
     user_id: number;
     created_at: string;
     updated_at: string;
+}
+
+export interface Item {
+    product_id: number;
+    quantity: number;
+    product: {
+        id: number;
+        name: string;
+        price: number;
+        image: string | null;
+        weight?: number | null;
+    };
+}
+
+export interface CartMini {
+    items: Item[];
+    quantity: number;
+    subtotal: number;
 }
 
 // Wishlist
@@ -203,6 +221,7 @@ export interface topics {
     created_at: string;
     updated_at: string;
 }
+
 export interface Posts {
     id: number;
     topic_id: number;

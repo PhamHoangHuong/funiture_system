@@ -1,3 +1,4 @@
-import Pagination from 'src/component/Pagination/Pagination'
+import Pagination from './Pagination'
 
 export default Pagination
+

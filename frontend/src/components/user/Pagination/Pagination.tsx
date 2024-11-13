@@ -1,6 +1,6 @@
 import classNames from "classnames"
 import { Link } from "react-router-dom"
-
+import React from "react"
 interface PaginationProps {
     page: number
     pageSize: number
