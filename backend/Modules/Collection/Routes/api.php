@@ -20,7 +20,9 @@ use Modules\Collection\Http\Controllers\CollectionController;
 
 Route::group(['prefix' => '/collections'], function () {
     Route::get('', [CollectionController::class, 'index']);
+    Route::get('/{collectionId}', [CollectionController::class, 'show']);
     Route::post('', [CollectionController::class, 'store']);
     Route::put('/{collectionId}', [CollectionController::class, 'update']);
+    Route::put('/{collectionId}/active', [CollectionController::class, 'switchStatus']);
     Route::delete('/{collectionId}', [CollectionController::class, 'destroy']);
 });
