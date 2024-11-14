@@ -12,4 +12,8 @@ class CategoriesRepository extends BaseRepository implements CategoriesRepositor
     {
         return Category::class;
     }
+    public function checkExistSlug(mixed $slug)
+    {
+        return $this->model->where('slug', $slug)->exists();
+    }
 }
