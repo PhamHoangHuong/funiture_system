@@ -14,14 +14,11 @@ class CategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'slug' => 'required|string|max:20',
-            'parent_id' => 'nullable|integer|exists:categories,id',
-            'image' => 'nullable|string|max:200',
-            'description' => 'nullable|string',
-            'is_menu' => 'required|boolean',
-            'status' => 'boolean',
-            'deleted_at' => 'nullable|date',
+            'name'=>'nullable|string',
+            'slug'=>'nullable|string|unique:categories,slug,'.$this->route('category'),
+            'description'=>'nullable|string',
+            'image'=>'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'status'=>'nullable|integer|in:0,1',
         ];
     }
 
