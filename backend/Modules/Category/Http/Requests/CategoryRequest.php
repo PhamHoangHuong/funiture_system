@@ -13,11 +13,22 @@ class CategoryRequest extends FormRequest
      */
     public function rules()
     {
+        $categoryId = $this->route('category');
         return [
-            'name'=>'nullable|string',
-            'slug'=>'nullable|string|unique:categories,slug,'.$this->route('category'),
+            'name' => 'sometimes|required|string|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('categories')->ignore($categoryId),
+            ],
+            'parent_id'=>[
+                'nullable',
+                'integer',
+                Rule::exists('categories','id')->whereNull('parent_id')
+            ],
             'description'=>'nullable|string',
-            'image'=>'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image'=>'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'status'=>'nullable|integer|in:0,1',
         ];
     }
