@@ -147,6 +147,7 @@ class CategoryController extends Controller
         // Add additional fields
         $data['name'] = $request->input('name', $data['name'] ?? null);
         $data['slug'] = $request->input('slug', $data['slug'] ?? null);
+        $data['parent_id'] = $request->input('parent_id', $data['parent_id'] ?? null);
         $data['description'] = $request->input('description', $data['description'] ?? null);
         $data['status'] = $request->input('status', $data['status'] ?? 1);
 
