@@ -15,7 +15,17 @@ use Modules\Customer\Http\Controllers\CustomerController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::apiResource('customers', CustomerController::class);
+
+//Route for admin
+Route::group(['prefix'=>'/customers'],function(){
+    Route::get('', [CustomerController::class,'index']);
+    Route::post('', [CustomerController::class,'store']);
+    Route::put('/{id}', [CustomerController::class,'update']);
+    Route::put('/{id}/active', [CustomerController::class,'switchStatus']);
+    Route::delete('/{id}', [CustomerController::class,'destroy']);
+});
+
+//Route for customer auth
 Route::group([
     'middleware' => 'jwt',
 ], function ($router) {
