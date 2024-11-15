@@ -59,8 +59,16 @@ class CategoryController extends Controller
                 return $this->toResponseBad('Danh mục đã tồn tại', Response::HTTP_BAD_REQUEST);
             }
 
-            $data=$this->prepareCategoryData($request, null, true);
-            $this->categoryRepository->create($data);
+            //Chuẩn bị dữ liệu để tạo danh mục
+            $category=$this->prepareCategoryData($request, null, true);
+            //Tạo danh mục mới
+            $this->categoryRepository->create($category);
+
+            //Kiểm tra xem có thêm sản phẩm khi tạo danh mục không
+            if($request->has('products') && count($request->products) > 0) {
+                $this->categoryRepository->updateCategoryProducts($category, $request->input('product_ids',[]));
+            }
+
             DB::commit();
             return $this->toResponseSuccess(null, 'Tạo danh mục mới thành công', Response::HTTP_CREATED);
         }catch (\Exception $e) {
@@ -85,6 +93,12 @@ class CategoryController extends Controller
 
             $data = $this->prepareCategoryData($request, $categories->image, false);
             $this->categoryRepository->update($id, $data);
+
+            //Kiểm tra xem có thay thế sản phẩm khi cập nhật danh mục không
+            if($request->has('products') && count($request->products) > 0) {
+                $this->categoryRepository->updateCategoryProducts($categories, $request->input('product_ids',[]));
+            }
+
             DB::commit();
             return $this->toResponseSuccess(null, 'Cập nhật dữ liệu thành công', Response::HTTP_OK);
         }catch (\Exception $e) {
