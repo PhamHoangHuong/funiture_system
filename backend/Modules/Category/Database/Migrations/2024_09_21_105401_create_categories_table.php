@@ -14,16 +14,15 @@ return new class extends Migration
     public function up()
     {
         Schema::create('categories', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('name', 255)->unique();
-            $table->string('slug', 20);
-            $table->bigInteger('parent_id')->nullable();
-            $table->string('image', 200)->nullable();
-            $table->string('description')->nullable();
-            $table->tinyInteger('is_menu')->default(true);
-            $table->boolean('status')->default(true);
-            $table->timestamp('deleted_at')->nullable();
+            $table->id ();
+            $table->string('name',)->nullable()->comment('Tên danh mục');
+            $table->string('slug',)->nullable()->unique()->comment('Đường dẫn thân thiện');
+            $table->integer('parent_id')->nullable()->comment('ID danh mục cha');
+            $table->string('image')->nullable()->comment('Ảnh bìa danh mục');
+            $table->string('description')->nullable()->comment('Mô tả danh mục');
+            $table->tinyInteger('status')->default(1)->comment('Trạng thái danh mục');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
