@@ -15,8 +15,9 @@ class ProductCollectionResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'product_id'=>$this->product_id,
-            'collection_id'=>$this->collection_id,
+            'id'=> $this->id,
+            'product_id'=> $this->product_id,
+            'collection_id' => $this->collection_id,
         ];
     }
 }

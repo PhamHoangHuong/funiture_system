@@ -16,4 +16,9 @@ class CategoriesRepository extends BaseRepository implements CategoriesRepositor
     {
         return $this->model->where('slug', $slug)->exists();
     }
+
+    public function updateCategoryProducts($category, array $productIds)
+    {
+            $category->products()->sync($productIds);
+    }
 }

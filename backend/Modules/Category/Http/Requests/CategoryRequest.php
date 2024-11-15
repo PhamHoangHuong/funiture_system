@@ -32,6 +32,10 @@ class CategoryRequest extends FormRequest
             'description'=>'nullable|string',
             'image'=>'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'status'=>'nullable|integer|in:0,1',
+
+            //Thêm products nếu có
+            'products'=>'nullable|array',
+            'products.*'=>'integer|exists:products,id'
         ];
     }
 

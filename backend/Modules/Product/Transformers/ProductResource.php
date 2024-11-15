@@ -44,6 +44,7 @@ class ProductResource extends JsonResource
             }),
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'collections' => ProductCollectionResource::collection($this->whenLoaded('collections')),
             'sourceProducts' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
         ];
     }
