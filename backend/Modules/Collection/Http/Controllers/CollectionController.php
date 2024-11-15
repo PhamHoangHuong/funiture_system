@@ -59,8 +59,13 @@ class CollectionController extends Controller
                 return $this->toResponseBad('Bộ sưu tập đã tồn tại', Response::HTTP_BAD_REQUEST);
             }
 
-            $data=$this->prepareCollectionData($request, null, true);
-             $this->collectionRepository->create($data);
+            $collection=$this->prepareCollectionData($request, null, true);
+             $this->collectionRepository->create($collection);
+
+             if($request->has('products') && count($request->products) > 0) {
+                 $this->collectionRepository->updateCollectionProducts($collection, $request->input('product_ids',[]));
+             }
+
             DB::commit();
             return $this->toResponseSuccess(null, 'Tạo bộ sưu tập mới thành công', Response::HTTP_CREATED);
         }catch (\Exception $e) {
@@ -86,6 +91,11 @@ class CollectionController extends Controller
 
             $data = $this->prepareCollectionData($request, $collection->image, false);
             $this->collectionRepository->update($data, $id);
+
+            if($request->has('products') && count($request->products) > 0) {
+                $this->collectionRepository->updateCollectionProducts($data, $request->input('product_ids',[]));
+            }
+
             DB::commit();
             return $this->toResponseSuccess(null, 'Cập nhật bộ sưu tập thành công', Response::HTTP_OK);
         }catch (\Exception $e) {

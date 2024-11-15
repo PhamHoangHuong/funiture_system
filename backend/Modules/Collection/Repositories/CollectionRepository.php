@@ -15,4 +15,9 @@ class CollectionRepository extends  BaseRepository implements CollectionReposito
     {
         return $this->model->where('slug', $slug)->exists();
     }
+
+    public function updateCollectionProducts($collections, array $productIds)
+    {
+        $collections->products()->sync($productIds);
+    }
 }
