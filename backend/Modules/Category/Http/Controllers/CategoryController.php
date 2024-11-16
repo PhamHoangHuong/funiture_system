@@ -50,7 +50,7 @@ class CategoryController extends Controller
         }
     }
 
-    public function store(CategoryRequest $request)
+public function store(CategoryRequest $request)
     {
         DB::BeginTransaction();
         try{
@@ -60,12 +60,12 @@ class CategoryController extends Controller
             }
 
             //Chuẩn bị dữ liệu để tạo danh mục
-            $category=$this->prepareCategoryData($request, null, true);
+            $data=$this->prepareCategoryData($request, null, true);
             //Tạo danh mục mới
-            $this->categoryRepository->create($category);
+            $category=$this->categoryRepository->create($data);
 
             //Kiểm tra xem có thêm sản phẩm khi tạo danh mục không
-            if($request->has('products') && count($request->products) > 0) {
+            if ($request->has('product_ids') && count($request->product_ids) > 0) {
                 $this->categoryRepository->updateCategoryProducts($category, $request->input('product_ids',[]));
             }
 
