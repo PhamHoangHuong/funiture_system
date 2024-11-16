@@ -46,10 +46,10 @@ class CartController extends Controller
      * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
-        ProductRepositoryInterface  $productRepository,
-        CartItemRepositoryInterface $cartItemRepository,
-        CartRepositoryInterface     $cartRepository,
-        SourceRepositoryInterface   $sourceRepository,
+        ProductRepositoryInterface        $productRepository,
+        CartItemRepositoryInterface       $cartItemRepository,
+        CartRepositoryInterface           $cartRepository,
+        SourceRepositoryInterface         $sourceRepository,
         CartPriceRulesRepositoryInterface $cartPriceRule
     )
     {
@@ -96,23 +96,21 @@ class CartController extends Controller
         // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
         try {
             if (auth('customer')->check()) {
-                $cart = Cart::where('user_id', auth('customer')->id())->with('items.product')->first();
-                if (!$cart) {
-                    return response()->json(['message' => 'Cart is empty'], 404);
-                }
-                return response()->json($cart);
+                $cart = $this->cartRepository->getCartByUserId();
+
+            } else {
+                $cart = Session::get('cart', []);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
         // Nếu chưa đăng nhập, lấy giỏ hàng từ session
-        $cart = Session::get('cart', []);
+
         $subtotal = 0;
-        foreach ($cart as $key => $item) {
-            $id_product = (int)$item['product_id'];
-            $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
-            $subtotal += $cart[$key]['product']->price * $item['quantity'];
+        if(is_array($cart->toArray()))
+        foreach ($cart['items'] as $key => $item) {
+            $subtotal += $item['product']['price'] * $item['quantity'];
         }
 
         $quantity = $this->getQuantityCart();
@@ -234,7 +232,7 @@ class CartController extends Controller
      */
     public function getQuantityCart()
     {
-        $cart = $this->getCartSession();
+        $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId()->toArray()['items'] : $this->getCartSession();
         $quantity = 0;
         foreach ($cart as $item) {
             $quantity += $item['quantity'];
@@ -249,8 +247,6 @@ class CartController extends Controller
      */
     public function getTotalCart()
     {
-        $cartPriceRules = $this->cartPriceRule->getAll();
-
         $cart = $this->getCartSession();
         $subtotal = 0;
         $weight = 0;
@@ -267,7 +263,7 @@ class CartController extends Controller
             $dataRule = $rule->getAttributes();
             $check = $this->checkRule($dataRule);
             if ($check['check'] && $dataRule['coupon_type'] == 2) {
-                if($this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
+                if ($this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
                     $coupon[] = $dataRule['coupon_value'];
 
                 }
@@ -277,7 +273,6 @@ class CartController extends Controller
 
         $info_cart = [
             'subtotal' => $subtotal,
-            'coupon' => $coupon,
             'total' => $subtotal
         ];
 
@@ -286,6 +281,36 @@ class CartController extends Controller
         ];
 
         return $results;
+    }
+
+    public function getListCartPriceRuleApply()
+    {
+        $cartPriceRules = $this->cartPriceRule->getAll();
+        $subtotal = 0;
+        $weight = 0;
+        $quantity = 0;
+        $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId() : $this->getCartSession();
+        if (!empty($cart)) {
+            foreach ($cart->toArray()['items'] as $item) {
+                $subtotal += $item['product']['price'] * $item['quantity'];
+                $weight += $item['product']['weight'] * $item['quantity'];
+                $quantity += $item['quantity'];
+            }
+            $coupon = [];
+            foreach ($cartPriceRules as $rule) {
+                $dataRule = $rule->getAttributes();
+                $check = $this->checkRule($dataRule);
+                if ($check['check'] && $dataRule['coupon_type'] == 2 && $this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
+                    $dataRule['invalid_reason'] = true;
+                    $coupon[] = $dataRule;
+                } else {
+                    $dataRule['invalid_reason'] = false;
+                    $coupon[] = $dataRule;
+                }
+            }
+            return response()->json($coupon, 200);
+        }
+        return response()->json(['message' => 'Cart not found'], 404);
     }
 
     /**
