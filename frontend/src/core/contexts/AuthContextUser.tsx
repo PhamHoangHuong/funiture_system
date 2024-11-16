@@ -7,7 +7,7 @@ import { AuthContextType, User } from '../hooks/dataTypes';
 
 
 // Tạo context xác thực
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContextUser = createContext<AuthContextType | undefined>(undefined);
 
 // Component Provider để quản lý trạng thái xác thực
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -42,11 +42,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleLogin = async (email: string, password: string) => {
         try {
             const response = await login(email, password);
-            setUser(response.data.user);
-            localStorage.setItem('access_token', response.data.access_token);
-            localStorage.setItem('refresh_token', response.data.refresh_token);
-            // navigate('/admin/dashboard');
-            return { success: true };
+            if (response.data && response.data.user) {
+                setUser(response.data.user);
+                localStorage.setItem('access_token', response.data.access_token);
+                localStorage.setItem('refresh_token', response.data.refresh_token);
+                return { success: true };
+            } else {
+                return { success: false, error: t('invalidCredentials') };
+            }
         }
         catch (error) {
             console.error(t('loginError'), error);
@@ -61,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
-            navigate('/admin/login');
+            navigate('/login');
         } catch (error) {
             console.error(t('logoutError'), error);
         }
@@ -84,15 +87,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Cung cấp context cho các component con
     return (
-        <AuthContext.Provider value={{ user, loading, handleLogin, handleLogout, handleRefreshToken }}>
+        <AuthContextUser.Provider value={{ user, loading, handleLogin, handleLogout, handleRefreshToken }}>
             {children}
-        </AuthContext.Provider>
+        </AuthContextUser.Provider>
     );
 };
 
 // Hook tùy chỉnh để sử dụng AuthContext
-export const useAuth = () => {
-    const context = useContext(AuthContext);
+export const useSiteAuth = () => {
+    const context = useContext(AuthContextUser);
     if (context === undefined) {
         throw new Error('useAuth phải được sử dụng trong AuthProvider');
     }
