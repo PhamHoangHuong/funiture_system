@@ -15,13 +15,20 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
     }
 
     public function getCartByUserId(){
-        $cart = $this->model->select('customer_id', 'id')->where('customer_id', Auth::guard('customer')->id())->with('items', function ($query){
-            $query->select('cart_id', 'product_id', 'quantity');
-        })->first();
-        $cart->items->map(function($item){
-            $item->product = $item->product()->select('id', 'name', 'price', 'image', 'weight')->first();
-            return $item;
-        });
+        $cart = $this->model
+            ->select('customer_id', 'id')
+            ->where('customer_id', Auth::guard('customer')->id())
+            ->with(['items' => function ($query) {
+                $query->select('cart_id', 'product_id', 'quantity')->with(['product' => function ($productQuery) {
+                    $productQuery->select('id', 'name', 'price', 'image', 'weight');
+                }]);
+            }])
+            ->first();
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
         return $cart;
     }
 

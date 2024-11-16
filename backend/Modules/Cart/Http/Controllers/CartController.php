@@ -97,22 +97,20 @@ class CartController extends Controller
         try {
             if (auth('customer')->check()) {
                 $cart = $this->cartRepository->getCartByUserId();
-                if (!$cart) {
-                    return response()->json(['message' => 'Cart is empty'], 404);
-                }
-                return response()->json($cart);
+
+            } else {
+                $cart = Session::get('cart', []);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
         // Nếu chưa đăng nhập, lấy giỏ hàng từ session
-        $cart = Session::get('cart', []);
+
         $subtotal = 0;
-        foreach ($cart as $key => $item) {
-            $id_product = (int)$item['product_id'];
-            $cart[$key]['product'] = $this->getProduct($id_product, ['id', 'name', 'price', 'image']);
-            $subtotal += $cart[$key]['product']->price * $item['quantity'];
+        if(is_array($cart->toArray()))
+        foreach ($cart['items'] as $key => $item) {
+            $subtotal += $item['product']['price'] * $item['quantity'];
         }
 
         $quantity = $this->getQuantityCart();
@@ -234,7 +232,7 @@ class CartController extends Controller
      */
     public function getQuantityCart()
     {
-        $cart = $this->getCartSession();
+        $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId()->toArray()['items'] : $this->getCartSession();
         $quantity = 0;
         foreach ($cart as $item) {
             $quantity += $item['quantity'];
@@ -293,10 +291,9 @@ class CartController extends Controller
         $quantity = 0;
         $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId() : $this->getCartSession();
         if (!empty($cart)) {
-            foreach ($cart as $item) {
-                $product = $this->getProduct($item['product_id'], ['id', 'price']);
-                $subtotal += $product->price * $item['quantity'];
-                $weight += $product->weight * $item['quantity'];
+            foreach ($cart->toArray()['items'] as $item) {
+                $subtotal += $item['product']['price'] * $item['quantity'];
+                $weight += $item['product']['weight'] * $item['quantity'];
                 $quantity += $item['quantity'];
             }
             $coupon = [];
