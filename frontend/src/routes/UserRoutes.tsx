@@ -17,7 +17,7 @@ import Signup from "../pages/user/auth/Signup"
 import Login from "../pages/user/auth/Login"
 import { ProductProvider } from "../core/contexts/ProductContext"
 import { CartProvider } from "../core/contexts/CartContext"
-import { AuthProvider, useSiteAuth } from "../core/contexts/AuthContextUser"
+import { AuthProvider, useSiteAuth } from "../core/contexts/UserAuthContext"
 import Wishlist from "../pages/user/wishlist/Wishlist"
 
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {

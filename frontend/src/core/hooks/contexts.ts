@@ -4,9 +4,8 @@ export { useCategory } from '../contexts/CategoryContext';
 export { useSource } from '../contexts/SourceContext';
 export { useAttribute } from '../contexts/AttributeContext';
 export { useAdvancedPrice } from '../contexts/AdvancedPriceContext';
-export { useAuth } from '../contexts/AuthContext'; 
-export { useCart } from '../contexts/CartContext'; 
 export { useSiteAuth } from '../contexts/AuthContextUser';
+export { useCart } from '../contexts/CartContext'; 
 
 
 // Export các services
