@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, logoutUser, refreshUserToken, getUserProfile } from '../services/userApi';
+import { login, logout, refreshToken, getProfile } from '../services/apiUser';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../hooks/translation';
 import { AuthContextType, User } from '../hooks/dataTypes';
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const token = localStorage.getItem('access_token');
             if (token) {
-                const response = await getUserProfile();
+                const response = await getProfile();
                 setUser(response.data);
             }
         } catch (error) {
@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Hàm xử lý đăng nhập
     const handleLogin = async (email: string, password: string) => {
         try {
-            const response = await loginUser(email, password);
+            const response = await login(email, password);
             if (response.data && response.data.user) {
                 setUser(response.data.user);
                 localStorage.setItem('access_token', response.data.access_token);
@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Hàm xử lý đăng xuất
     const handleLogout = async () => {
         try {
-            await logoutUser();
+            await logout();
             setUser(null);
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Hàm làm mới token
     const handleRefreshToken = async () => {
         try {
-            const response = await refreshUserToken();
+            const response = await refreshToken();
             localStorage.setItem('access_token', response.data.access_token);
             return true;
         } catch (error) {

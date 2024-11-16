@@ -6,11 +6,11 @@ import { AuthContextType, User } from '../hooks/dataTypes';
 
 
 
-// Rename the context and hook
-const UserAuthContext = createContext<AuthContextType | undefined>(undefined);
+// Tạo context xác thực
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Component Provider để quản lý trạng thái xác thực
-export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // State để lưu thông tin người dùng và trạng thái loading
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -84,17 +84,17 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Cung cấp context cho các component con
     return (
-        <UserAuthContext.Provider value={{ user, loading, handleLogin, handleLogout, handleRefreshToken }}>
+        <AuthContext.Provider value={{ user, loading, handleLogin, handleLogout, handleRefreshToken }}>
             {children}
-        </UserAuthContext.Provider>
+        </AuthContext.Provider>
     );
 };
 
 // Hook tùy chỉnh để sử dụng AuthContext
-export const useUserAuth = () => {
-    const context = useContext(UserAuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useUserAuth must be used within a UserAuthProvider');
+        throw new Error('useAuth phải được sử dụng trong AuthProvider');
     }
     return context;
 };
