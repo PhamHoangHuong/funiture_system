@@ -11,9 +11,14 @@ class CollectionRepository extends  BaseRepository implements CollectionReposito
     {
         return Collection::class;
     }
-    public function checkExistSlug(mixed $slug)
+    public function checkExistSlug(mixed $slug, $collectionId=null)
     {
-        return $this->model->where('slug', $slug)->exists();
+//        dd($slug);
+        if($collectionId==null) {
+            return $this->model->where('slug', $slug)->exists();
+        }else {
+            return $this->model->where('slug', $slug)->where('id', '!=', $collectionId)->exists();
+        }
     }
 
     public function updateCollectionProducts($collections, array $productIds)

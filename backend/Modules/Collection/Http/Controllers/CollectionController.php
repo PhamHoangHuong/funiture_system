@@ -62,7 +62,7 @@ class CollectionController extends Controller
             $collection=$this->prepareCollectionData($request, null, true);
              $this->collectionRepository->create($collection);
 
-             if($request->has('products') && count($request->products) > 0) {
+             if($request->has('product_ids') && count($request->product_ids) > 0) {
                  $this->collectionRepository->updateCollectionProducts($collection, $request->input('product_ids',[]));
              }
 
@@ -84,16 +84,16 @@ class CollectionController extends Controller
                 return $this->toResponseBad('Không tìm thấy bộ sưu tập', Response::HTTP_NOT_FOUND);
             }
 
-            $existSlug = $this->collectionRepository->checkExistSlug($request->slug);
-            if($existSlug && $collection->slug != $request->slug) {
-                return $this->toResponseBad('Bộ sưu tập đã tồn tại', Response::HTTP_BAD_REQUEST);
+            $existsSlug = $this->collectionRepository->checkExistSlug($request->slug, $collection->id);
+            if ($existsSlug) {
+                return $this->toResponseBad('Slug đã tồn tại', Response::HTTP_BAD_REQUEST);
             }
 
             $data = $this->prepareCollectionData($request, $collection->image, false);
-            $this->collectionRepository->update($data, $id);
+            $collection = $this->collectionRepository->update($id, $data);
 
-            if($request->has('products') && count($request->products) > 0) {
-                $this->collectionRepository->updateCollectionProducts($data, $request->input('product_ids',[]));
+            if ($request->has('product_ids') && count($request->product_ids) > 0) {
+                $this->collectionRepository->updateCollectionProducts($collection, $request->input('product_ids', []));
             }
 
             DB::commit();
