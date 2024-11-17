@@ -11,8 +11,10 @@ import { generateSlug, formatStatusAdd } from '../../../core/hooks/format';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const CategoryEdit: React.FC = () => {
+    const { t } = useTranslation();
     const { updateCategory, categories } = useCategory();
     const { id } = useParams<{ id: string }>();
     const [category, setCategory] = React.useState<Partial<Category>>({});
@@ -61,7 +63,7 @@ const CategoryEdit: React.FC = () => {
             name: category.name || '',
             slug: category.slug || generateSlug(category.name || ''),
             parent_id: category.parent_id || null,
-            status: category.status || 1, 
+            status: category.status || 1,
             product_ids: sanPhamIds,
             image: category.image || null,
         };
@@ -134,11 +136,11 @@ const CategoryEdit: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3} alignItems="center">
                         <Grid item xs={10}>
-                            <Typography variant="h4">Thêm Danh Mục Mới</Typography>
+                            <Typography variant="h4">{t('addCategory')}</Typography>
                         </Grid>
                         <Grid item xs={2}>
                             <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
-                                Thêm Danh Mục
+                                {t('addCategory')}
                             </Button>
                         </Grid>
                     </Grid>
@@ -146,7 +148,7 @@ const CategoryEdit: React.FC = () => {
 
                     <Accordion defaultExpanded>
                         <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                            <Typography variant="h6">Thông tin cơ bản</Typography>
+                            <Typography variant="h6">{t('basicInformation')}</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <Grid container spacing={3}>
@@ -170,7 +172,7 @@ const CategoryEdit: React.FC = () => {
                                         <Grid item md={3}>
                                             {CategoryMap.categories && CategoryMap.categories.length > 0 && (
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Danh mục cha</InputLabel>
+                                                    <InputLabel>{t('parentCategory')}</InputLabel>
                                                     <Select
                                                         value={category.parent_id || ''}
                                                         onChange={(e) => handleCategoryChange('parent_id', e.target.value)}
@@ -195,7 +197,7 @@ const CategoryEdit: React.FC = () => {
                                             <TextField
                                                 variant="outlined"
                                                 value={sanPhamNames.join(', ')}
-                                                placeholder="Chọn sản phẩm"
+                                                placeholder={t('selectProduct')}
                                                 fullWidth
                                                 InputProps={{
                                                     readOnly: true,
@@ -247,7 +249,7 @@ const CategoryEdit: React.FC = () => {
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <Typography variant="body2" color="textSecondary">image Preview</Typography>
+                                            <Typography variant="body2" color="textSecondary">{t('imagePreview')}</Typography>
                                         )}
                                     </Box>
                                     <input
@@ -259,7 +261,7 @@ const CategoryEdit: React.FC = () => {
                                     />
                                     <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                         <Button variant="contained" component="span">
-                                            Upload image
+                                            {t('uploadImage')}
                                         </Button>
                                     </label>
                                 </Grid>

@@ -129,7 +129,7 @@ const ProductList: React.FC = () => {
                 <TextField
                     variant="outlined"
                     size="small"
-                    placeholder={t("product.searchPlaceholder")}
+                    placeholder={t("search")}
                     onChange={(e) => handleSearch('name', e.target.value)}
                     InputProps={{
                         startAdornment: (

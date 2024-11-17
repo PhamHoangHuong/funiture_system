@@ -10,8 +10,10 @@ import ProductFullScreen from '../FullScreen/ProductFullScreen';
 import { generateSlug, formatStatusAdd } from '../../../core/hooks/format';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useTranslation } from 'react-i18next';
 
 const CategoryCreate: React.FC = () => {
+    const { t } = useTranslation();
     const { createCategory } = useCategory();
     const [category, setCategory] = React.useState<Omit<Category, 'id'>>({
         name: '',
@@ -136,11 +138,11 @@ const CategoryCreate: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3} alignItems="center">
                         <Grid item xs={10}>
-                            <Typography variant="h4">Thêm Danh Mục Mới</Typography>
+                            <Typography variant="h4">{t('addCategory')}</Typography>
                         </Grid>
                         <Grid item xs={2}>
                             <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
-                                Thêm Danh Mục
+                                {t('addCategory')}
                             </Button>
                         </Grid>
                     </Grid>
@@ -148,7 +150,7 @@ const CategoryCreate: React.FC = () => {
 
                     <Accordion defaultExpanded>
                         <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                            <Typography variant="h6">Thông tin cơ bản</Typography>
+                            <Typography variant="h6">{t('basicInformation')}</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <Grid container spacing={3}>
@@ -157,7 +159,7 @@ const CategoryCreate: React.FC = () => {
                                         <Grid item md={3}>
                                             <TextField
                                                 fullWidth
-                                                label="Tên danh mục"
+                                                label={t('categoryName')}
                                                 value={category.name}
                                                 onChange={(e) => handleCategoryChange('name', e.target.value)}
                                                 required
@@ -166,7 +168,7 @@ const CategoryCreate: React.FC = () => {
                                         <Grid item md={3}>
                                             <TextField
                                                 fullWidth
-                                                label="Slug"
+                                                label={t('slug')}
                                                 value={category.slug}
                                                 onChange={(e) => handleCategoryChange('slug', e.target.value)}
                                             />
@@ -174,10 +176,10 @@ const CategoryCreate: React.FC = () => {
                                         <Grid item md={3}>
                                             {CategoryMap.categories && CategoryMap.categories.length > 0 && (
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Danh mục cha</InputLabel>
+                                                    <InputLabel>{t('parentCategory')}</InputLabel>
                                                     <Select
                                                         value={category.parent_id || ''}
-                                                        label="Danh mục cha"
+                                                        label={t('parentCategory')}
                                                         onChange={(e) => handleCategoryChange('parent_id', e.target.value)}
                                                     >
                                                         {mapCategories(CategoryMap.categories)}
@@ -193,14 +195,14 @@ const CategoryCreate: React.FC = () => {
                                                         onChange={(e) => handleCategoryChange('status', e.target.checked ? 1 : 0)}
                                                     />
                                                 }
-                                                label="Status"
+                                                label={t('status')}
                                             />
                                         </Grid>
                                         <Grid item onClick={moDialog} md={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
                                             <TextField
                                                 variant="outlined"
                                                 value={sanPhamNames.join(', ')}
-                                                placeholder="Chọn sản phẩm"
+                                                placeholder={t('selectProduct')}
                                                 fullWidth
                                                 InputProps={{
                                                     readOnly: true,
@@ -235,7 +237,7 @@ const CategoryCreate: React.FC = () => {
                                             )}
                                         </Grid>
                                         <Grid item md={12}>
-                                            <Typography variant="body1" gutterBottom>Mô tả</Typography>
+                                            <Typography variant="body1" gutterBottom>{t('description')}</Typography>
                                             <Box sx={{ border: '1px solid #ccc', borderRadius: 1, overflow: 'hidden' }}>
                                                 <ReactQuill
                                                     theme="snow"
@@ -252,7 +254,7 @@ const CategoryCreate: React.FC = () => {
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <Typography variant="body2" color="textSecondary">Image Preview</Typography>
+                                            <Typography variant="body2" color="textSecondary">{t('imagePreview')}</Typography>
                                         )}
                                     </Box>
                                     <input
@@ -264,7 +266,7 @@ const CategoryCreate: React.FC = () => {
                                     />
                                     <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                         <Button variant="contained" component="span">
-                                            Upload Image
+                                            {t('uploadImage')}
                                         </Button>
                                     </label>
                                 </Grid>
