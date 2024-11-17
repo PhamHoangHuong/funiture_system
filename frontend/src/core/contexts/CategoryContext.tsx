@@ -44,7 +44,7 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const newCategory = await categoryService.create(category);
             setCategories((prevCategories) => [...prevCategories, newCategory]);
             showNotification(t('common.createSuccess'), 'success');
-            navigate('/admin/categories/list');
+            navigate('/admin/categories');
             return newCategory;
         } catch (err) {
             console.error('Error creating category:', err);
