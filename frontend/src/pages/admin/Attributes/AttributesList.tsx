@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   TextField,
@@ -12,6 +13,11 @@ import {
   Select,
   FormControl,
   Pagination,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -20,6 +26,7 @@ import { Attribute } from '../../../core/hooks/dataTypes';
 import { formatDate } from '../../../core/hooks/format';
 
 const AttributesList: React.FC = () => {
+  const { t } = useTranslation();
   const { attributes, fetchAttributes } = useAttribute();
   const [filteredAttributes, setFilteredAttributes] = useState<Attribute[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -27,6 +34,7 @@ const AttributesList: React.FC = () => {
   const [selectedAttributeId, setSelectedAttributeId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     const filtered = attributes.filter(attribute =>
@@ -41,18 +49,6 @@ const AttributesList: React.FC = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this attribute?')) {
-      try {
-        await AttributeService.deleteAttribute(id);
-        console.log('Attribute deleted successfully');
-        fetchAttributes();
-      } catch (error) {
-        console.error('Error deleting attribute:', error);
-      }
-    }
-  };
-
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, attributeId: number) => {
     setAnchorEl(event.currentTarget);
     setSelectedAttributeId(attributeId);
@@ -61,6 +57,29 @@ const AttributesList: React.FC = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedAttributeId(null);
+  };
+
+  const handleOpenDialog = (id: number) => {
+    setSelectedAttributeId(id);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedAttributeId(null);
+  };
+
+  const handleDelete = async () => {
+    if (selectedAttributeId !== null) {
+      try {
+        await AttributeService.deleteAttribute(selectedAttributeId);
+        console.log('Attribute deleted successfully');
+        fetchAttributes();
+      } catch (error) {
+        console.error('Error deleting attribute:', error);
+      }
+    }
+    handleCloseDialog();
   };
 
   const handleSelectChange = (event: React.ChangeEvent<{ value: unknown }>) => {
@@ -83,7 +102,7 @@ const AttributesList: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Tên danh mục', width: 200 },
+    { field: 'name', headerName: 'Tên thuộc tính', width: 200 },
     { field: 'description', headerName: 'Mô tả', width: 250 },
     { field: 'created_at', headerName: 'Ngày tạo', width: 180, renderCell: (params) => formatDate(params.row.created_at) },
     {
@@ -106,7 +125,7 @@ const AttributesList: React.FC = () => {
             <MenuItem component={Link} to={`/admin/attributes/edit/${params.row.id}`}>
               <EditIcon fontSize="small" /> Sửa
             </MenuItem>
-            <MenuItem onClick={() => handleDelete(params.row.id)}>
+            <MenuItem onClick={() => handleOpenDialog(params.row.id)}>
               <DeleteIcon fontSize="small" /> Xóa
             </MenuItem>
           </Menu>
@@ -157,7 +176,7 @@ const AttributesList: React.FC = () => {
             color="primary"
             startIcon={<AddIcon />}
           >
-            Thêm Thuộc Tính
+            {t('add')}
           </Button>
         </Box>
       </Box>
@@ -195,6 +214,27 @@ const AttributesList: React.FC = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+      >
+        <DialogTitle>{t('confirmDeleteTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('confirmDeleteMessage')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            {t('cancel')}
+          </Button>
+          <Button onClick={handleDelete} color="primary" autoFocus>
+            {t('delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
