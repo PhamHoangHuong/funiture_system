@@ -13,24 +13,31 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { categoryService, useCategory } from '../../../core/hooks/contexts';
+import { useCategory } from '../../../core/hooks/contexts';
 import { Category } from '../../../core/hooks/dataTypes';
 import { formatDate, formatStatus } from '../../../core/hooks/format';
 import { useTranslation } from 'react-i18next';
 
 const CategoryList: React.FC = () => {
   const { t } = useTranslation();
-  const { categories, fetchCategories, deleteCategory } = useCategory();
+  const { categories, deleteCategory } = useCategory();
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openDialog, setOpenDialog] = useState(false);
 
+  // Lọc danh sách danh mục theo bộ lọc
   useEffect(() => {
     const filtered = categories.filter(category =>
       Object.entries(filters).every(([key, value]) =>
@@ -40,30 +47,48 @@ const CategoryList: React.FC = () => {
     setFilteredCategories(filtered);
   }, [categories, filters]);
 
+  // Xử lý tìm kiếm danh mục
   const handleSearch = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm(t('common.confirmDelete'))) {
-      try {
-        await deleteCategory(id);
-      } catch (error) {
-        console.error('Error deleting category:', error);
-      }
-    }
-  };
-
+  // Xử lý mở menu thao tác
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, categoryId: number) => {
     setAnchorEl(event.currentTarget);
     setSelectedCategoryId(categoryId);
   };
 
+  // Xử lý đóng menu thao tác
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedCategoryId(null);
   };
 
+  // Mở Dialog xác nhận xóa
+  const handleOpenDialog = (id: number) => {
+    setSelectedCategoryId(id);
+    setOpenDialog(true);
+  };
+
+  // Đóng Dialog xác nhận xóa
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedCategoryId(null);
+  };
+
+  // Xử lý xóa danh mục
+  const handleDelete = async () => {
+    if (selectedCategoryId !== null) {
+      try {
+        await deleteCategory(selectedCategoryId);
+      } catch (error) {
+        console.error('Error deleting category:', error);
+      }
+    }
+    handleCloseDialog();
+  };
+
+  // Xử lý thay đổi lựa chọn trong menu
   const handleSelectChange = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
     const action = event.target.value;
     if (action === 'export') {
@@ -73,13 +98,15 @@ const CategoryList: React.FC = () => {
     }
   };
 
+  // Xử lý thay đổi trang
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
+  // Xử lý thay đổi số hàng trên mỗi trang
   const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
     setRowsPerPage(event.target.value as number);
-    setPage(1); // Reset to first page
+    setPage(1);
   };
 
   const columns: GridColDef[] = [
@@ -108,10 +135,10 @@ const CategoryList: React.FC = () => {
             onClose={handleMenuClose}
           >
             <MenuItem component={Link} to={`/admin/categories/edit/${params.row.id}`}>
-              <EditIcon fontSize="small" /> Sửa
+              <EditIcon fontSize="small" /> {t('edit')}
             </MenuItem>
-            <MenuItem onClick={() => handleDelete(params.row.id)}>
-              <DeleteIcon fontSize="small" /> Xóa
+            <MenuItem onClick={() => handleOpenDialog(params.row.id)}>
+              <DeleteIcon fontSize="small" /> {t('delete')}
             </MenuItem>
           </Menu>
         </>
@@ -119,7 +146,7 @@ const CategoryList: React.FC = () => {
     },
   ];
 
-  // Calculate the range of items being displayed
+  // Tính toán phạm vi các mục đang được hiển thị
   const start = (page - 1) * rowsPerPage + 1;
   const end = Math.min(page * rowsPerPage, filteredCategories.length);
   const total = filteredCategories.length;
@@ -207,6 +234,27 @@ const CategoryList: React.FC = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+      >
+        <DialogTitle>{t('confirmDeleteTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('confirmDeleteMessage')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            {t('cancel')}
+          </Button>
+          <Button onClick={handleDelete} color="primary" autoFocus>
+            {t('delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
