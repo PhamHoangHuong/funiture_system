@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Grid, TextField, Typography, Paper, CircularProgress, Switch, FormControlLabel } from "@mui/material";
-import { useProductContext } from '../../../core/contexts/ProductContext';
+import { useProductContext } from '../../../core/hooks/contexts';
 import { Product } from '../../../core/hooks/dataTypes';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';

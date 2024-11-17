@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useProductContext } from "../../../core/contexts/ProductContext";
+import { useProductContext } from "../../../core/hooks/contexts";
 import { Product } from "../../../core/hooks/dataTypes";
 import { useTranslation } from "react-i18next";
 import { formatCurrency } from "../../../core/hooks/format";

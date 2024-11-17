@@ -15,7 +15,10 @@
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi: {{message}}",
-    "noData": "Không có dữ liệu"
+    "noData": "Không có dữ liệu",
+    "createSuccess": "Tạo thành công!",
+    "createError": "Lỗi khi tạo: {{message}}",
+    "fetchError": "Lỗi khi tải dữ liệu: {{message}}"
   },
   "product": {
     "id": "ID",
@@ -41,8 +44,14 @@
     "attributes": "Thuộc tính",
     "advanced_prices": "Giá nâng cao",
     "variants": "Biến thể",
-    "weight": "Trọng lượng"
+    "weight": "Trọng lượng",
+    "selectProduct": "Chọn sản phẩm",
+    "showing": "Hiển thị",
+    "of": "của",
+    "save": "Lưu"
   },
-    "active": "Hoạt động",
-    "inactive": "Không hoạt động"
+  "active": "Hoạt động",
+  "inactive": "Không hoạt động",
+  "export": "Xuất",
+  "import": "Nhập"
 }

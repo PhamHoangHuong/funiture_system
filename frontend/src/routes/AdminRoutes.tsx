@@ -16,16 +16,11 @@ import OrdersDetails from "../pages/admin/Orders/OrdersDetails"
 import OrdersCart from "../pages/admin/Orders/OrdersCart"
 import OrdersCheckOut from "../pages/admin/Orders/OrdersCheckOut"
 import Settings from "../pages/admin/Settings"
-import QuanLyKhachHangThemKhachHang from "../pages/admin/QuanLyKhachHang/ThemKhachHang"
-import QuanLyKhachHangDanhSachKhachHang from "../pages/admin/QuanLyKhachHang/DanhSachKhachHang"
-import PageManager from "../pages/admin/PageManager"
-import { ProductProvider } from "../core/contexts/ProductContext"
-import { CategoryProvider } from "../core/contexts/CategoryContext"
-import { AttributeProvider } from "../core/contexts/AttributeContext"
-import { AdvancedPriceProvider } from "../core/contexts/AdvancedPriceContext"
-import { SourceProvider } from "../core/contexts/SourceContext"
+import { ProductProvider, CategoryProvider, AttributeProvider, AdvancedPriceProvider, SourceProvider } from "../core/hooks/contexts"
 import AttributesList from "../pages/admin/Attributes/AttributesList"
 import AttributeValuesList from "../pages/admin/Attributes/AttributeValuesList"
+import ProductFullScreen from "../pages/admin/FullScreen/ProductFullScreen"
+
 const AdminRoutes: React.FC = () => {
     return (
         <ProductProvider>
@@ -40,6 +35,7 @@ const AdminRoutes: React.FC = () => {
                                         <Route index element={<ProductList />} />
                                         <Route path="create" element={<ProductCreate />} />
                                         <Route path="edit/:id" element={<ProductEdit productId={0} onClose={() => {}} />} />
+                                        <Route path="full-screen" element={<ProductFullScreen open={false} onClose={() => {}} onSelect={() => {}} />} />
                                     </Route>
                                     <Route path="categories">
                                         <Route index element={<CategoryList />} />
@@ -59,9 +55,6 @@ const AdminRoutes: React.FC = () => {
                                         <Route path="cart" element={<OrdersCart />} />
                                         <Route path="checkout" element={<OrdersCheckOut />} />
                                     </Route>
-                                    <Route path="quan-ly-khach-hang/danh-sach" element={<QuanLyKhachHangDanhSachKhachHang />} />
-                                    <Route path="quan-ly-khach-hang/them-moi" element={<QuanLyKhachHangThemKhachHang />} />
-                                    <Route path="page-manager" element={<PageManager />} />
                                     <Route path="settings" element={<Settings />} />
                                     <Route path="logout" element={<Logout />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />
