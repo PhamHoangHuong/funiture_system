@@ -103,6 +103,9 @@ const AdminMenu: React.FC = () => {
                                     <NavLink className="sub-nav-link" to="/admin/attributes">Attribute List</NavLink>
                                 </li>
                                 <li className="sub-nav-item">
+                                    <NavLink className="sub-nav-link" to="/admin/attributes/create">Add Attribute</NavLink>
+                                </li>
+                                <li className="sub-nav-item">
                                     <NavLink className="sub-nav-link" to="/admin/attributes/values">Attribute Values List</NavLink>
                                 </li>
                             </ul>
