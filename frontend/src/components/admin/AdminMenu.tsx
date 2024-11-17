@@ -160,45 +160,12 @@ const AdminMenu: React.FC = () => {
                         </div>
                     </li>
 
-                    {/* settings */}
-
-                    <li className="nav-item">
-                        <a className="nav-link menu-arrow" href="#sidebarKhachHang" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarKhachHang">
-                            <span className="nav-icon">
-                                <Icon icon="mdi:account-group" />
-                            </span>
-                            <span className="nav-text"> Quản lý Khách hàng </span>
-                        </a>
-                        <div className="collapse" id="sidebarKhachHang">
-                            <ul className="nav sub-navbar-nav">
-
-                                <li className="sub-nav-item">
-                                    <NavLink className="sub-nav-link" to="/admin/quan-ly-khach-hang/danh-sach">Danh sách Khách hàng</NavLink>
-                                </li>
-
-                                <li className="sub-nav-item">
-                                    <NavLink className="sub-nav-link" to="/admin/quan-ly-khach-hang/them-moi">Thêm Khách hàng</NavLink>
-                                </li>
-
-                            </ul>
-                        </div>
-                    </li>
-
                     <li className="nav-item">
                         <NavLink className="nav-link" to="/admin/settings">
                             <span className="nav-icon">
                                 <Icon icon="solar:settings-bold-duotone" />
                             </span>
                             <span className="nav-text"> Settings </span>
-                        </NavLink>
-                    </li>
-
-                    <li className="nav-item">
-                        <NavLink className="nav-link" to="/admin/page-manager">
-                            <span className="nav-icon">
-                                <Icon icon="mdi:page-layout-body" />
-                            </span>
-                            <span className="nav-text">Quản lý Trang</span>
                         </NavLink>
                     </li>
 

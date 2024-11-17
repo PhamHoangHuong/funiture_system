@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 
 const CategoryList: React.FC = () => {
   const { t } = useTranslation();
-  const { categories, fetchCategories } = useCategory();
+  const { categories, fetchCategories, deleteCategory } = useCategory();
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -45,10 +45,9 @@ const CategoryList: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm(t('common.confirmDelete'))) {
       try {
-        await categoryService.delete(id);
-        fetchCategories();
+        await deleteCategory(id);
       } catch (error) {
         console.error('Error deleting category:', error);
       }
@@ -128,13 +127,13 @@ const CategoryList: React.FC = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Quản Lý Danh Mục
+        {t('manageCategories')}
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <TextField
           variant="outlined"
           size="small"
-          placeholder="Tìm kiếm..."
+          placeholder={t('search')}
           onChange={(e) => handleSearch('name', e.target.value)}
           InputProps={{
             startAdornment: (
@@ -162,7 +161,7 @@ const CategoryList: React.FC = () => {
             color="primary"
             startIcon={<AddIcon />}
           >
-            Thêm Sản Phẩm
+            {t('addCategory')}
           </Button>
         </Box>
       </Box>
@@ -197,7 +196,7 @@ const CategoryList: React.FC = () => {
           </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              Hiển thị {start}-{end} của {total}
+              {t('showing')} {start}-{end} {t('of')} {total}
             </Typography>
             <Pagination
               count={Math.ceil(total / rowsPerPage)}

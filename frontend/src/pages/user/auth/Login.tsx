@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../core/contexts/AuthContext';
+import { useSiteAuth } from '../../../core/contexts/AuthContextUser';
 
 
 const Login: React.FC = () => {
@@ -10,7 +10,7 @@ const Login: React.FC = () => {
     remember: false,
   });
   const [loading, setLoading] = useState(false);
-  const { handleLogin } = useAuth();
+  const { handleLogin } = useSiteAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

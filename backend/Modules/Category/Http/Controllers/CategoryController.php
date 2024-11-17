@@ -2,8 +2,6 @@
 
 namespace Modules\Category\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\Category\Http\Requests\CategoryRequest;
@@ -17,6 +15,7 @@ class CategoryController extends Controller
     use ResponseTrait, ImageUploadTrait;
 
     protected $categoryRepository;
+
     public function __construct(CategoriesRepositoryInterface $categoryRepository)
     {
         $this->categoryRepository = $categoryRepository;
@@ -24,13 +23,13 @@ class CategoryController extends Controller
 
     public function index()
     {
-        try{
+        try {
             $categories = $this->categoryRepository->getAll();
-            if($categories->isEmpty()) {
-                return $this->toResponseBad('Không tìm thấy dữ liệu',Response::HTTP_NOT_FOUND);
+            if ($categories->isEmpty()) {
+                return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             return $this->toResponseSuccess($categories, 'Tìm thấy dữ liệu', Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -38,13 +37,13 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        try{
+        try {
             $categories = $this->categoryRepository->find($id);
-            if(!$categories) {
+            if (!$categories) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             return $this->toResponseSuccess($categories->load('products'), 'Tìm thấy dữ liệu', Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -53,25 +52,25 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         DB::BeginTransaction();
-        try{
+        try {
             $existSlug = $this->categoryRepository->checkExistSlug($request->slug);
-            if($existSlug) {
+            if ($existSlug) {
                 return $this->toResponseBad('Danh mục đã tồn tại', Response::HTTP_BAD_REQUEST);
             }
 
             //Chuẩn bị dữ liệu để tạo danh mục
-            $category=$this->prepareCategoryData($request, null, true);
+            $data = $this->prepareCategoryData($request, null, true);
             //Tạo danh mục mới
-            $this->categoryRepository->create($category);
+            $category = $this->categoryRepository->create($data);
 
             //Kiểm tra xem có thêm sản phẩm khi tạo danh mục không
-            if($request->has('products') && count($request->products) > 0) {
-                $this->categoryRepository->updateCategoryProducts($category, $request->input('product_ids',[]));
+            if ($request->has('product_ids') && count($request->product_ids) > 0) {
+                $this->categoryRepository->updateCategoryProducts($category, $request->input('product_ids', []));
             }
 
             DB::commit();
             return $this->toResponseSuccess(null, 'Tạo danh mục mới thành công', Response::HTTP_CREATED);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -81,27 +80,27 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, $id)
     {
         DB::BeginTransaction();
-        try{
-            $categories = $this->categoryRepository->find($id);
-            if(!$categories) {
+        try {
+            $category = $this->categoryRepository->find($id);
+            if (!$category) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu ', Response::HTTP_NOT_FOUND);
             }
-            $existSlug = $this->categoryRepository->checkExistSlug($request->slug);
-            if($existSlug && $categories->slug != $request->slug) {
-                return $this->toResponseBad('Dữ liệu đã tồn tại', Response::HTTP_BAD_REQUEST);
+
+            $existsSlug = $this->categoryRepository->checkExistSlug($request->slug, $category->id);
+            if ($existsSlug) {
+                return $this->toResponseBad('Slug đã tồn tại', Response::HTTP_BAD_REQUEST);
             }
 
-            $data = $this->prepareCategoryData($request, $categories->image, false);
-            $this->categoryRepository->update($id, $data);
+            $data = $this->prepareCategoryData($request, $category->image, false);
+            $category = $this->categoryRepository->update($id, $data);
 
-            //Kiểm tra xem có thay thế sản phẩm khi cập nhật danh mục không
-            if($request->has('products') && count($request->products) > 0) {
-                $this->categoryRepository->updateCategoryProducts($categories, $request->input('product_ids',[]));
+            if ($request->has('product_ids') && count($request->product_ids) > 0) {
+                $this->categoryRepository->updateCategoryProducts($category, $request->input('product_ids', []));
             }
 
             DB::commit();
             return $this->toResponseSuccess(null, 'Cập nhật dữ liệu thành công', Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -112,16 +111,16 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         DB::BeginTransaction();
-        try{
+        try {
             $Category = $this->categoryRepository->find($id);
-            if(!$Category) {
+            if (!$Category) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             $this->categoryRepository->update($id, ['status' => 0]);
             $this->categoryRepository->delete($id);
             DB::commit();
             return $this->toResponseSuccess(null, 'Xóa dữ liệu thành công', Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -132,14 +131,14 @@ class CategoryController extends Controller
     protected function prepareCategoryData($request, $oldImage = null, $isInsert = false)
     {
         $data = $request->validated();
-        if($isInsert !== false) {
-            if($request->hasFile('image')) {
+        if ($isInsert !== false) {
+            if ($request->hasFile('image')) {
                 $data['image'] = $this->uploadImage($request, 'image', 'categories', 'category');
             }
-        }else {
-            if($request->hasFile('image')) {
+        } else {
+            if ($request->hasFile('image')) {
                 $data['image'] = $this->updateImage($request, 'image', 'categories', $oldImage);
-            }else {
+            } else {
                 $data['image'] = $oldImage;
             }
         }
@@ -157,16 +156,16 @@ class CategoryController extends Controller
     public function switchStatus($id)
     {
         DB::BeginTransaction();
-        try{
+        try {
             $Category = $this->categoryRepository->find($id);
-            if(!$Category) {
+            if (!$Category) {
                 return $this->toResponseBad('Không tìm thấy dữ liệu', Response::HTTP_NOT_FOUND);
             }
             $status = $Category->status == 1 ? 0 : 1;
             $this->categoryRepository->update($id, ['status' => $status]);
             DB::commit();
             return $this->toResponseSuccess(null, 'Cập nhật trạng thái dữ liệu thành công', Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             $message = $e->getMessage();
             return $this->toResponseBad($message, Response::HTTP_INTERNAL_SERVER_ERROR);

@@ -12,11 +12,15 @@ class CategoriesRepository extends BaseRepository implements CategoriesRepositor
     {
         return Category::class;
     }
-    public function checkExistSlug(mixed $slug)
+    public function checkExistSlug(mixed $slug, $categoryId=null)
     {
-        return $this->model->where('slug', $slug)->exists();
+//        dd($slug);
+        if($categoryId==null) {
+            return $this->model->where('slug', $slug)->exists();
+        }else {
+            return $this->model->where('slug', $slug)->where('id', '!=', $categoryId)->exists();
+        }
     }
-
     public function updateCategoryProducts($category, array $productIds)
     {
             $category->products()->sync($productIds);

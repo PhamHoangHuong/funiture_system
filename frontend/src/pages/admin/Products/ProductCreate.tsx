@@ -14,6 +14,7 @@ import { generateSlug, generateVariantName } from '../../../core/hooks/format';
 import { SelectChangeEvent } from '@mui/material';
 import { createProductFormData } from '../../../core/hooks/formDataUtils';
 import VariantMapping from './VariantMapping';
+import { useTranslation } from 'react-i18next';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -35,6 +36,7 @@ type ProductWithArrays = Product & {
 };
 
 const ProductCreate: React.FC = () => {
+    const { t } = useTranslation();
     const { createProduct } = useProductContext();
     const { categories, fetchCategories } = useCategory();
     const { sources, fetchSources } = useSource();
@@ -245,11 +247,11 @@ const ProductCreate: React.FC = () => {
                     <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
                         <Grid container spacing={3} alignItems="center">
                             <Grid item xs={10}>
-                                <Typography variant="h4">Thêm Sản Phẩm Mới</Typography>
+                                <Typography variant="h4">{t('addProduct')}</Typography>
                             </Grid>
                             <Grid item xs={2}>
                                 <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
-                                    Thêm Sản Phẩm
+                                    {t('addProduct')}
                                 </Button>
                             </Grid>
                         </Grid>
@@ -257,7 +259,7 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Thông tin cơ bản</Typography>
+                                <Typography variant="h6">{t('basicInformation')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Grid container spacing={3}>
@@ -266,7 +268,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Tên sn phẩm"
+                                                    label={t('productName')}
                                                     value={product.name}
                                                     onChange={(e) => handleProductChange('name', e.target.value)}
                                                     required
@@ -275,7 +277,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Slug"
+                                                    label={t('slug')}
                                                     value={product.slug}
                                                     onChange={(e) => handleProductChange('slug', e.target.value)}
                                                 />
@@ -283,7 +285,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SKU"
+                                                    label={t('sku')}
                                                     value={product.sku}
                                                     onChange={(e) => handleProductChange('sku', e.target.value)}
                                                 />
@@ -291,7 +293,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Giá"
+                                                    label={t('price')}
                                                     type="number"
                                                     value={product.price}
                                                     onChange={(e) => handleProductChange('price', e.target.value)}
@@ -300,7 +302,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Cân nặng"
+                                                    label={t('weight')}
                                                     type="number"
                                                     value={product.weight}
                                                     onChange={(e) => handleProductChange('weight', e.target.value)}
@@ -308,24 +310,24 @@ const ProductCreate: React.FC = () => {
                                             </Grid>
                                             <Grid item md={4}>
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Trạng thái</InputLabel>
+                                                    <InputLabel>{t('status')}</InputLabel>
                                                     <Select
                                                         name="status"
                                                         value={product.status}
                                                         onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
-                                                        label="Trạng thái"
+                                                        label={t('status')}
                                                     >
-                                                        <MenuItem value={1}>Hoạt động</MenuItem>
-                                                        <MenuItem value={0}>Không hoạt động</MenuItem>
+                                                        <MenuItem value={1}>{t('active')}</MenuItem>
+                                                        <MenuItem value={0}>{t('inactive')}</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
                                             <Grid item md={4}>
                                                 <FormControl fullWidth required>
-                                                    <InputLabel>Danh mục</InputLabel>
+                                                    <InputLabel>{t('category')}</InputLabel>
                                                     <Select
                                                         value={product.category_ids}
-                                                        label="Danh mục"
+                                                        label={t('category')}
                                                         onChange={(e) => handleProductChange('category_ids', e.target.value)}
                                                     >
                                                         {categories.map((category) => (
@@ -339,7 +341,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SEO Title"
+                                                    label={t('seoTitle')}
                                                     value={product.seo_title}
                                                     onChange={(e) => handleProductChange('seo_title', e.target.value)}
                                                 />
@@ -347,7 +349,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SEO Description"
+                                                    label={t('seoDescription')}
                                                     multiline
                                                     value={product.seo_description}
                                                     onChange={(e) => handleProductChange('seo_description', e.target.value)}
@@ -356,7 +358,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Mô tả"
+                                                    label={t('description')}
                                                     multiline
                                                     value={product.description}
                                                     onChange={(e) => handleProductChange('description', e.target.value)}
@@ -365,7 +367,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Nội dung"
+                                                    label={t('content')}
                                                     multiline
                                                     value={product.content}
                                                     onChange={(e) => handleProductChange('content', e.target.value)}
@@ -374,21 +376,21 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Video Link"
+                                                    label={t('videoLink')}
                                                     value={product.video_link}
                                                     onChange={(e) => handleProductChange('video_link', e.target.value)}
                                                 />
                                             </Grid>
                                             <Grid item md={6}>
                                                 <DatePicker
-                                                    label="Start New Time"
+                                                    label={t('startNewTime')}
                                                     value={product.start_new_time ? dayjs(product.start_new_time) : null}
                                                     onChange={(date) => handleProductChange('start_new_time', date)}
                                                 />
                                             </Grid>
                                             <Grid item md={6}>
                                                 <DatePicker
-                                                    label="End New Time"
+                                                    label={t('endNewTime')}
                                                     value={product.end_new_time ? dayjs(product.end_new_time) : null}
                                                     onChange={(date) => handleProductChange('end_new_time', date)}
                                                 />
@@ -413,7 +415,7 @@ const ProductCreate: React.FC = () => {
                                         />
                                         <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                             <Button variant="contained" component="span">
-                                                Upload Image
+                                                {t('uploadImage')}
                                             </Button>
                                         </label>
                                     </Grid>
@@ -423,18 +425,18 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Thuộc tính</Typography>
+                                <Typography variant="h6">{t('attributes')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <FormControl sx={{ m: 1, width: '100%' }}>
-                                    <InputLabel id="attributes-checkbox-label">Thuộc tính</InputLabel>
+                                    <InputLabel id="attributes-checkbox-label">{t('attributes')}</InputLabel>
                                     <Select
                                         labelId="attributes-checkbox-label"
                                         id="attributes-checkbox"
                                         multiple
                                         value={selectedAttributes}
                                         onChange={handleAttributeChange}
-                                        input={<OutlinedInput label="Thuộc tính" />}
+                                        input={<OutlinedInput label={t('attributes')} />}
                                         renderValue={(selected) => selected.map(id => attributes.find(attr => attr.id === id)?.name || '').join(', ')}
                                         MenuProps={MenuProps}
                                     >
@@ -452,9 +454,9 @@ const ProductCreate: React.FC = () => {
                                         <Table>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell>Thuộc tính</TableCell>
-                                                    <TableCell>Giá trị</TableCell>
-                                                    <TableCell>Hành động</TableCell>
+                                                    <TableCell>{t('attribute')}</TableCell>
+                                                    <TableCell>{t('value')}</TableCell>
+                                                    <TableCell>{t('action')}</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -501,7 +503,7 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Sản phẩm biến thể</Typography>
+                                <Typography variant="h6">{t('productVariants')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <VariantMapping
@@ -516,7 +518,7 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Nguồn hàng</Typography>
+                                <Typography variant="h6">{t('sources')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 {product.sources.map((source, index) => (
@@ -524,7 +526,7 @@ const ProductCreate: React.FC = () => {
                                         <Grid container spacing={2} alignItems="center">
                                             <Grid item xs={12} md={5}>
                                                 <FormControl fullWidth required>
-                                                    <InputLabel>Nguồn</InputLabel>
+                                                    <InputLabel>{t('source')}</InputLabel>
                                                     <Select
                                                         value={source.source_id}
                                                         onChange={(e) => handleProductChange('sources', { ...source, source_id: e.target.value }, index)}
@@ -540,7 +542,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item xs={12} md={5}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Số lượng"
+                                                    label={t('quantity')}
                                                     type="number"
                                                     value={source.quantity}
                                                     onChange={(e) => handleProductChange('sources', { quantity: e.target.value }, index)}
@@ -555,7 +557,7 @@ const ProductCreate: React.FC = () => {
                                     </Box>
                                 ))}
                                 <Button startIcon={<AddIcon />} onClick={() => handleProductChange('sources', { source_id: "", quantity: "" })}>
-                                    Thêm nguồn hàng
+                                    {t('addSource')}
                                 </Button>
                             </AccordionDetails>
                         </Accordion>
