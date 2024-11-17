@@ -18,7 +18,12 @@
     "noData": "Không có dữ liệu",
     "createSuccess": "Tạo thành công!",
     "createError": "Lỗi khi tạo: {{message}}",
-    "fetchError": "Lỗi khi tải dữ liệu: {{message}}"
+    "fetchError": "Lỗi khi tải dữ liệu: {{message}}",
+    "deleteSuccess": "Xóa thành công!",
+    "deleteError": "Lỗi khi xóa: {{message}}",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa danh mục này không?",
+    "updateSuccess": "Cập nhật thành công!",
+    "updateError": "Lỗi khi cập nhật: {{message}}"
   },
   "product": {
     "id": "ID",

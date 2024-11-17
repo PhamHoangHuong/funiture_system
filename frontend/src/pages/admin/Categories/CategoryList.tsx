@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 
 const CategoryList: React.FC = () => {
   const { t } = useTranslation();
-  const { categories, fetchCategories } = useCategory();
+  const { categories, fetchCategories, deleteCategory } = useCategory();
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -45,10 +45,9 @@ const CategoryList: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm(t('common.confirmDelete'))) {
       try {
-        await categoryService.delete(id);
-        fetchCategories();
+        await deleteCategory(id);
       } catch (error) {
         console.error('Error deleting category:', error);
       }

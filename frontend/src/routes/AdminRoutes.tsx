@@ -20,6 +20,7 @@ import { ProductProvider, CategoryProvider, AttributeProvider, AdvancedPriceProv
 import AttributesList from "../pages/admin/Attributes/AttributesList"
 import AttributeValuesList from "../pages/admin/Attributes/AttributeValuesList"
 import ProductFullScreen from "../pages/admin/FullScreen/ProductFullScreen"
+import CategoryEdit from "../pages/admin/Categories/CategoryEdit"
 
 const AdminRoutes: React.FC = () => {
     return (
@@ -40,6 +41,7 @@ const AdminRoutes: React.FC = () => {
                                     <Route path="categories">
                                         <Route index element={<CategoryList />} />
                                         <Route path="create" element={<CategoryCreate />} />
+                                        <Route path="edit/:id" element={<CategoryEdit />} />
                                     </Route>
                                     <Route path="attributes">
                                         <Route index element={<AttributesList />} />

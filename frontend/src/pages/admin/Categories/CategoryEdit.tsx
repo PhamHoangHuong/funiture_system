@@ -10,26 +10,25 @@ import ProductFullScreen from '../FullScreen/ProductFullScreen';
 import { generateSlug, formatStatusAdd } from '../../../core/hooks/format';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useParams } from 'react-router-dom';
 
-const CategoryCreate: React.FC = () => {
-    const { createCategory } = useCategory();
-    const [category, setCategory] = React.useState<Omit<Category, 'id'>>({
-        name: '',
-        slug: '',
-        parent_id: null,
-        image: null,
-        description: '',
-        status: 1,
-        created_at: '',
-        updated_at: '',
-        product_ids: []
-    });
+const CategoryEdit: React.FC = () => {
+    const { updateCategory, categories } = useCategory();
+    const { id } = useParams<{ id: string }>();
+    const [category, setCategory] = React.useState<Partial<Category>>({});
     const CategoryMap = useCategory();
 
-    const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [imagePreview, setimagePreview] = React.useState<string | null>(null);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [sanPhamNames, setSanPhamNames] = React.useState<string[]>([]);
     const [sanPhamIds, setSanPhamIds] = React.useState<number[]>([]);
+
+    React.useEffect(() => {
+        const categoryToEdit = categories.find(cat => cat.id === Number(id));
+        if (categoryToEdit) {
+            setCategory(categoryToEdit);
+        }
+    }, [categories, id]);
 
     const handleCategoryChange = (field: keyof typeof category, value: any) => {
         setCategory((prev) => {
@@ -45,54 +44,53 @@ const CategoryCreate: React.FC = () => {
         });
     };
 
-    const chonImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const chonimage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             setCategory((prev) => ({ ...prev, image: file }));
-            setImagePreview(URL.createObjectURL(file));
+            setimagePreview(URL.createObjectURL(file));
         }
-    };
-
-    const logFormData = () => {
-        const formData = new FormData();
-        Object.entries(category).forEach(([key, value]) => {
-            if (value !== null) {
-                formData.append(key, value instanceof File ? value.name : value.toString());
-            }
-        });
-        formData.append('product_ids', sanPhamIds.join(', '));
-        formData.append('parent_id', category.parent_id?.toString() || '');
-
-        console.log("parent_id", formData.get('parent_id'));
-
-        // Log the form data
-        console.log('Form Data Preview:');
-
-        formData.forEach((value, key) => {
-            console.log(`${key}: ${value}`);
-        });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        logFormData(); // Log the data before submitting
+
+        // Construct the data object to be sent
+        const dataToSend = {
+            id: category.id || null,
+            name: category.name || '',
+            slug: category.slug || generateSlug(category.name || ''),
+            parent_id: category.parent_id || null,
+            status: category.status || 1, 
+            product_ids: sanPhamIds,
+            image: category.image || null,
+        };
+
+        // Log the data object
+        console.log('Data to be sent:', dataToSend);
+
         try {
             const formData = new FormData();
-            Object.entries(category).forEach(([key, value]) => {
-                if (value !== null && key !== 'created_at' && key !== 'updated_at') {
-                    formData.append(key, value instanceof File ? value : value.toString());
-                }
+
+            // Append each field to the FormData
+            formData.append('id', dataToSend.id?.toString() || '');
+            formData.append('name', dataToSend.name);
+            formData.append('slug', dataToSend.slug);
+            formData.append('parent_id', dataToSend.parent_id?.toString() || '');
+            formData.append('status', dataToSend.status.toString());
+            formData.append('image', dataToSend.image || '');
+            // Append product_ids as an array
+            dataToSend.product_ids.forEach((id) => formData.append('product_ids[]', id.toString()));
+
+            // Log the formData to verify the structure
+            formData.forEach((value, key) => {
+                console.log(`${key}: ${value}`);
             });
 
-
-            sanPhamIds.forEach((id) => formData.append('product_ids[]', id.toString()));
-
-            formData.append('parent_id', category.parent_id?.toString() || '');
-
-            const newCategory = await createCategory(formData as unknown as Omit<Category, 'id'>);
-            console.log('Category created successfully:', newCategory);
+            const updatedCategory = await updateCategory(Number(id), formData as unknown as Partial<Category>);
+            console.log('Category updated successfully:', updatedCategory);
         } catch (error) {
-            console.error('Error creating category:', error);
+            console.error('Error updating category:', error);
         }
     };
 
@@ -157,7 +155,6 @@ const CategoryCreate: React.FC = () => {
                                         <Grid item md={3}>
                                             <TextField
                                                 fullWidth
-                                                label="Tên danh mục"
                                                 value={category.name}
                                                 onChange={(e) => handleCategoryChange('name', e.target.value)}
                                                 required
@@ -166,7 +163,6 @@ const CategoryCreate: React.FC = () => {
                                         <Grid item md={3}>
                                             <TextField
                                                 fullWidth
-                                                label="Slug"
                                                 value={category.slug}
                                                 onChange={(e) => handleCategoryChange('slug', e.target.value)}
                                             />
@@ -177,7 +173,6 @@ const CategoryCreate: React.FC = () => {
                                                     <InputLabel>Danh mục cha</InputLabel>
                                                     <Select
                                                         value={category.parent_id || ''}
-                                                        label="Danh mục cha"
                                                         onChange={(e) => handleCategoryChange('parent_id', e.target.value)}
                                                     >
                                                         {mapCategories(CategoryMap.categories)}
@@ -252,7 +247,7 @@ const CategoryCreate: React.FC = () => {
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <Typography variant="body2" color="textSecondary">Image Preview</Typography>
+                                            <Typography variant="body2" color="textSecondary">image Preview</Typography>
                                         )}
                                     </Box>
                                     <input
@@ -260,11 +255,11 @@ const CategoryCreate: React.FC = () => {
                                         style={{ display: 'none' }}
                                         id="raised-button-file"
                                         type="file"
-                                        onChange={chonImage}
+                                        onChange={chonimage}
                                     />
                                     <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                         <Button variant="contained" component="span">
-                                            Upload Image
+                                            Upload image
                                         </Button>
                                     </label>
                                 </Grid>
@@ -282,4 +277,4 @@ const CategoryCreate: React.FC = () => {
     );
 }
 
-export default CategoryCreate;
+export default CategoryEdit;

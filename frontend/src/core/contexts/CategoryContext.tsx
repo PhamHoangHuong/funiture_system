@@ -11,6 +11,8 @@ interface CategoryContextType {
     error: string | null;
     fetchCategories: () => Promise<void>;
     createCategory: (category: Omit<Category, 'id'>) => Promise<Category>;
+    deleteCategory: (id: number) => Promise<void>;
+    updateCategory: (id: number, category: Partial<Category>) => Promise<Category>;
 }
 
 const CategoryContext = createContext<CategoryContextType | undefined>(undefined);
@@ -54,12 +56,42 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     };
 
+    const deleteCategory = async (id: number) => {
+        try {
+            await categoryService.delete(id);
+            setCategories((prevCategories) => prevCategories.filter(category => category.id !== id));
+            showNotification(t('common.deleteSuccess'), 'success');
+        } catch (err) {
+            console.error('Error deleting category:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            showNotification(t('common.deleteError', { message: errorMessage }), 'error');
+        }
+    };
+
+    const updateCategory = async (id: number, category: Partial<Category>) => {
+        try {
+            const updatedCategory = await categoryService.update(id, category);
+            if (updatedCategory) {
+                setCategories((prevCategories) => prevCategories.map(category => category.id === updatedCategory.id ? updatedCategory : category));
+                showNotification(t('common.updateSuccess'), 'success');
+                navigate('/admin/categories');
+            }
+            showNotification(t('common.updateSuccess'), 'success');
+            return updatedCategory;
+        } catch (err) {
+            console.error('Error updating category:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            showNotification(t('common.updateError', { message: errorMessage }), 'error');
+            throw err;
+        }
+    };
+
     useEffect(() => {
         fetchCategories();
     }, []);
 
     return (
-        <CategoryContext.Provider value={{ categories, loading, error, fetchCategories, createCategory }}>
+        <CategoryContext.Provider value={{ categories, loading, error, fetchCategories, createCategory, deleteCategory, updateCategory }}>
             {children}
         </CategoryContext.Provider>
     );
