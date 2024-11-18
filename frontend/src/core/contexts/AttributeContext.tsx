@@ -48,6 +48,16 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
     };
 
+    const fetchAttributeValue = async (id: number) => {
+        try {
+            const data = await AttributeService.getAttributeValueById(id);
+            return data;
+        } catch (err) {
+            console.error('Error fetching attribute value:', err);
+            throw err;
+        }
+    };
+
     const createAttribute = async (attributeData: Partial<Attribute>) => {
         try {
             const newAttribute = await AttributeService.createAttribute(attributeData);
@@ -92,7 +102,10 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const createAttributeValue = async (attributeValueData: Partial<AttributeValue>) => {
         try {
-            const newAttributeValue = await AttributeService.createAttributeValue(attributeValueData);
+            if (attributeValueData.attribute_id === undefined) {
+                throw new Error('attribute_id is required');
+            }
+            const newAttributeValue = await AttributeService.createAttributeValue(attributeValueData as { attribute_id: number; value: string });
             setAttributeValues([...attributeValues, newAttributeValue]);
             showNotification(t('common.createSuccess'), 'success');
             return newAttributeValue;
@@ -144,6 +157,7 @@ export const AttributeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             error,
             fetchAttributes,
             fetchAttributeValues,
+            fetchAttributeValue,
             createAttribute,
             updateAttribute,
             deleteAttribute,

@@ -145,6 +145,7 @@ export interface AttributeContextType {
     error: string | null;
     fetchAttributes: () => Promise<void>;
     fetchAttributeValues: () => Promise<void>;
+    fetchAttributeValue: (id: number) => Promise<AttributeValue>;
     createAttribute: (attributeData: Partial<Attribute>) => Promise<Attribute>;
     updateAttribute: (id: number, attributeData: Partial<Attribute>) => Promise<Attribute>;
     deleteAttribute: (id: number) => Promise<void>;
