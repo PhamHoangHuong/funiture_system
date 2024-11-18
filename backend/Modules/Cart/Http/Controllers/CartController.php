@@ -300,7 +300,7 @@ class CartController extends Controller
             foreach ($cartPriceRules as $rule) {
                 $dataRule = $rule->getAttributes();
                 $check = $this->checkRule($dataRule);
-                if ($check['check'] && $dataRule['coupon_type'] == 1 && $this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
+                if ($check['check'] && $dataRule['coupon_type'] == 2 && $this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
                     $dataRule['invalid_reason'] = true;
                     $coupon[] = $dataRule;
                 } else {
@@ -404,6 +404,44 @@ class CartController extends Controller
                 return $condition <= $dataRule['condition_value'];
             default:
                 return false;
+        }
+    }
+
+    public function applyVoucher(Request $request){
+        $validated = $request->validate([
+            'voucher' => 'required|string',
+        ]);
+        $voucher = $validated['voucher'];
+        $cartPriceRules = $this->cartPriceRule->getRuleByCoupon($voucher);
+
+        if($cartPriceRules){
+            $checkRule = $this->checkRule($cartPriceRules->getAttributes());
+            if($checkRule['check'] && $cartPriceRules->coupon_type == 1){
+                $cartPriceRules = $this->cartPriceRule->getAll();
+                $subtotal = 0;
+                $weight = 0;
+                $quantity = 0;
+                $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId()['items'] : $this->getCartSession();
+                if (!empty($cart)) {
+                    foreach ($cart as $item) {
+                        $subtotal += $item['product']['price'] * $item['quantity'];
+                        $weight += $item['product']['weight'] * $item['quantity'];
+                        $quantity += $item['quantity'];
+                    }
+
+                    if($this->checkCondition($cartPriceRules, $subtotal, $weight, $quantity)){
+                        return response()->json(['message' => 'Voucher applied'], 200);
+                    } else {
+                        return response()->json(['message' => 'You are not eligible'], 400);
+                    }
+                } else {
+                    return response()->json(['message' => 'Cart not found'], 404);
+                }
+            } else {
+                return response()->json(['message' => $checkRule['message']], 400);
+            }
+        } else {
+            return response()->json(['message' => 'Voucher not found'], 404);
         }
     }
 }
