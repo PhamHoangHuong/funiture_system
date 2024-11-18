@@ -23,6 +23,8 @@ import ProductFullScreen from "../pages/admin/FullScreen/ProductFullScreen"
 import CategoryEdit from "../pages/admin/Categories/CategoryEdit"
 import AttributesEdit from "../pages/admin/Attributes/AttributesEdit"
 import AttributesCreate from "../pages/admin/Attributes/AttributesCreate"
+import AttributeValuesCreate from "../pages/admin/Attributes/AttributeValuesCreate"
+import AttributeValuesEdit from "../pages/admin/Attributes/AttributeValuesEdit"
 
 const AdminRoutes: React.FC = () => {
     return (
@@ -50,6 +52,11 @@ const AdminRoutes: React.FC = () => {
                                         <Route path="values" element={<AttributeValuesList />} />
                                         <Route path="edit/:id" element={<AttributesEdit />} />
                                         <Route path="create" element={<AttributesCreate />} />
+                                    </Route>
+                                    <Route path="attributes/values">
+                                        <Route index element={<AttributeValuesList />} />
+                                        <Route path="create" element={<AttributeValuesCreate />} />
+                                        <Route path="edit/:id" element={<AttributeValuesEdit />} />
                                     </Route>
                                     <Route path="inventory">
                                         <Route path="warehouse" element={<Warehouse />} />

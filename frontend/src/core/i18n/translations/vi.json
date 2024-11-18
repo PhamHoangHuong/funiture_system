@@ -112,5 +112,8 @@
   "attributeValues": "Giá trị thuộc tính",
   "addAttributeValues": "Thêm giá trị thuộc tính",
   "editAttribute": "Sửa thuộc tính",
-  "back": "Quay lại"
+  "back": "Quay lại",
+  "selectAttribute": "Chọn thuộc tính",
+  "createAttributeValue": "Thêm giá trị thuộc tính",
+  "attributeId": "Thuộc tính"
 }
