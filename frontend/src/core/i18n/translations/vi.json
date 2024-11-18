@@ -104,5 +104,7 @@
   "productImage": "Ảnh sản phẩm",
   "saveChanges": "Lưu thay đổi",
   "sku": "SKU",
-  "editProduct": "Sửa sản phẩm"
+  "editProduct": "Sửa sản phẩm",
+  "confirmDeleteTitle": "Xác nhận xóa",
+  "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa danh mục này không?"
 }

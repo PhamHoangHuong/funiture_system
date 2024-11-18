@@ -289,9 +289,9 @@ class CartController extends Controller
         $subtotal = 0;
         $weight = 0;
         $quantity = 0;
-        $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId() : $this->getCartSession();
+        $cart = auth('customer')->check() ? $this->cartRepository->getCartByUserId()['items'] : $this->getCartSession();
         if (!empty($cart)) {
-            foreach ($cart->toArray()['items'] as $item) {
+            foreach ($cart as $item) {
                 $subtotal += $item['product']['price'] * $item['quantity'];
                 $weight += $item['product']['weight'] * $item['quantity'];
                 $quantity += $item['quantity'];
@@ -300,7 +300,7 @@ class CartController extends Controller
             foreach ($cartPriceRules as $rule) {
                 $dataRule = $rule->getAttributes();
                 $check = $this->checkRule($dataRule);
-                if ($check['check'] && $dataRule['coupon_type'] == 2 && $this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
+                if ($check['check'] && $dataRule['coupon_type'] == 1 && $this->checkCondition($dataRule, $subtotal, $weight, $quantity)) {
                     $dataRule['invalid_reason'] = true;
                     $coupon[] = $dataRule;
                 } else {
@@ -359,7 +359,7 @@ class CartController extends Controller
         }
         if (auth('customer')->check()) {
             $customer = auth('customer')->user();
-            if (!in_array($customer->group_customer_id, $groupCustomerIds)) {
+            if (!in_array($customer->group_id, $groupCustomerIds)) {
                 $check = false;
                 $message = __('Mã giảm giá không áp dụng cho nhóm khách hàng của bạn');
             }
