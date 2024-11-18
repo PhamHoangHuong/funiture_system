@@ -37,6 +37,10 @@ const AttributesList: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
+    fetchAttributes();
+  }, []);
+
+  useEffect(() => {
     const filtered = attributes.filter(attribute =>
       Object.entries(filters).every(([key, value]) =>
         attribute[key as keyof Attribute]?.toString().toLowerCase().includes(value.toLowerCase())
@@ -163,7 +167,7 @@ const AttributesList: React.FC = () => {
             <Select
               displayEmpty
               defaultValue="export"
-              onChange={handleSelectChange}
+              onChange={(event) => handleSelectChange(event as React.ChangeEvent<{ value: unknown }>)}
             >
               <MenuItem value="export">Export</MenuItem>
               <MenuItem value="import">Import</MenuItem>
@@ -184,17 +188,25 @@ const AttributesList: React.FC = () => {
         <DataGrid
           rows={filteredAttributes.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
           columns={columns}
-          pageSize={rowsPerPage}
-          pagination={false} // Ensure pagination is set to false
-          hideFooter // Hide the footer completely
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: rowsPerPage,
+                page: page - 1,
+              },
+            },
+          }}
+          paginationMode="server"
+          rowCount={filteredAttributes.length}
+          hideFooter
           checkboxSelection
-          disableSelectionOnClick
+          disableRowSelectionOnClick
         />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, p: 2, border: '1px solid #ccc', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
           <FormControl variant="outlined" size="small">
             <Select
               value={rowsPerPage}
-              onChange={handleRowsPerPageChange}
+              onChange={(event) => handleRowsPerPageChange(event as React.ChangeEvent<{ value: unknown }>)}
             >
               <MenuItem value={10}>10</MenuItem>
               <MenuItem value={25}>25</MenuItem>

@@ -106,5 +106,11 @@
   "sku": "SKU",
   "editProduct": "Sửa sản phẩm",
   "confirmDeleteTitle": "Xác nhận xóa",
-  "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa danh mục này không?"
+  "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa danh mục này không?",
+  "attributeName": "Tên thuộc tính",
+  "attributeDescription": "Mô tả thuộc tính",
+  "attributeValues": "Giá trị thuộc tính",
+  "addAttributeValues": "Thêm giá trị thuộc tính",
+  "editAttribute": "Sửa thuộc tính",
+  "back": "Quay lại"
 }
