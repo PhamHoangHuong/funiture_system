@@ -1,7 +1,7 @@
 import React from 'react';
 
 const AttributesCreate = () => {
-  return <div>AttributesCreate</div>;
+  return <div>thêm thuộc tính</div>;
 };
 
 export default AttributesCreate;
