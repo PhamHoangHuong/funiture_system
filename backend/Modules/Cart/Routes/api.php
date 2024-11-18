@@ -24,5 +24,6 @@ Route::group(['prefix' => '/cart'], function () {
     Route::delete('', [CartController::class, 'clear']);
     Route::get('/getTotal', [CartController::class, 'getTotalCart']);
     Route::get('/getListCoupon', [CartController::class, 'getListCartPriceRuleApply']);
+    Route::post('/applyVoucher', [CartController::class, 'applyVoucher']);
 });
 
