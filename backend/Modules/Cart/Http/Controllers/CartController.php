@@ -96,7 +96,7 @@ class CartController extends Controller
         // Nếu người dùng đã đăng nhập, lấy giỏ hàng từ DB
         try {
             if (auth('customer')->check()) {
-                $cart = $this->cartRepository->getCartByUserId();
+                $cart = $this->cartRepository->getCartByUserId()->toArray();
 
             } else {
                 $cart = Session::get('cart', []);
@@ -106,20 +106,26 @@ class CartController extends Controller
         }
 
         // Nếu chưa đăng nhập, lấy giỏ hàng từ session
-
         $subtotal = 0;
-        if(is_array($cart->toArray()))
-        foreach ($cart['items'] as $key => $item) {
-            $subtotal += $item['product']['price'] * $item['quantity'];
+        if(is_array($cart) && !empty($cart)) {
+            foreach ($cart['items'] as $key => $item) {
+                $subtotal += $item['product']['price'] * $item['quantity'];
+            }
+
+            $quantity = $this->getQuantityCart();
+
+            $results = [
+                'items' => !empty($cart) ? $cart : 'Cart is empty',
+                'quantity' => $quantity,
+                'subtotal' => $subtotal
+            ];
+        } else {
+            $results = [
+                'items' => 'Cart is empty',
+                'quantity' => 0,
+                'subtotal' => 0
+            ];
         }
-
-        $quantity = $this->getQuantityCart();
-
-        $results = [
-            'items' => !empty($cart) ? $cart : 'Cart is empty',
-            'quantity' => $quantity,
-            'subtotal' => $subtotal
-        ];
 
         return response()->json($results, 200);
     }
