@@ -29,7 +29,7 @@ class StoreCartPriceRuleRequest extends FormRequest
             'usage_limit' => 'nullable|integer|min:1',
             'used' => 'nullable|integer|min:0',
             'coupon_type' => 'nullable|integer|in:1,2',
-            'operator' => 'nullable|integer|in:1,2,3,4,5,6',
+            'operator' => 'nullable|string|in:less_than,less_than_or_equal,equal,greater_than,greater_than_or_equal',
             'simple_action' => 'nullable|string|in:by_percent,by_fixed,cart_fixed',
             'priority' => 'nullable|integer|min:0',
             'sort_order' => 'nullable|integer|min:0',
