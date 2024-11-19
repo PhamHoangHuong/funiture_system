@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartServices";
 import { ProductService } from "../services/productService";
-import type { Cart, CartMini, Item } from "../hooks/dataTypes";
+import type { Cart, CartMini, Discount, Item } from "../hooks/dataTypes";
 
 interface CartContextType {
 	cart: Cart[];
@@ -13,6 +13,7 @@ interface CartContextType {
 	addToCart: (product_id: number, quantity: number) => Promise<void>;
 	updateCartItem: (product_id: number, quantity: number) => Promise<void>;
 	removeCartItem: (product_id: number) => Promise<void>;
+	coupon ?: Discount[]
 }
 
 export const CartContext = createContext<CartContextType | undefined>(
@@ -28,6 +29,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 		quantity: 0,
 		subtotal: 0,
 	});
+	const [coupon, setCoupon] = useState<Discount[]>();
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +76,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 			setCartMini({ items: localCart, quantity, subtotal });
 		}
 	};
+
+	const fetchListCoupon = async () => {	
+		try {
+			if(!isUserLoggedIn()) return;
+			setLoading(true);
+			const result = await cartService.getListCoupon();
+			console.log("coupon", result);
+			setCoupon(result);
+			setError(null);
+		} catch (error) {
+			console.error("Error fetching mini cart:", error);
+				setError("Error fetching mini cart");
+		} finally{
+			setLoading(false);
+		}
+		
+	}
 
 	const addToCart = async (product_id: number, quantity: number) => {
 		if (isUserLoggedIn()) {
@@ -160,6 +179,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 		const fetchData = async () => {
 			await fetchCartMini();
 			await fetchCart();
+			await fetchListCoupon();
 		};
 		fetchData();
 	}, []);
@@ -176,6 +196,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 				addToCart,
 				updateCartItem,
 				removeCartItem,
+				coupon,
 			}}
 		>
 			{children}
