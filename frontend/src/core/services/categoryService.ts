@@ -3,8 +3,6 @@ import { Category } from '../hooks/dataTypes';
 
 const API_URL = 'http://localhost:8000/api/category';
 
-
-
 export const categoryService = {
   getAll: async () => {
     const response = await axios.get<{ data: Category[] }>(API_URL);

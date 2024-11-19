@@ -3,6 +3,7 @@
 namespace Modules\Category\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Product\Transformers\ProductResource;
 
 class CategoryResource extends JsonResource
 {
@@ -14,18 +15,16 @@ class CategoryResource extends JsonResource
      */
     public function toArray($request)
     {
-            return [
-                'id' => $this->id,
-                'name' => $this->name,
-                'slug' => $this->slug,
-                'parent_id' => $this->parent_id,
-                'image' => $this->image,
-                'description' => $this->description,
-                'is_menu' => $this->is_menu,
-                'status' => $this->status,
-                'deleted_at' => $this->deleted_at,
-                'created_at' => $this->created_at,
-                'updated_at' => $this->updated_at,
-            ];
+        return [
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'parent_id' => $this->parent_id,
+            'description' => $this->description,
+            'image' => $this->image,
+            'status' => $this->status,
+
+            'products' => ProductResource::collection($this->whenLoaded('products')),
+        ];
     }
 }

@@ -98,4 +98,24 @@ class CustomerController extends Controller
             return $this->toResponseBad('Xóa khách hàng thất bại.',Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function switchStatus($id)
+    {
+        DB::beginTransaction();
+        try{
+            $customer = $this->customerRepository->find($id);
+            if (!$customer) {
+                return $this->toResponseBad('Khách hàng không tồn tại.', Response::HTTP_NOT_FOUND);
+            }
+
+            $status = $customer->status == 1 ? 0 : 1;
+            $this->customerRepository->update($id, ['status' => $status]);
+
+            DB::commit();
+            return $this->toResponseSuccess('Cập nhật trạng thái khách hàng thành công.',Response::HTTP_OK);
+        }catch (\Exception $exception){
+            DB::rollBack();
+            return $this->toResponseBad('Cập nhật trạng thái khách hàng thất bại.',Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

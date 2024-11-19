@@ -52,6 +52,11 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product->categories()->sync($categoryIds);
     }
 
+    public function updateProductCollections($product, array $collectionIds)
+    {
+        $product->collections()->sync($collectionIds);
+    }
+
     public function createProduct(array $data)
     {
         return $this->model->create($data);

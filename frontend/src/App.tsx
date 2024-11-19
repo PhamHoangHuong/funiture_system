@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import AdminRoutes from "./routes/AdminRoutes"
 import UserRouter from "./routes/UserRoutes"
 import { AuthProvider } from "./core/contexts/AuthContext"
+import { NotificationProvider } from "./core/contexts/NotificationContext"
 import './core/i18n/config'
 import theme from './theme'  // Import theme mới
 
@@ -14,10 +15,12 @@ const App: React.FC = () => {
             <CssBaseline />
             <Router>
                 <AuthProvider>
-                    <Routes>
-                        <Route path="/admin/*" element={<AdminRoutes />} />
-                        <Route path="/*" element={<UserRouter />} />
-                    </Routes>
+                    <NotificationProvider>
+                        <Routes>
+                            <Route path="/admin/*" element={<AdminRoutes />} />
+                            <Route path="/*" element={<UserRouter />} />
+                        </Routes>
+                    </NotificationProvider>
                 </AuthProvider>
             </Router>
         </ThemeProvider>

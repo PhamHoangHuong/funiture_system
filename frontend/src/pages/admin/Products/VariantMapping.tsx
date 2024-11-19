@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Box, TextField, FormControl, InputLabel, Select, MenuItem, IconButton, Switch } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useProductContext } from '../../../core/contexts/ProductContext';
+import { useProductContext } from '../../../core/hooks/contexts';
 
 interface VariantMappingProps {
     variants: any[];

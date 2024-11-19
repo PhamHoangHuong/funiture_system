@@ -11,6 +11,7 @@ interface ProductRepositoryInterface extends RepositoryInterface
     public function getSourceContainProduct($product_id);
     public function updateProductAttributes($product, array $attributes);
     public function updateProductCategories($product, array $categoryIds);
+    public function updateProductCollections($product, array $collectionIds);
     public function createProduct(array $data);
     public function updateProduct($id, array $data);
     public function deleteProduct($id);

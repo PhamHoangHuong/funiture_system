@@ -81,10 +81,14 @@ class ProductController extends Controller
                 }
             }
 
-            // Cập nhật thuộc tính và danh mục cho sản phẩm
+            // Cập nhật thuộc tính cho sản phẩm
             $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
+            // Cập nhật danh mục cho sản phẩm
             $this->productRepository->updateProductCategories($product, $request->input('category_ids', []));
+            // Cập nhật nguồn cung cấp cho sản phẩm
             $this->productRepository->updateProductSources($product, $request->input('sources', []));
+            // Cập nhật bộ sưu tập cho sản phẩm
+            $this->productRepository->updateProductCollections($product, $request->input('collection_ids', []));
 
             DB::commit();
             Log::info('Transaction committed');
@@ -122,7 +126,10 @@ class ProductController extends Controller
             $product = $this->productRepository->updateProduct($id, $productData);
 
             $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
+            //Cập nhật danh mục cho sản phẩm
             $this->productRepository->updateProductCategories($product, $request->input('category_ids', []));
+            //Cập nhật bộ sưu tập cho sản phẩm
+            $this->productRepository->updateProductCollections($product, $request->input('collection_ids', []));
 
             DB::commit();
             return $this->toResponseSuccess('Sản phẩm đã được cập nhật thành công', new ProductResource($product));

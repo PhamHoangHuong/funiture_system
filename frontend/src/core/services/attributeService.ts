@@ -38,7 +38,7 @@ export const AttributeService = {
         return response.data.data;
     },
 
-    createAttributeValue: async (attributeValueData: Partial<AttributeValue>): Promise<AttributeValue> => {
+    createAttributeValue: async (attributeValueData: { attribute_id: number; value: string }): Promise<AttributeValue> => {
         const response = await axios.post<SuccessResponse<AttributeValue>>(`${API_URL}/attribute-values`, attributeValueData);
         return response.data.data;
     },

@@ -55,4 +55,15 @@ export const formatStatus = (status: number, t: (key: string) => string): string
     return status === 1 ? t("active") : t("inactive");
 };
 
+export const formatStatusAdd = (status: any): number => {
+    const validStatus = [0, 1];
+    const formattedStatus = parseInt(status, 10);
+
+    if (isNaN(formattedStatus) || !validStatus.includes(formattedStatus)) {
+        throw new Error("Invalid status value. Status must be 0 or 1.");
+    }
+
+    return formattedStatus;
+};
+
 

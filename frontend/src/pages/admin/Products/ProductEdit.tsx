@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Grid, TextField, Typography, Paper, CircularProgress, Switch, FormControlLabel } from "@mui/material";
-import { useProductContext } from '../../../core/contexts/ProductContext';
+import { useProductContext } from '../../../core/hooks/contexts';
 import { Product } from '../../../core/hooks/dataTypes';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -8,13 +8,15 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useTranslation } from 'react-i18next';
 
 interface ProductEditProps {
     productId: number;
     onClose: () => void;
 }
 
-const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
+const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {   
+    const { t } = useTranslation();
     const { fetchProductById, updateProduct } = useProductContext();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
@@ -73,14 +75,14 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
             <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'background.paper', zIndex: 10, p: 2, borderBottom: '1px solid #ccc' }}>
                     <Typography variant="h4" gutterBottom>
-                        Edit Product
+                        {t('editProduct')}
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <Button onClick={onClose} variant="outlined" color="secondary" sx={{ mr: 2 }}>
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button type="submit" variant="contained" color="primary">
-                            Save Changes
+                            {t('saveChanges')}
                         </Button>
                     </Box>
                 </Box>
@@ -91,7 +93,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="Product Name"
+                                        label={t('productName')}
                                         value={product?.name || ''}
                                         onChange={(e) => handleInputChange('name', e.target.value)}
                                         required
@@ -106,13 +108,13 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                                 onChange={(e) => handleInputChange('status', e.target.checked)}
                                             />
                                         }
-                                        label="Status"
+                                        label={t('status')}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="Weight"
+                                        label={t('weight')}
                                         type="number"
                                         value={product?.weight || 0}
                                         onChange={(e) => handleInputChange('weight', e.target.value)}
@@ -120,14 +122,14 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 </Grid>
                                 <Grid item xs={12} sm={6} md={4}>
                                     <DatePicker
-                                        label="Start New Time"
+                                        label={t('startNewTime')}
                                         value={product?.start_new_time ? dayjs(product.start_new_time) : null}
                                         onChange={(date) => handleInputChange('start_new_time', date ? date.toISOString() : null)}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6} md={4}>
                                     <DatePicker
-                                        label="End New Time"
+                                        label={t('endNewTime')}
                                         value={product?.end_new_time ? dayjs(product.end_new_time) : null}
                                         onChange={(date) => handleInputChange('end_new_time', date ? date.toISOString() : null)}
                                     />
@@ -135,7 +137,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="SKU"
+                                        label={t('sku')}
                                         value={product?.sku || ''}
                                         onChange={(e) => handleInputChange('sku', e.target.value)}
                                     />
@@ -143,7 +145,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="SEO Title"
+                                        label={t('seoTitle')}
                                         value={product?.seo_title || ''}
                                         onChange={(e) => handleInputChange('seo_title', e.target.value)}
                                     />
@@ -151,7 +153,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="SEO Description"
+                                        label={t('seoDescription')}
                                         multiline
                                         value={product?.seo_description || ''}
                                         onChange={(e) => handleInputChange('seo_description', e.target.value)}
@@ -160,7 +162,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                                 <Grid item xs={12} sm={6} md={4}>
                                     <TextField
                                         fullWidth
-                                        label="Video Link"
+                                        label={t('videoLink')}
                                         value={product?.video_link || ''}
                                         onChange={(e) => handleInputChange('video_link', e.target.value)}
                                     />
@@ -168,12 +170,12 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                             </Grid>
                         </Grid>
                         <Grid item md={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <Typography variant="body1" gutterBottom>Product Image</Typography>
+                            <Typography variant="body1" gutterBottom>{t('productImage')}</Typography>
                             <input type="file" accept="image/*" onChange={handleImageChange} />
                             {imagePreview && <img src={imagePreview} alt="Product Preview" style={{ width: '100%', maxHeight: '300px', marginTop: '10px' }} />}
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="body1" gutterBottom>Description</Typography>
+                            <Typography variant="body1" gutterBottom>{t('description')}</Typography>
                             <Box sx={{ border: '1px solid #ccc', borderRadius: 1, overflow: 'hidden' }}>
                                 <ReactQuill
                                     theme="snow"
@@ -183,7 +185,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({ productId, onClose }) => {
                             </Box>
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="body1" gutterBottom>Content</Typography>
+                            <Typography variant="body1" gutterBottom>{t('content')}</Typography>
                             <Box sx={{ border: '1px solid #ccc', borderRadius: 1, overflow: 'hidden' }}>
                                 <ReactQuill
                                     theme="snow"

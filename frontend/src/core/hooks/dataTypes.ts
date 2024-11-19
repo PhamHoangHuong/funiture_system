@@ -34,12 +34,18 @@ export interface Category {
     name: string;
     slug: string;
     parent_id: number | null;
-    image: string | null;
+    image: File | null;
     description: string | null;
-    is_menu: boolean;
-    status: boolean;
+    status: number;
     created_at: string;
     updated_at: string;
+    product_ids: number[];
+}
+
+export interface CategoryMap {
+    id: number;
+    name: string;
+    parent_id: number | null;
 }
 
 export interface Product {
@@ -139,6 +145,7 @@ export interface AttributeContextType {
     error: string | null;
     fetchAttributes: () => Promise<void>;
     fetchAttributeValues: () => Promise<void>;
+    fetchAttributeValue: (id: number) => Promise<AttributeValue>;
     createAttribute: (attributeData: Partial<Attribute>) => Promise<Attribute>;
     updateAttribute: (id: number, attributeData: Partial<Attribute>) => Promise<Attribute>;
     deleteAttribute: (id: number) => Promise<void>;

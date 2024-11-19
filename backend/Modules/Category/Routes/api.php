@@ -13,4 +13,11 @@ use Modules\Category\Http\Controllers\CategoryController;
 |
 */
 
-Route::apiResource('category', CategoryController::class);
+Route::group(['prefix' => '/category'], function () {
+    Route::get('', [CategoryController::class, 'index']);
+    Route::get('/{categoryId}', [CategoryController::class, 'show']);
+    Route::post('', [CategoryController::class, 'store']);
+    Route::put('/{categoryId}', [CategoryController::class, 'update']);
+    Route::put('/{categoryId}/active', [CategoryController::class, 'switchStatus']);
+    Route::delete('/{categoryId}', [CategoryController::class, 'destroy']);
+});
