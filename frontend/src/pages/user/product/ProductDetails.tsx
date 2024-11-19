@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from 'react-router-dom';
 import { useProductContext } from '../../../core/contexts/ProductContext';
+import { useCart } from '../../../core/contexts/CartContext';
 import { Product } from '../../../core/hooks/dataTypes';
 import { formatCurrency } from '../../../core/hooks/format';
 
 const ProductDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const { fetchProductById } = useProductContext();
+    const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -92,7 +94,18 @@ const ProductDetails: React.FC = () => {
                                         <input type="text" defaultValue={1} />
                                         <button type="button" className="drecrement"><i className="fa-solid fa-plus" /></button>
                                     </div>
-                                    <a href="#" className="template-btn primary-btn fs-sm text-uppercase h-40">ADD To Cart</a>
+                                    <a 
+                                        href="#" 
+                                        className="template-btn primary-btn fs-sm text-uppercase h-40"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (product) {
+                                                addToCart(product.id, 1);
+                                            }
+                                        }}
+                                    >
+                                        ADD To Cart
+                                    </a>
                                 </div>
                                 <a href="#" className="pd-wishlist-btn text-uppercase mt-30"><i className="fa-regular fa-heart" />ADD Wishlist</a>
                                 <ul className="product-meta mt-32">
