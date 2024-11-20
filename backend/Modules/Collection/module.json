@@ -1,0 +1,11 @@
+{
+    "name": "Collection",
+    "alias": "collection",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Collection\\Providers\\CollectionServiceProvider"
+    ],
+    "files": []
+}

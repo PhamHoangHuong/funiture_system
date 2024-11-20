@@ -9,10 +9,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useProductContext, useCategory, useSource, useAttribute, useAdvancedPrice } from '../../../core/hooks/contexts';
-import { Product, AdvancedPrice } from '../../../core/hooks/dataTypes';
+import { Product, AdvancedPrice, Variant, ProductAttribute } from '../../../core/hooks/dataTypes';
 import { generateSlug, generateVariantName } from '../../../core/hooks/format';
-import axios from 'axios';
 import { SelectChangeEvent } from '@mui/material';
+import { createProductFormData } from '../../../core/hooks/formDataUtils';
+import VariantMapping from './VariantMapping';
+import { useTranslation } from 'react-i18next';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -28,9 +30,13 @@ const MenuProps = {
 type ProductWithArrays = Product & {
     sources: any[];
     attributes: any[];
+    category_ids: number[];
+    advanced_prices: AdvancedPrice[];
+    variants: Variant[];
 };
 
 const ProductCreate: React.FC = () => {
+    const { t } = useTranslation();
     const { createProduct } = useProductContext();
     const { categories, fetchCategories } = useCategory();
     const { sources, fetchSources } = useSource();
@@ -38,22 +44,27 @@ const ProductCreate: React.FC = () => {
     const [selectedAttributes, setSelectedAttributes] = React.useState<number[]>([]);
     const [selectedAttributeValues, setSelectedAttributeValues] = React.useState<Record<number, number[]>>({});
     const [product, setProduct] = React.useState<ProductWithArrays>({
-        id: 0, name: "", slug: "", description: "", content: "", image: "",
+        id: 0, name: "", slug: "", description: "", content: "", image: null,
         status: 1, weight: 0, price: 0, start_new_time: null,
         end_new_time: null, parent_id: 0,
         sku: "", stock_quantity: 0, seo_title: "", seo_description: "", video_link: "",
-        category_id: categories.length > 0 ? categories[0].id : null,
-        sources: [], attributes: [], advanced_prices: []
+        category_ids: categories.length > 0 ? [categories[0].id] : [],
+        sources: [], attributes: [], advanced_prices: [], variants: []
     });
     const { createAdvancedPrice } = useAdvancedPrice();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number }>>({});
+    const [variantDetails, setVariantDetails] = React.useState<Record<number, { price: number; weight: number; status: number; sku: string; image: File | null }>>({});
     const [variantImages, setVariantImages] = React.useState<Record<number, string | null>>({});
+    const [variants, setVariants] = React.useState<Variant[]>([]);
 
     React.useEffect(() => {
         fetchCategories();
         fetchSources();
     }, []);
+
+    React.useEffect(() => {
+        setVariants(generateVariants());
+    }, [selectedAttributes, selectedAttributeValues, product]);
 
     const handleAttributeChange = (event: SelectChangeEvent<number[]>) => {
         const value = event.target.value as number[];
@@ -108,37 +119,37 @@ const ProductCreate: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const mappedAttributes: ProductAttribute[] = selectedAttributes.flatMap(attributeId => {
+            const valueIds = selectedAttributeValues[attributeId] || [];
+            return valueIds.map(valueId => ({
+                attribute_id: attributeId,
+                attribute_value_id: valueId
+            }));
+        });
+
+        const validAttributes = mappedAttributes.filter(attr => attr.attribute_value_id !== undefined);
+
+        const updatedProduct = {
+            ...product,
+            attributes: validAttributes,
+            category_ids: Array.isArray(product.category_ids) ? product.category_ids : [product.category_ids],
+            sources: product.sources.map(source => ({
+                source_id: source.source_id,
+                quantity: source.quantity
+            })),
+            variants: variants
+        };
+
+        console.log('Updated Product Data:', updatedProduct);
+
         try {
-            const formData = new FormData();
-            Object.entries(product).forEach(([key, value]) => {
-                if (key === 'image' && value instanceof File) {
-                    formData.append(key, value);
-                } else if (Array.isArray(value)) {
-                    formData.append(key, JSON.stringify(value));
-                } else if (value !== null) {
-                    formData.append(key, value.toString());
-                }
-            });
-
-            if (product.weight) {
-                formData.set('weight', Number(product.weight).toString());
-            }
-
-
-            console.log('Product created successfully');
+            const formData = createProductFormData(updatedProduct as unknown as Product);
+            console.log('FormData to be submitted:', formData);
+            const newProduct = await createProduct(formData);
+            console.log('Product created successfully:', newProduct);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                console.error('Error creating product:', error.response.data);
-                if (error.response.status === 422) {
-                    const validationErrors = error.response.data.errors;
-                    Object.entries(validationErrors).forEach(([field, messages]) => {
-                        const messageArray = messages as string[];
-                        console.error(`${field}: ${messageArray.join(', ')}`);
-                    });
-                }
-            } else {
-                console.error('Error creating product:', error);
-            }
+            console.error('Error creating product:', error);
         }
     };
 
@@ -162,7 +173,7 @@ const ProductCreate: React.FC = () => {
             return acc.flatMap(existingCombination =>
                 attributeValuesForAttribute.map(valueId => [...existingCombination, valueId])
             );
-        }, [] as number[][]).map((combination) => {
+        }, [] as number[][]).map((combination, index) => {
             const variantName = generateVariantName(
                 product.name,
                 combination.map(valueId => {
@@ -173,20 +184,42 @@ const ProductCreate: React.FC = () => {
 
             const sku = generateSlug(variantName.join(' '));
 
-            return { variantName, sku, combination };
+            return {
+                name: variantName.join(' '),
+                slug: sku,
+                description: product.description,
+                content: product.content,
+                status: 1,
+                weight: variantDetails[index]?.weight || product.weight,
+                start_new_time: product.start_new_time,
+                end_new_time: product.end_new_time,
+                seo_title: product.seo_title,
+                seo_description: product.seo_description,
+                video_link: product.video_link,
+                price: variantDetails[index]?.price || product.price,
+                sku: variantDetails[index]?.sku || `SPC001-V${index + 1}`,
+                attributes: combination.map(valueId => ({
+                    attribute_id: attributeValues.find(v => v.id === valueId)?.attribute_id || 0,
+                    attribute_value_id: valueId
+                })),
+                image: variantDetails[index]?.image || null,
+                id: 0,
+                parent_id: product.id,
+                stock_quantity: 0,
+                category_ids: product.category_ids
+            };
         });
     };
 
-    const variants = generateVariants();
-
-    const handleVariantChange = (index: number, field: 'price' | 'weight' | 'status' | 'variantName' | 'sku', value: number | string) => {
-        setVariantDetails(prev => ({
-            ...prev,
-            [index]: {
-                ...prev[index],
+    const handleVariantChange = (index: number, field: keyof Variant, value: any) => {
+        setVariants((prevVariants) => {
+            const updatedVariants = [...prevVariants];
+            updatedVariants[index] = {
+                ...updatedVariants[index],
                 [field]: value,
-            },
-        }));
+            };
+            return updatedVariants;
+        });
     };
 
     const handleVariantImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,6 +229,13 @@ const ProductCreate: React.FC = () => {
             setVariantImages(prev => ({
                 ...prev,
                 [index]: imageUrl,
+            }));
+            setVariantDetails(prev => ({
+                ...prev,
+                [index]: {
+                    ...prev[index],
+                    image: file,
+                },
             }));
         }
     };
@@ -207,11 +247,11 @@ const ProductCreate: React.FC = () => {
                     <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
                         <Grid container spacing={3} alignItems="center">
                             <Grid item xs={10}>
-                                <Typography variant="h4">Thêm Sản Phẩm Mới</Typography>
+                                <Typography variant="h4">{t('addProduct')}</Typography>
                             </Grid>
                             <Grid item xs={2}>
                                 <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
-                                    Thêm Sản Phẩm
+                                    {t('addProduct')}
                                 </Button>
                             </Grid>
                         </Grid>
@@ -219,7 +259,7 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Thông tin cơ bản</Typography>
+                                <Typography variant="h6">{t('basicInformation')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Grid container spacing={3}>
@@ -228,7 +268,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Tên sản phẩm"
+                                                    label={t('productName')}
                                                     value={product.name}
                                                     onChange={(e) => handleProductChange('name', e.target.value)}
                                                     required
@@ -237,7 +277,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Slug"
+                                                    label={t('slug')}
                                                     value={product.slug}
                                                     onChange={(e) => handleProductChange('slug', e.target.value)}
                                                 />
@@ -245,7 +285,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SKU"
+                                                    label={t('sku')}
                                                     value={product.sku}
                                                     onChange={(e) => handleProductChange('sku', e.target.value)}
                                                 />
@@ -253,7 +293,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Giá"
+                                                    label={t('price')}
                                                     type="number"
                                                     value={product.price}
                                                     onChange={(e) => handleProductChange('price', e.target.value)}
@@ -262,7 +302,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Cân nặng"
+                                                    label={t('weight')}
                                                     type="number"
                                                     value={product.weight}
                                                     onChange={(e) => handleProductChange('weight', e.target.value)}
@@ -270,25 +310,25 @@ const ProductCreate: React.FC = () => {
                                             </Grid>
                                             <Grid item md={4}>
                                                 <FormControl fullWidth>
-                                                    <InputLabel>Trạng thái</InputLabel>
+                                                    <InputLabel>{t('status')}</InputLabel>
                                                     <Select
                                                         name="status"
                                                         value={product.status}
                                                         onChange={(e) => handleProductChange(e.target.name as keyof typeof product, e.target.value)}
-                                                        label="Trạng thái"
+                                                        label={t('status')}
                                                     >
-                                                        <MenuItem value={1}>Hoạt động</MenuItem>
-                                                        <MenuItem value={0}>Không hoạt động</MenuItem>
+                                                        <MenuItem value={1}>{t('active')}</MenuItem>
+                                                        <MenuItem value={0}>{t('inactive')}</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
                                             <Grid item md={4}>
                                                 <FormControl fullWidth required>
-                                                    <InputLabel>Danh mục</InputLabel>
+                                                    <InputLabel>{t('category')}</InputLabel>
                                                     <Select
-                                                        value={product.category_id}
-                                                        label="Danh mục"
-                                                        onChange={(e) => handleProductChange('category_id', e.target.value)}
+                                                        value={product.category_ids}
+                                                        label={t('category')}
+                                                        onChange={(e) => handleProductChange('category_ids', e.target.value)}
                                                     >
                                                         {categories.map((category) => (
                                                             <MenuItem key={category.id} value={category.id}>
@@ -301,7 +341,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={4}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SEO Title"
+                                                    label={t('seoTitle')}
                                                     value={product.seo_title}
                                                     onChange={(e) => handleProductChange('seo_title', e.target.value)}
                                                 />
@@ -309,7 +349,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="SEO Description"
+                                                    label={t('seoDescription')}
                                                     multiline
                                                     value={product.seo_description}
                                                     onChange={(e) => handleProductChange('seo_description', e.target.value)}
@@ -318,7 +358,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Mô tả"
+                                                    label={t('description')}
                                                     multiline
                                                     value={product.description}
                                                     onChange={(e) => handleProductChange('description', e.target.value)}
@@ -327,7 +367,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Nội dung"
+                                                    label={t('content')}
                                                     multiline
                                                     value={product.content}
                                                     onChange={(e) => handleProductChange('content', e.target.value)}
@@ -336,21 +376,21 @@ const ProductCreate: React.FC = () => {
                                             <Grid item md={6}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Video Link"
+                                                    label={t('videoLink')}
                                                     value={product.video_link}
                                                     onChange={(e) => handleProductChange('video_link', e.target.value)}
                                                 />
                                             </Grid>
                                             <Grid item md={6}>
                                                 <DatePicker
-                                                    label="Start New Time"
+                                                    label={t('startNewTime')}
                                                     value={product.start_new_time ? dayjs(product.start_new_time) : null}
                                                     onChange={(date) => handleProductChange('start_new_time', date)}
                                                 />
                                             </Grid>
                                             <Grid item md={6}>
                                                 <DatePicker
-                                                    label="End New Time"
+                                                    label={t('endNewTime')}
                                                     value={product.end_new_time ? dayjs(product.end_new_time) : null}
                                                     onChange={(date) => handleProductChange('end_new_time', date)}
                                                 />
@@ -375,7 +415,7 @@ const ProductCreate: React.FC = () => {
                                         />
                                         <label htmlFor="raised-button-file" style={{ marginTop: '5%' }}>
                                             <Button variant="contained" component="span">
-                                                Upload Image
+                                                {t('uploadImage')}
                                             </Button>
                                         </label>
                                     </Grid>
@@ -385,18 +425,18 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Thuộc tính</Typography>
+                                <Typography variant="h6">{t('attributes')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <FormControl sx={{ m: 1, width: '100%' }}>
-                                    <InputLabel id="attributes-checkbox-label">Thuộc tính</InputLabel>
+                                    <InputLabel id="attributes-checkbox-label">{t('attributes')}</InputLabel>
                                     <Select
                                         labelId="attributes-checkbox-label"
                                         id="attributes-checkbox"
                                         multiple
                                         value={selectedAttributes}
                                         onChange={handleAttributeChange}
-                                        input={<OutlinedInput label="Thuộc tính" />}
+                                        input={<OutlinedInput label={t('attributes')} />}
                                         renderValue={(selected) => selected.map(id => attributes.find(attr => attr.id === id)?.name || '').join(', ')}
                                         MenuProps={MenuProps}
                                     >
@@ -414,9 +454,9 @@ const ProductCreate: React.FC = () => {
                                         <Table>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell>Thuộc tính</TableCell>
-                                                    <TableCell>Giá trị</TableCell>
-                                                    <TableCell>Hành động</TableCell>
+                                                    <TableCell>{t('attribute')}</TableCell>
+                                                    <TableCell>{t('value')}</TableCell>
+                                                    <TableCell>{t('action')}</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -463,101 +503,22 @@ const ProductCreate: React.FC = () => {
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Sản phẩm biến thể</Typography>
+                                <Typography variant="h6">{t('productVariants')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Hình ảnh</TableCell>
-                                                <TableCell>Tên</TableCell>
-                                                <TableCell>SKU</TableCell>
-                                                <TableCell sx={{ width: '100px' }}>Giá</TableCell>
-                                                <TableCell sx={{ width: '100px' }}>Cân nặng</TableCell>
-                                                <TableCell>Trạng thái</TableCell>
-                                                <TableCell>Thuộc tính</TableCell>
-                                                <TableCell>Hành động</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {variants.map((variant, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                            {variantImages[index] ? (
-                                                                <img src={variantImages[index]} alt="Variant Preview" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
-                                                            ) : (
-                                                                <label htmlFor={`variant-image-upload-${index}`}>
-                                                                    <Box sx={{ width: '50px', height: '50px', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                                                        <AddIcon color="action" />
-                                                                    </Box>
-                                                                </label>
-                                                            )}
-                                                            <input
-                                                                accept="image/*"
-                                                                style={{ display: 'none' }}
-                                                                id={`variant-image-upload-${index}`}
-                                                                type="file"
-                                                                onChange={(e) => handleVariantImageChange(index, e)}
-                                                            />
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.variantName}
-                                                            onChange={(e) => handleVariantChange(index, 'variantName', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            value={variant.sku}
-                                                            onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell sx={{ width: '100px' }}>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variantDetails[index]?.price || product.price}
-                                                            onChange={(e) => handleVariantChange(index, 'price', Number(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell sx={{ width: '100px' }}>
-                                                        <TextField
-                                                            type="number"
-                                                            value={variantDetails[index]?.weight || product.weight}
-                                                            onChange={(e) => handleVariantChange(index, 'weight', Number(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Switch
-                                                            checked={variantDetails[index]?.status === 1}
-                                                            onChange={(e) => handleVariantChange(index, 'status', e.target.checked ? 1 : 0)}
-                                                            color="primary"
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {variant.combination.map(valueId => {
-                                                            const value = attributeValues.find(v => v.id === valueId);
-                                                            return value ? value.value : '';
-                                                        }).join(', ')}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <IconButton>
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                <VariantMapping
+                                    variants={variants}
+                                    variantImages={Object.values(variantImages) as string[]}
+                                    attributeValues={attributeValues}
+                                    handleVariantImageChange={handleVariantImageChange}
+                                    onVariantChange={handleVariantChange}
+                                />
                             </AccordionDetails>
                         </Accordion>
 
                         <Accordion>
                             <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}>
-                                <Typography variant="h6">Nguồn hàng</Typography>
+                                <Typography variant="h6">{t('sources')}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 {product.sources.map((source, index) => (
@@ -565,7 +526,7 @@ const ProductCreate: React.FC = () => {
                                         <Grid container spacing={2} alignItems="center">
                                             <Grid item xs={12} md={5}>
                                                 <FormControl fullWidth required>
-                                                    <InputLabel>Nguồn</InputLabel>
+                                                    <InputLabel>{t('source')}</InputLabel>
                                                     <Select
                                                         value={source.source_id}
                                                         onChange={(e) => handleProductChange('sources', { ...source, source_id: e.target.value }, index)}
@@ -581,7 +542,7 @@ const ProductCreate: React.FC = () => {
                                             <Grid item xs={12} md={5}>
                                                 <TextField
                                                     fullWidth
-                                                    label="Số lượng"
+                                                    label={t('quantity')}
                                                     type="number"
                                                     value={source.quantity}
                                                     onChange={(e) => handleProductChange('sources', { quantity: e.target.value }, index)}
@@ -596,7 +557,7 @@ const ProductCreate: React.FC = () => {
                                     </Box>
                                 ))}
                                 <Button startIcon={<AddIcon />} onClick={() => handleProductChange('sources', { source_id: "", quantity: "" })}>
-                                    Thêm nguồn hàng
+                                    {t('addSource')}
                                 </Button>
                             </AccordionDetails>
                         </Accordion>

@@ -29,9 +29,9 @@ return new class extends Migration {
             $table->integer('usage_limit')->nullable()->comment('Giới hạn sử dụng.');
             $table->integer('used')->default(0)->comment('Số lần đã sử dụng.');
             $table->tinyInteger('coupon_type')->nullable()->default(1)->comment('Loại mã giảm giá. 1: Mã giảm giá, 2: Mã miễn phí vận chuyển.');
-            $table->smallInteger('operator')->nullable()
-                ->comment('Toán tử. 1: bigger_than, 2: less_than, 3: equal, 4: not_equal, 5: greater_than_or_equal, 6: less_than_or_equal');
-            $table->enum('simple_action', ['by_percent', 'by_fixed', 'cart_fixed'])->nullable()->comment('Hành động: by_percent, by_fixed, cart_fixed');
+            $table->enum('operator',['less_than','less_than_or_equal','equal','greater_than','greater_than_or_equal'])->nullable()
+                ->comment('Toán tử: nhỏ hơn, nhỏ hơn hoặc bằng, bằng, lớn hơn, lớn hơn hoặc bằng');
+            $table->enum('simple_action', ['by_percent', 'by_fixed'])->nullable()->comment('Hành động: theo phần trăm, theo số tiền cố định.');
             $table->integer('priority')->nullable()->comment('Ưu tiên.');
             $table->integer('sort_order')->nullable()->comment('Thứ tự sắp xếp.');
 

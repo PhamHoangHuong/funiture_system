@@ -18,5 +18,8 @@
     "Subscribe": true,
     "Review": true,
     "Order": true,
-    "Checkout": true
+    "Checkout": true,
+    "Wishlist": true,
+    "Menu": true,
+    "Collection": true
 }

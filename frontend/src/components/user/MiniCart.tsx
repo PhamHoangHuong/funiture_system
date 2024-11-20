@@ -1,142 +1,99 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../../core/contexts/CartContext";
+import "../../../public/assets/user/css/miniCartStyles.css";
 
 interface MiniCartProps {
-    isOpen: boolean;
-    onClose: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 }
 
 const MiniCart: React.FC<MiniCartProps> = ({ isOpen, onClose }) => {
-    const cartDrawerStyle: React.CSSProperties = {
-        position: 'fixed',
-        top: 0,
-        right: isOpen ? 0 : '-100%',
-        width: '350px',
-        height: '100vh',
-        backgroundColor: '#ffffff',
-        boxShadow: '-4px 0 10px rgba(0, 0, 0, 0.1)',
-        zIndex: 1000,
-        overflowY: 'auto',
-        transition: 'right 0.3s ease-in-out',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-    };
+	const { cartMini, fetchCartMini, updateCartItem, removeCartItem } = useCart();
 
-    const headerStyle: React.CSSProperties = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        paddingBottom: '15px',
-        borderBottom: '1px solid #e0e0e0',
-    };
+	useEffect(() => {
+		if (isOpen) {
+			fetchCartMini();
+		}
+	}, [isOpen, fetchCartMini]);
 
-    const closeButtonStyle: React.CSSProperties = {
-        background: 'none',
-        border: 'none',
-        fontSize: '24px',
-        cursor: 'pointer',
-        color: '#333',
-    };
+	if (!isOpen || !cartMini) return null;
 
-    const cartItemStyle: React.CSSProperties = {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px',
-        marginBottom: '20px',
-        padding: '10px',
-        backgroundColor: '#f9f9f9',
-        borderRadius: '8px',
-    };
-
-    const imageStyle: React.CSSProperties = {
-        width: '80px',
-        height: '80px',
-        objectFit: 'cover',
-        borderRadius: '4px',
-    };
-
-    const quantityControlStyle: React.CSSProperties = {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '5px',
-        marginTop: '5px',
-    };
-
-    const quantityButtonStyle: React.CSSProperties = {
-        background: '#e0e0e0',
-        border: 'none',
-        width: '24px',
-        height: '24px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        fontSize: '14px',
-    };
-
-    const totalStyle: React.CSSProperties = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: '20px',
-        paddingTop: '15px',
-        borderTop: '1px solid #e0e0e0',
-        fontSize: '18px',
-        fontWeight: 'bold',
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        display: 'block',
-        width: '100%',
-        padding: '12px',
-        textAlign: 'center',
-        textDecoration: 'none',
-        borderRadius: '4px',
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-        marginTop: '15px',
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <>
-            <div style={cartDrawerStyle}>
-                <div style={headerStyle}>
-                    <h2 style={{ margin: 0 }}>Your Cart (3)</h2>
-                    <button onClick={onClose} style={closeButtonStyle}>&times;</button>
-                </div>
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                    <div style={cartItemStyle}>
-                        <img src="/assets/images/products/pds-sm-1.png" alt="Product" style={imageStyle} />
-                        <div style={{ flex: 1 }}>
-                            <h4 style={{ margin: '0 0 5px' }}>Sunsine Table Chairs</h4>
-                            <p style={{ margin: '0 0 5px', color: '#666' }}>$250.00</p>
-                            <div style={quantityControlStyle}>
-                                <button style={quantityButtonStyle}>-</button>
-                                <span style={{ margin: '0 10px' }}>1</span>
-                                <button style={quantityButtonStyle}>+</button>
-                            </div>
-                        </div>
-                        <button style={{ ...closeButtonStyle, fontSize: '18px' }}>&times;</button>
-                    </div>
-                </div>
-                <div style={totalStyle}>
-                    <span>Total:</span>
-                    <span>$750.00</span>
-                </div>
-                <Link to="/cart" style={{ ...buttonStyle, backgroundColor: '#4a90e2', color: 'white' }}>
-                    View Cart
-                </Link>
-                <Link to="/checkout" style={{ ...buttonStyle, backgroundColor: 'white', color: '#4a90e2', border: '2px solid #4a90e2' }}>
-                    Checkout
-                </Link>
-            </div>
-        </>
-    );
+	return (
+		<>
+			<div className="backdrop" onClick={onClose}></div>
+			<div className="cart-drawer" style={{ right: isOpen ? 0 : "-100%" }}>
+				<div className="header">
+					<h2 style={{ margin: 0 }}>Your Cart ({cartMini.quantity})</h2>
+					<button onClick={onClose} className="close-button">
+						&times;
+					</button>
+				</div>
+				<div style={{ flex: 1, overflowY: "auto" }}>
+					{cartMini.items.length > 0 ? (
+						cartMini.items.map((item) => (
+							<div key={item.product_id} className="cart-item">
+								<img src={item.product.image || "/assets/user/images/products/chair-md-2.png"} alt={item.product.name} className="image" />
+								<div style={{ flex: 1 }}>
+									<h4 style={{ margin: "0 0 5px" }}>{item.product.name}</h4>
+									<p style={{ margin: "0 0 5px", color: "#666" }}>
+										${item.product.price}
+									</p>
+									<div className="quantity-control">
+										<button
+											className="quantity-button"
+											onClick={() => {
+												if (item.quantity > 0) {
+													updateCartItem(item.product_id, item.quantity - 1);
+												}
+											}}
+										>
+											-
+										</button>
+										<span style={{ margin: "0 10px" }}>{item.quantity}</span>
+										<button className="quantity-button" onClick={() => updateCartItem(item.product_id, item.quantity + 1)}>+</button>
+									</div>
+								</div>
+								<button
+									className="delete-button"
+									onClick={() => removeCartItem(item.product_id)}
+									style={{ fontSize: "18px" }}
+								>
+									&times;
+								</button>
+							</div>
+						))
+					) : (
+						<div style={{ padding: "20px", textAlign: "center" }}>
+							Không có sản phẩm nào trong giỏ hàng
+						</div>
+					)}
+				</div>
+				<div className="total">
+					<span>Total:</span>
+					<span>${cartMini.subtotal}</span>
+				</div>
+				<Link
+					to="/cart"
+					className="button"
+					style={{ backgroundColor: "#4a90e2", color: "white" }}
+				>
+					View Cart
+				</Link>
+				<Link
+					to="/checkout"
+					className="button"
+					style={{
+						backgroundColor: "white",
+						color: "#4a90e2",
+						border: "2px solid #4a90e2",
+					}}
+				>
+					Checkout
+				</Link>
+			</div>
+		</>
+	);
 };
 
 export default MiniCart;

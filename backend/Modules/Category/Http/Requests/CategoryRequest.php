@@ -3,6 +3,8 @@
 namespace Modules\Category\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
 
 class CategoryRequest extends FormRequest
 {
@@ -13,15 +15,22 @@ class CategoryRequest extends FormRequest
      */
     public function rules()
     {
+        $categoryId = $this->route('category');
         return [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'slug' => 'required|string|max:20',
-            'parent_id' => 'nullable|integer|exists:categories,id',
-            'image' => 'nullable|string|max:200',
-            'description' => 'nullable|string',
-            'is_menu' => 'required|boolean',
-            'status' => 'boolean',
-            'deleted_at' => 'nullable|date',
+            'name' => 'sometimes|required|string|max:255',
+            'slug' =>'sometimes|required|string|max:255',
+            'parent_id'=>[
+                'nullable',
+                'integer',
+                Rule::exists('categories','id')->whereNull('parent_id')
+            ],
+            'description'=>'nullable|string',
+            'image'=>'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+            'status'=>'nullable|integer|in:0,1',
+
+            //Thêm products nếu có
+            'products'=>'nullable|array',
+            'products.*'=>'integer|exists:products,id'
         ];
     }
 

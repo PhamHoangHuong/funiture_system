@@ -49,7 +49,13 @@ const ProductDetails: React.FC = () => {
                                     <div className="vr-poroduct-single-slider">
                                         <div className="single-item text-center">
                                             <span className="zoom-on-hover d-inline-block">
-                                                <img src={product.image} alt={product.name} className="img-fluid mood-multiply d-inline-block" />
+                                                <img src={
+                                                    typeof product.image === 'string'
+                                                        ? product.image
+                                                        : product.image instanceof File
+                                                            ? URL.createObjectURL(product.image)
+                                                            : "/assets/user/images/products/chair-md-2.png"
+                                                } alt={product.name} className="img-fluid mood-multiply d-inline-block" />
                                             </span>
                                         </div>
                                     </div>
@@ -91,7 +97,7 @@ const ProductDetails: React.FC = () => {
                                 <a href="#" className="pd-wishlist-btn text-uppercase mt-30"><i className="fa-regular fa-heart" />ADD Wishlist</a>
                                 <ul className="product-meta mt-32">
                                     <li>SKU: {product.sku}</li>
-                                    <li>Categories: {product.category_id ? `Category ${product.category_id}` : 'Uncategorized'}</li>
+                                    <li>Categories: {product.category_ids ? `Category ${product.category_ids}` : 'Uncategorized'}</li>
                                     <li>Stock: {product.stock_quantity}</li>
                                 </ul>
                             </div>
@@ -124,7 +130,7 @@ const ProductDetails: React.FC = () => {
                             <div className="tab-pane fade" id="tab-2" role="tabpanel">
                                 <ul className="product-meta d-flex gap-2 flex-column">
                                     <li>SKU: {product.sku}</li>
-                                    <li>Categories: {product.category_id ? `Category ${product.category_id}` : 'Uncategorized'}</li>
+                                    <li>Categories: {product.category_ids ? `Category ${product.category_ids}` : 'Uncategorized'}</li>
                                     <li>Weight: {product.weight ? `${product.weight} kg` : 'N/A'}</li>
                                     <li>Stock: {product.stock_quantity}</li>
                                 </ul>
