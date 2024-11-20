@@ -34,7 +34,16 @@ class ProductController extends Controller
     public function index()
     {
         $products = $this->productRepository->getAll();
-        return ProductResource::collection($products);
+        return ProductResource::collection($products->load('categories', 'collections', 'sourceProducts', 'productAttributes'));
+    }
+
+    public function searchProduct(Request $request)
+    {
+        $params = $request->all();
+        $products = $this->productRepository->searchProduct($params);
+
+        // Sử dụng ProductResource để trả về JSON
+        return ProductResource::collection($products->load('categories', 'collections', 'sourceProducts', 'productAttributes'));
     }
 
     // Tạo mới một sản phẩm

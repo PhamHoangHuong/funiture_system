@@ -103,4 +103,72 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         }
         $product->sources()->sync($sourceData);
     }
+
+    public function searchProduct(array $params)
+    {
+        $query = $this->model->query();
+
+        // Tìm theo tên sản phẩm (name)
+        if (isset($params['name'])) {
+            $query->where('name', 'like', '%' . $params['name'] . '%');
+        }
+
+        // Tìm theo mã sản phẩm (sku)
+        if (isset($params['sku'])) {
+            $query->where('sku', 'like', '%' . $params['sku'] . '%');
+        }
+
+        // Tìm theo giá (price) - giá trị cụ thể
+        if (isset($params['price'])) {
+            $query->where('price', $params['price']);
+        }
+
+        // Tìm theo khoảng giá (min_price và max_price)
+        if (isset($params['min_price'])) {
+            $query->where('price', '>=', $params['min_price']);
+        }
+        if (isset($params['max_price'])) {
+            $query->where('price', '<=', $params['max_price']);
+        }
+
+        // Tìm theo trạng thái (status)
+        if (isset($params['status'])) {
+            $query->where('status', $params['status']);
+        }
+
+        // Tìm theo số lượng trong kho (stock_quantity)
+        if (isset($params['min_stock'])) {
+            $query->where('stock_quantity', '>=', $params['min_stock']);
+        }
+        if (isset($params['max_stock'])) {
+            $query->where('stock_quantity', '<=', $params['max_stock']);
+        }
+
+        // Tìm theo danh mục (category_id)
+        if (isset($params['category_id'])) {
+            $query->whereHas('categories', function ($q) use ($params) {
+                $q->where('category_id', $params['category_id']);
+            });
+        }
+
+        // Tìm theo bộ sưu tập (collection_id)
+        if (isset($params['collection_id'])) {
+            $query->whereHas('collections', function ($q) use ($params) {
+                $q->where('collection_id', $params['collection_id']);
+            });
+        }
+
+        // Tìm theo thuộc tính (attributes) - dùng với bảng pivot product_attributes
+        if (isset($params['attribute_id'])) {
+            $query->whereHas('productAttributes', function ($q) use ($params) {
+                $q->where('attribute_id', $params['attribute_id']);
+            });
+        }
+
+
+
+
+        return $query->get();
+    }
+
 }
