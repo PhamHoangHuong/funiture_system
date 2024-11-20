@@ -16,5 +16,7 @@
     "CatalogPriceRule": true,
     "Contact": true,
     "Subscribe": true,
-    "Review": true
+    "Review": true,
+    "Order": true,
+    "Checkout": true
 }

@@ -42,4 +42,13 @@ class Customer extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(GroupCustomer::class);
     }
+
+    public function address()
+    {
+        return $this->hasMany(CustomerAddress::class)->where('default_status',1);
+    }
+
+    public function getUserAdress(){
+        
+    }
 }

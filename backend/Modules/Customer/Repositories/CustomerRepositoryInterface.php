@@ -6,5 +6,5 @@ use App\Repositories\RepositoryInterface;
 
 interface CustomerRepositoryInterface extends RepositoryInterface
 {
-
+    public function getFullAddress($user);
 }
