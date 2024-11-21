@@ -106,6 +106,9 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function searchProduct(array $params)
     {
+        if(empty($params)) {
+            return $this->model->all();
+        }
         $query = $this->model->query();
 
         // Tìm theo tên sản phẩm (name)
@@ -118,10 +121,6 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('sku', 'like', '%' . $params['sku'] . '%');
         }
 
-        // Tìm theo giá (price) - giá trị cụ thể
-        if (isset($params['price'])) {
-            $query->where('price', $params['price']);
-        }
 
         // Tìm theo khoảng giá (min_price và max_price)
         if (isset($params['min_price'])) {
@@ -136,7 +135,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('status', $params['status']);
         }
 
-        // Tìm theo số lượng trong kho (stock_quantity)
+        // Tìm theo trạng thái  số lượng trong kho (stock_quantity)
         if (isset($params['min_stock'])) {
             $query->where('stock_quantity', '>=', $params['min_stock']);
         }

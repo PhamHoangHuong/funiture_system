@@ -31,9 +31,11 @@ class ProductController extends Controller
     }
 
     // Lấy danh sách tất cả sản phẩm
-    public function index()
+    public function index(Request $request)
     {
-        $products = $this->productRepository->getAll();
+        $params = $request->all();
+        $products = $this->productRepository->searchProduct($params);
+
         return ProductResource::collection($products->load('categories', 'collections', 'sourceProducts', 'productAttributes'));
     }
 
