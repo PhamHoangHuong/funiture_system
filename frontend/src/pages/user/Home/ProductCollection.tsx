@@ -53,8 +53,11 @@ export default function ProductCollection() {
                                     style={{ 
                                         flex: '0 0 calc(25% - 12px)',
                                         minWidth: '250px',
-                                        maxWidth: 'calc(25% - 12px)'
-                                    }}>
+                                        maxWidth: 'calc(25% - 12px)',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => window.location.href = `/products/${product.id}`}
+                                >
                                     <div className="feature-image position-relative">
                                         <img 
                                             src={typeof product.image === 'string' 
@@ -72,7 +75,15 @@ export default function ProductCollection() {
                                             }}
                                         />
                                         <div className="action-box">
-                                            <a href="#" className="cart-btn" onClick={() => addToCart(product.id, 1)}>
+                                            <a 
+                                                href="#" 
+                                                className="cart-btn" 
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    addToCart(product.id, 1);
+                                                }}
+                                            >
                                                 Add to Cart
                                             </a>
                                             <div className="action-btns">
@@ -84,9 +95,7 @@ export default function ProductCollection() {
                                         <span className="fw-semibold subtitle text-uppercase">
                                             {product.category_ids ? `Category ${product.category_ids}` : "Uncategorized"}
                                         </span>
-                                        <Link to={`/products/${product.id}`}>
-                                            <h6 className="fw-semibold mt-3">{product.name}</h6>
-                                        </Link>
+                                        <h6 className="fw-semibold mt-3">{product.name}</h6>
                                         <p className="fs-sm mb-4">
                                             {product.description || "No description available."}
                                         </p>
