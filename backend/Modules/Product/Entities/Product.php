@@ -99,4 +99,19 @@ class Product extends Model
         return $this->belongsToMany(Collection::class, 'product_collections', 'product_id', 'collection_id')
             ->withTimestamps();
     }
+
+    // Phương thức tính stock cho sản phẩm cha
+    public function getStockQuantityAttribute()
+    {
+        if ($this->parent_id) {
+            // Nếu đây là biến thể, lấy stock của chính nó
+            return $this->sourceProducts->sum('quantity');
+        }
+
+        // Nếu đây là sản phẩm cha, tính stock từ tất cả các biến thể và chính nó
+        return $this->sourceProducts->sum('quantity') +
+            $this->variants->sum(function ($variant) {
+                return $variant->sourceProducts->sum('quantity');
+            });
+    }
 }

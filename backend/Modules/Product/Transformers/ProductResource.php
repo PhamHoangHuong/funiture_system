@@ -11,6 +11,7 @@ class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -29,7 +30,12 @@ class ProductResource extends JsonResource
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
-            'parent' => new ProductResource($this->whenLoaded('parent')),
+
+            'parent' => $this->whenLoaded('parent', function () {
+                return new ProductResource($this->parent);
+            }),
+
+
             'variants' => ProductResource::collection($this->whenLoaded('variants')),
             'attributes' => $this->whenLoaded('productAttributes', function () {
                 return $this->productAttributes->map(function ($productAttribute) {
@@ -43,6 +49,7 @@ class ProductResource extends JsonResource
                 });
             }),
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
+
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'collections' => ProductCollectionResource::collection($this->whenLoaded('collections')),
             'sourceProducts' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
