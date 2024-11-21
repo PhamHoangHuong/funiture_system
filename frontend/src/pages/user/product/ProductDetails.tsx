@@ -11,6 +11,22 @@ const ProductDetails: React.FC = () => {
     const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
+    const [quantity, setQuantity] = useState(1);
+
+    const handleDecrease = () => {
+        setQuantity(prev => prev > 1 ? prev - 1 : 1);
+    };
+
+    const handleIncrease = () => {
+        setQuantity(prev => prev + 1);
+    };
+
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value);
+        if (!isNaN(value) && value >= 1) {
+            setQuantity(value);
+        }
+    };
 
     useEffect(() => {
         const loadProduct = async () => {
@@ -50,14 +66,24 @@ const ProductDetails: React.FC = () => {
                                     <span className="badge sale-badge">Sale</span>
                                     <div className="vr-poroduct-single-slider">
                                         <div className="single-item text-center">
-                                            <span className="zoom-on-hover d-inline-block">
-                                                <img src={
-                                                    typeof product.image === 'string'
-                                                        ? product.image
-                                                        : product.image instanceof File
-                                                            ? URL.createObjectURL(product.image)
-                                                            : "/assets/user/images/products/chair-md-2.png"
-                                                } alt={product.name} className="img-fluid mood-multiply d-inline-block" />
+                                            <span className="d-inline-block">
+                                                <img 
+                                                    src={
+                                                        typeof product.image === 'string'
+                                                            ? product.image
+                                                            : product.image instanceof File
+                                                                ? URL.createObjectURL(product.image)
+                                                                : "/assets/user/images/products/chair-md-2.png"
+                                                    } 
+                                                    alt={product.name} 
+                                                    className="img-fluid mood-multiply d-inline-block" 
+                                                    style={{
+                                                        width: '500px',
+                                                        height: '500px',
+                                                        objectFit: 'contain',
+                                                        marginTop: '-100px'
+                                                    }}
+                                                />
                                             </span>
                                         </div>
                                     </div>
@@ -89,10 +115,66 @@ const ProductDetails: React.FC = () => {
                                     </ul>
                                 </div>
                                 <div className="d-flex align-items-center mt-30 gap-3">
-                                    <div className="quantity-box">
-                                        <button type="button" className="drecrement"><i className="fa-solid fa-minus" /></button>
-                                        <input type="text" defaultValue={1} />
-                                        <button type="button" className="drecrement"><i className="fa-solid fa-plus" /></button>
+                                    <div className="quantity-box" style={{ 
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        border: '1px solid #e5e5e5',
+                                        borderRadius: '4px',
+                                        padding: '2px',
+                                        width: 'fit-content',
+                                        backgroundColor: 'white'
+                                    }}>
+                                        <button 
+                                            type="button" 
+                                            className="drecrement"
+                                            onClick={handleDecrease}
+                                            style={{ 
+                                                width: '36px',
+                                                height: '36px',
+                                                border: 'none',
+                                                background: '#f5f5f5',
+                                                cursor: 'pointer',
+                                                borderRadius: '4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-minus" />
+                                        </button>
+                                        <input 
+                                            type="text" 
+                                            value={quantity}
+                                            onChange={handleQuantityChange}
+                                            min="1"
+                                            style={{ 
+                                                width: '60px',
+                                                height: '36px',
+                                                border: 'none',
+                                                textAlign: 'center',
+                                                margin: '0 8px',
+                                                outline: 'none',
+                                                backgroundColor: 'white'
+                                            }}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            className="drecrement"
+                                            onClick={handleIncrease}
+                                            style={{ 
+                                                width: '36px',
+                                                height: '36px',
+                                                border: 'none',
+                                                background: '#f5f5f5',
+                                                cursor: 'pointer',
+                                                borderRadius: '4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-plus" />
+                                        </button>
                                     </div>
                                     <a 
                                         href="#" 
@@ -100,7 +182,7 @@ const ProductDetails: React.FC = () => {
                                         onClick={(e) => {
                                             e.preventDefault();
                                             if (product) {
-                                                addToCart(product.id, 1);
+                                                addToCart(product.id, quantity);
                                             }
                                         }}
                                     >
