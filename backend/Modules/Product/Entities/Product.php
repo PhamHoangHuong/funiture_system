@@ -103,15 +103,28 @@ class Product extends Model
     // Phương thức tính stock cho sản phẩm cha
     public function getStockQuantityAttribute()
     {
+        // Tránh tính toán lại quá nhiều lần trong các truy vấn
+        // Nếu là sản phẩm con (variant), chỉ tính stock cho sản phẩm con đó
         if ($this->parent_id) {
-            // Nếu đây là biến thể, lấy stock của chính nó
             return $this->sourceProducts->sum('quantity');
         }
 
         // Nếu đây là sản phẩm cha, tính stock từ tất cả các biến thể và chính nó
         return $this->sourceProducts->sum('quantity') +
-            $this->variants->sum(function ($variant) {
-                return $variant->sourceProducts->sum('quantity');
-            });
+            $this->variants->sum(fn($variant) => $variant->sourceProducts->sum('quantity'));
+    }
+
+    // Eager load các quan hệ thường xuyên sử dụng
+    public function scopeWithRelations($query)
+    {
+        return $query->with([
+            'variants',
+            'advancedPrice',
+            'categories',
+            'collections',
+            'sourceProducts',
+            'attributes',
+            'productAttributes',
+        ]);
     }
 }

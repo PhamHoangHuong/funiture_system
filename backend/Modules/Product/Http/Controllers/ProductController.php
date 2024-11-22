@@ -23,19 +23,16 @@ class ProductController extends Controller
 
     protected $productRepository, $sourceProductRepository;
 
-    // Khởi tạo controller với các repository cần thiết
     public function __construct(ProductRepositoryInterface $productRepository, SourceProductRepositoryInterface $sourceProductRepository)
     {
         $this->productRepository = $productRepository;
         $this->sourceProductRepository = $sourceProductRepository;
     }
 
-    // Lấy danh sách tất cả sản phẩm
     public function index(Request $request)
     {
         $params = $request->all();
         $products = $this->productRepository->searchProduct($params);
-
         return ProductResource::collection($products->load('categories', 'collections', 'sourceProducts', 'productAttributes'));
     }
 
@@ -43,67 +40,27 @@ class ProductController extends Controller
     {
         $params = $request->all();
         $products = $this->productRepository->searchProduct($params);
-
-        // Sử dụng ProductResource để trả về JSON
         return ProductResource::collection($products->load('categories', 'collections', 'sourceProducts', 'productAttributes'));
     }
 
-    // Tạo mới một sản phẩm
     public function store(StoreProductRequest $request)
     {
         Log::info('Store method called');
         DB::beginTransaction();
         try {
-            // Chuẩn bị dữ liệu sản phẩm từ request
+            // Prepare product data and create product
             $productData = $this->productRepository->prepareProductData($request);
-            // Tạo sản phẩm mới
             $product = $this->productRepository->createProduct($productData);
             Log::info('Product created: ' . json_encode($product));
 
-            // Tạo sản phẩm biến thể
-            foreach ($request->input('variants', []) as $variant) {
-                $variantData = $productData;
-                $variantData['parent_id'] = $product->id;
-                $variantData['name'] = $variant['name'] ?? $product->name . ' ' . $variant['attribute_value_id'];
-                $variantData['slug'] = $variant['slug'] ?? Str::slug($variantData['name']);
-                $variantData['price'] = $variant['price'] ?? $product->price;
-                $variantData['weight'] = $variant['weight'] ?? $product->weight;
-                $variantData['sku'] = $variant['sku'] ?? $product->sku;
-                $variantData['attribute_id'] = $variant['attributes'][0]['attribute_id'] ?? null;
-                $variantData['attribute_value_id'] = $variant['attributes'][0]['attribute_value_id'] ?? null;
-                $variantData['start_new_time'] = $variant['start_new_time'] ?? $product->start_new_time;
-                $variantData['end_new_time'] = $variant['end_new_time'] ?? $product->end_new_time;
-                $variantData['seo_title'] = $variant['seo_title'] ?? $product->seo_title;
-                $variantData['seo_description'] = $variant['seo_description'] ?? $product->seo_description;
-                $variantData['video_link'] = $variant['video_link'] ?? $product->video_link;
-                $variantData['categories'] = $product->categories->pluck('id');
+            // Create variants
+            $this->createVariants($request, $product, $productData);
 
-                if (isset($variant['image']) && $variant['image'] instanceof UploadedFile) {
-                    $variantData['image'] = $this->uploadImage($request, 'image', 'products');
-                } else {
-                    $variantData['image'] = null;
-                }
-
-                if (!empty($variantData['attribute_id']) && !empty($variantData['attribute_value_id'])) {
-                    $variantProduct = $this->productRepository->createProduct($variantData);
-                    $this->productRepository->updateProductAttributes($variantProduct, $variant['attributes']);
-                } else {
-                    Log::warning('Variant creation skipped due to missing attribute data', $variantData);
-                }
-            }
-
-            // Cập nhật thuộc tính cho sản phẩm
-            $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
-            // Cập nhật danh mục cho sản phẩm
-            $this->productRepository->updateProductCategories($product, $request->input('category_ids', []));
-            // Cập nhật nguồn cung cấp cho sản phẩm
-            $this->productRepository->updateProductSources($product, $request->input('sources', []));
-            // Cập nhật bộ sưu tập cho sản phẩm
-            $this->productRepository->updateProductCollections($product, $request->input('collection_ids', []));
+            // Update product attributes, categories, sources, collections
+            $this->updateProductAssociations($product, $request);
 
             DB::commit();
             Log::info('Transaction committed');
-
             return $this->toResponseSuccess('Sản phẩm đã được tạo thành công', new ProductResource($product), Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -112,7 +69,53 @@ class ProductController extends Controller
         }
     }
 
-    // Hiển thị thông tin chi tiết của một sản phẩm
+    private function createVariants(StoreProductRequest $request, $product, $productData)
+    {
+        foreach ($request->input('variants', []) as $variant) {
+            $variantData = $this->prepareVariantData($variant, $product, $productData);
+
+            if (!empty($variantData['attribute_id']) && !empty($variantData['attribute_value_id'])) {
+                $variantProduct = $this->productRepository->createProduct($variantData);
+                $this->productRepository->updateProductAttributes($variantProduct, $variant['attributes']);
+            } else {
+                Log::warning('Variant creation skipped due to missing attribute data', $variantData);
+            }
+        }
+    }
+
+    private function prepareVariantData($variant, $product, $productData)
+    {
+        $variantData = $productData;
+        $variantData['parent_id'] = $product->id;
+        $variantData['name'] = $variant['name'] ?? $product->name . ' ' . $variant['attribute_value_id'];
+        $variantData['slug'] = $variant['slug'] ?? Str::slug($variantData['name']);
+        $variantData['price'] = $variant['price'] ?? $product->price;
+        $variantData['weight'] = $variant['weight'] ?? $product->weight;
+        $variantData['sku'] = $variant['sku'] ?? $product->sku;
+        $variantData['attribute_id'] = $variant['attributes'][0]['attribute_id'] ?? null;
+        $variantData['attribute_value_id'] = $variant['attributes'][0]['attribute_value_id'] ?? null;
+        $variantData['start_new_time'] = $variant['start_new_time'] ?? $product->start_new_time;
+        $variantData['end_new_time'] = $variant['end_new_time'] ?? $product->end_new_time;
+        $variantData['seo_title'] = $variant['seo_title'] ?? $product->seo_title;
+        $variantData['seo_description'] = $variant['seo_description'] ?? $product->seo_description;
+        $variantData['video_link'] = $variant['video_link'] ?? $product->video_link;
+        $variantData['categories'] = $product->categories->pluck('id');
+
+        if (isset($variant['image']) && $variant['image'] instanceof UploadedFile) {
+            $variantData['image'] = $this->uploadImage($request, 'image', 'products');
+        }
+
+        return $variantData;
+    }
+
+    private function updateProductAssociations($product, $request)
+    {
+        $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
+        $this->productRepository->updateProductCategories($product, $request->input('category_ids', []));
+        $this->productRepository->updateProductSources($product, $request->input('sources', []));
+        $this->productRepository->updateProductCollections($product, $request->input('collection_ids', []));
+    }
+
     public function show($id)
     {
         try {
@@ -123,7 +126,6 @@ class ProductController extends Controller
         }
     }
 
-    // Cập nhật thông tin sản phẩm
     public function update(UpdateProductRequest $request, $id)
     {
         DB::beginTransaction();
@@ -136,11 +138,7 @@ class ProductController extends Controller
 
             $product = $this->productRepository->updateProduct($id, $productData);
 
-            $this->productRepository->updateProductAttributes($product, $request->input('attributes', []));
-            //Cập nhật danh mục cho sản phẩm
-            $this->productRepository->updateProductCategories($product, $request->input('category_ids', []));
-            //Cập nhật bộ sưu tập cho sản phẩm
-            $this->productRepository->updateProductCollections($product, $request->input('collection_ids', []));
+            $this->updateProductAssociations($product, $request);
 
             DB::commit();
             return $this->toResponseSuccess('Sản phẩm đã được cập nhật thành công', new ProductResource($product));
@@ -150,7 +148,6 @@ class ProductController extends Controller
         }
     }
 
-    // Xóa một sản phẩm
     public function destroy($id)
     {
         try {
@@ -161,14 +158,12 @@ class ProductController extends Controller
         }
     }
 
-    // Lưu thông tin cơ bản của sản phẩm
     public function storeBasicInfo(StoreProductRequest $request)
     {
         $product = $this->productRepository->create($request->validated());
         return response()->json(['product_id' => $product->id]);
     }
 
-    // Lưu thuộc tính cho sản phẩm
     public function storeAttributes(Request $request, $productId)
     {
         $product = $this->productRepository->find($productId);

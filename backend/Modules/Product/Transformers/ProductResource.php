@@ -11,7 +11,6 @@ class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
-
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -31,25 +30,22 @@ class ProductResource extends JsonResource
             'seo_description' => $this->seo_description,
             'video_link' => $this->video_link,
 
-            'parent' => $this->whenLoaded('parent', function () {
-                return new ProductResource($this->parent);
-            }),
+            // Sử dụng `whenLoaded` để load quan hệ và trả về ProductResource
+            'parent' => $this->whenLoaded('parent', fn() => new self($this->parent)),
 
+            'variants' => $this->whenLoaded('variants', fn() => $this->variants->map(fn($variant) => new self($variant))),
 
-            'variants' => ProductResource::collection($this->whenLoaded('variants')),
-            'attributes' => $this->whenLoaded('productAttributes', function () {
-                return $this->productAttributes->map(function ($productAttribute) {
-                    return [
-                        'id' => $productAttribute->id,
-                        'attribute_id' => $productAttribute->attribute_id,
-                        'attribute_name' => $productAttribute->attribute->name ?? null,
-                        'value_id' => $productAttribute->value_id,
-                        'value' => $productAttribute->attributeValue->value ?? null,
-                    ];
-                });
-            }),
+            // Xử lý productAttributes ngắn gọn hơn với optional()
+            'attributes' => $this->whenLoaded('productAttributes', fn() => $this->productAttributes->map(fn($productAttribute) => [
+                'id' => $productAttribute->id,
+                'attribute_id' => $productAttribute->attribute_id,
+                'attribute_name' => optional($productAttribute->attribute)->name,
+                'value_id' => $productAttribute->value_id,
+                'value' => optional($productAttribute->attributeValue)->value,
+            ])),
+
+            // Sử dụng AdvancedPriceResource, CategoryResource, SourceProductResource để tạo danh sách các quan hệ
             'advanced_prices' => AdvancedPriceResource::collection($this->whenLoaded('advancedPrices')),
-
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'collections' => ProductCollectionResource::collection($this->whenLoaded('collections')),
             'sourceProducts' => SourceProductResource::collection($this->whenLoaded('sourceProducts')),
