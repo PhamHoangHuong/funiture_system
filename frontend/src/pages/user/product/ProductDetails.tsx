@@ -105,7 +105,13 @@ const ProductDetails: React.FC = () => {
                                     <span className="fs-sm">(3 Customer Reviews)</span>
                                 </div>
                                 <h5 className="mb-0 mt-30">{formatCurrency(product.price)}</h5>
-                                <p className="mb-40 mt-30">{product.description}</p>
+                                <p className="mb-40 mt-30" style={{
+                                    whiteSpace: 'pre-wrap',
+                                    wordWrap: 'break-word',
+                                    overflowWrap: 'break-word'
+                                }}>
+                                    {product.description}
+                                </p>
                                 <div className="color-variant">
                                     <span className="fs-sm text-uppercase text-main-color fw-medium">Color</span>
                                     <ul className="color-list mt-20">
@@ -211,8 +217,19 @@ const ProductDetails: React.FC = () => {
                         <div className="tab-content mt-32">
                             <div className="tab-pane fade active show" id="tab-1" role="tabpanel">
                                 <div className="d-flex align-items-center justify-content-between gap-4 flex-wrap flex-lg-nowrap">
-                                    <div className="product-description">
-                                        <p className="mb-0 fw-light">{product.content || 'No detailed description available.'}</p>
+                                    <div className="product-description" style={{ 
+                                        maxWidth: '50%',
+                                        flex: '0 0 50%',
+                                        padding: '20px',
+                                        borderRight: '1px solid #eee'
+                                    }}>
+                                        <p className="mb-0 fw-light" style={{
+                                            whiteSpace: 'pre-wrap',
+                                            wordWrap: 'break-word',
+                                            overflowWrap: 'break-word'
+                                        }}>
+                                            {product.content || 'No detailed description available.'}
+                                        </p>
                                     </div>
                                     {product.video_link && (
                                         <div className="video-content flex-shrink-0 position-relative">

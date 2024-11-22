@@ -433,9 +433,20 @@ export default function ShopSection() {
 																	: "Uncategorized"}
 															</span>
 															<h6 className="fw-semibold mt-3">{product.name}</h6>
-															<p className="fs-sm mb-4">
-																{product.description ||
-																	"No description available."}
+															<p className="fs-sm mb-4" style={{
+																overflow: 'hidden',
+																textOverflow: 'ellipsis',
+																display: '-webkit-box',
+																WebkitLineClamp: 2,  // Giới hạn 2 dòng
+																WebkitBoxOrient: 'vertical',
+																maxHeight: '3em',    // Giới hạn chiều cao
+															}}>
+																{product.description 
+																	? (product.description.length > 100 
+																		? product.description.substring(0, 100) + '...'  // Cắt text nếu dài hơn 100 ký tự
+																		: product.description)
+																	: "No description available."
+																}
 															</p>
 															<span className="text-main-color fw-bold fs-sm">
 																{formatCurrency(product.price)}
